@@ -72,20 +72,22 @@ async def discoverDenonAVRs():
 
 async def getDenonInfo(ipaddress):
     LOG.debug("Trying to get device info for " + ipaddress)
+    d = None
     res = {}
 
     try:
         d = denonavr.DenonAVR(ipaddress)
-        await d.async_setup()
-        await d.async_update()
-
-        res["id"] = d.serial_number
-        res["manufacturer"] = d.manufacturer
-        res["model"] = d.model_name
-        res["name"] = d.name
-        res["ipaddress"] = ipaddress
     except:
         LOG.error("Failed to get device info. Maybe not a Denon device.")
+
+    await d.async_setup()
+    await d.async_update()
+
+    res["id"] = d.serial_number
+    res["manufacturer"] = d.manufacturer
+    res["model"] = d.model_name
+    res["name"] = d.name
+    res["ipaddress"] = ipaddress
 
     return res
 
