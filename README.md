@@ -22,6 +22,16 @@ Supported commands:
 - Play/pause
 - Source select
 
+## Setup
+
+```console
+pip3 install -r requirements.txt
+```
+
+Manually install [ucapi](https://github.com/aitatoi/integration-python-library) library:
+```console
+pip3 install ../integration-python-library/dist/ucapi-$UCAPI_PYTHON_LIB_VERSION-py3-none-any.whl
+```
 
 ## Build self-contained binary
 
@@ -49,7 +59,7 @@ to extract the license information in JSON format. The output JSON is then trans
 custom script.
 
 Create a virtual environment for pip-licenses, since it operates on the packages installed with pip:
-```bash
+```console
 python3 -m venv env
 source env/bin/activate
 pip3 install -r requirements.txt
@@ -57,7 +67,7 @@ pip3 install -r requirements.txt
 Exit `venv` with `deactivate`.
 
 Gather licenses:
-```bash
+```console
 pip-licenses --python ./env/bin/python \
   --with-description --with-urls \
   --with-license-file --no-license-path \
@@ -66,7 +76,7 @@ pip-licenses --python ./env/bin/python \
 ```
 
 Transform:
-```bash
+```console
 cd tools
 node transform-pip-licenses.js ../licenses.json licenses.md
 ```
