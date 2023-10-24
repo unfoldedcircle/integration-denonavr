@@ -23,6 +23,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install pip
+        run: |
+          python -m pip install --upgrade pip
+
       # We need the integration library, this is temporary until we decide to publish it to pypi
       - name: Clone & install integrations library
         shell: bash
@@ -33,18 +42,13 @@ jobs:
           git checkout v${INTG_LIB_VER}
           python3 setup.py bdist_wheel
           ls -lah dist
-          pip3 install -I dist/ucapi-${INTG_LIB_VER}-py3-none-any.whl
+          pip install -I dist/ucapi-${INTG_LIB_VER}-py3-none-any.whl
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f test-requirements.txt ]; then pip install -r test-requirements.txt; fi
-      - name: Analysing the code with pylint
+      - name: Analyzing the code with pylint
         run: |
           python -m pylint *.py
       - name: Check code formatting with isort
