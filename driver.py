@@ -371,6 +371,7 @@ async def _handle_avr_update(entity_id, update):
 def _get_media_player_state(avr_state) -> entities.media_player.STATES:
     """
     Convert AVR state to UC API media-player state.
+
     :param avr_state: Denon AVR state
     :return: UC API media_player state
     """
@@ -390,7 +391,8 @@ def _get_media_player_state(avr_state) -> entities.media_player.STATES:
 
 def _update_attributes(attributes):
     """
-    Update the entity attributes based on the state
+    Update the entity attributes based on the state.
+
     :param attributes: entity attributes dictionary
     """
     if entities.media_player.ATTRIBUTES.STATE in attributes:

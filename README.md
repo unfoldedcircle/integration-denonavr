@@ -44,6 +44,9 @@ pip3 install -r test-requirements.txt
 ```
 
 ### Verify
+
+The following tests are run as GitHub action for each push on the main branch and for pull requests.
+They can also be run anytime on a local developer machine:
 ```console
 python -m pylint *.py
 python -m flake8 *.py --count --show-source --statistics
@@ -51,10 +54,21 @@ python -m isort *.py --check --verbose
 python -m black *.py --check --verbose --line-length 120
 ```
 
+Linting integration in PyCharm/IntelliJ IDEA:
+1. Install plugin [Pylint](https://plugins.jetbrains.com/plugin/11084-pylint)
+2. Open Pylint window and run a scan: `Check Module` or `Check Current File`
+
 ### Format Code
 ```console
 python -m black *.py --line-length 120
 ```
+
+PyCharm/IntelliJ IDEA integration:
+1. Go to `Preferences or Settings -> Tools -> Black`
+2. Configure:
+  - Python interpreter
+  - Use Black formatter: `On code reformat` & optionally `On save`
+  - Arguments: `--line-length 120`
 
 ### Sort Imports
 
