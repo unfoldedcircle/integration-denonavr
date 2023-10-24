@@ -40,7 +40,7 @@ jobs:
           ls -lah
           cd integration-python-library
           git checkout v${INTG_LIB_VER}
-          python3 setup.py bdist_wheel
+          python setup.py bdist_wheel
           ls -lah dist
           pip install -I dist/ucapi-${INTG_LIB_VER}-py3-none-any.whl
 
