@@ -8,8 +8,8 @@ This module implements a Remote Two integration driver for Denon AVR receivers.
 """
 
 import asyncio
-import logging
 import json
+import logging
 import os
 
 import ucapi.api as uc

@@ -6,16 +6,15 @@ This module implements the Denon AVR receiver communication of the Remote Two in
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
 """
 
-import logging
 import asyncio
-import socket
+import logging
 import re
-
+import socket
 from enum import IntEnum
-from pyee import AsyncIOEventEmitter
 
 import denonavr
 import denonavr.exceptions
+from pyee import AsyncIOEventEmitter
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
