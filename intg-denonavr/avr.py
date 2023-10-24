@@ -274,8 +274,8 @@ class DenonAVR:
                 },
             )
             LOG.debug("Track data, artist: " + self.artist + " title: " + self.title + " artwork: " + self.artwork)
-        except denonavr.exceptions.DenonAvrError:
-            pass
+        except denonavr.exceptions.DenonAvrError as e:
+            LOG.error("Failed to get latest status information: %s", e)
 
         self.getting_data = False
         LOG.debug("Getting track data done.")
@@ -284,8 +284,8 @@ class DenonAVR:
         LOG.debug("Zone: " + zone + " Event: " + event + " Parameter: " + parameter)
         try:
             await self._avr.async_update()
-        except denonavr.exceptions.DenonAvrError:
-            pass
+        except denonavr.exceptions.DenonAvrError as e:
+            LOG.error("Failed to get latest status information: %s", e)
 
         if event == "MV":
             self.volume = self._convert_volume_to_percent(self._avr.volume)
@@ -315,17 +315,25 @@ class DenonAVR:
         #         LOG.debug(f"Time: {self.position}, Percentage: {self.duration}")
 
     async def _subscribe_events(self):
-        # FIXME #9 add exception handling
-        await self._avr.async_telnet_connect()
-        await self._avr.async_update()
+        try:
+            await self._avr.async_telnet_connect()
+            await self._avr.async_update()
+        except denonavr.exceptions.DenonAvrError as e:
+            LOG.error("Failed to get latest status information: %s", e)
         self._avr.register_callback("ALL", self._update_callback)
         LOG.debug("Subscribed to events")
 
     async def _unsubscribe_events(self):
-        # FIXME #9 add exception handling
-        self._avr.unregister_callback("ALL", self._update_callback)
-        await self._avr.async_update()
-        await self._avr.async_telnet_disconnect()
+        try:
+            self._avr.unregister_callback("ALL", self._update_callback)
+            # TODO is async_update() required?
+            await self._avr.async_update()
+        except denonavr.exceptions.DenonAvrError as e:
+            LOG.error("Failed to get latest status information: %s", e)
+        try:
+            await self._avr.async_telnet_disconnect()
+        except denonavr.exceptions.DenonAvrError:
+            pass
         LOG.debug("Unsubscribed to events")
 
     # TODO add commands
@@ -334,8 +342,9 @@ class DenonAVR:
         try:
             await fn()
             return True
-        except denonavr.exceptions.DenonAvrError:
-            # TODO logging & retry handling
+        except denonavr.exceptions.DenonAvrError as e:
+            LOG.error("Failed to execute command: %s", e)
+            # TODO retry handling?
             return False
 
     async def power_on(self):
@@ -371,7 +380,8 @@ class DenonAVR:
         try:
             await self._avr.async_mute(muted)
             return True
-        except denonavr.exceptions.DenonAvrError:
+        except denonavr.exceptions.DenonAvrError as e:
+            LOG.error("Failed to execute mute command: %s", e)
             return False
 
     async def set_input(self, input_source):
@@ -379,5 +389,6 @@ class DenonAVR:
         try:
             await self._avr.async_set_input_func(input_source)
             return True
-        except denonavr.exceptions.DenonAvrError:
+        except denonavr.exceptions.DenonAvrError as e:
+            LOG.error("Failed to execute input_source command: %s", e)
             return False
