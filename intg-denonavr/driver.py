@@ -12,10 +12,9 @@ import json
 import logging
 import os
 
+import avr
 import ucapi.api as uc
 from ucapi import entities
-
-import avr
 
 LOG = logging.getLogger(__name__)
 LOOP = asyncio.get_event_loop()
