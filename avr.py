@@ -1,19 +1,29 @@
+# -*- coding: utf-8 -*-
+"""
+This module implements the Denon AVR receiver communication of the Remote Two integration driver.
+
+:copyright: (c) 2023 by Unfolded Circle ApS.
+:license: Mozilla Public License Version 2.0, see LICENSE for more details.
+"""
+
 import logging
 import asyncio
-
 import socket
-import denonavr
-import denonavr.exceptions
 import re
 
 from enum import IntEnum
 from pyee import AsyncIOEventEmitter
 
+import denonavr
+import denonavr.exceptions
+
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
 
-MCAST_GRP = '239.255.255.250'
+MCAST_GRP = "239.255.255.250"
 MCAST_PORT = 1900
+# is this correct? denonavr uses 2
+SSDP_MX = 3
 
 SSDP_DEVICES = [
     "urn:schemas-upnp-org:device:MediaRenderer:1",
@@ -23,6 +33,8 @@ SSDP_DEVICES = [
 
 
 class EVENTS(IntEnum):
+    """Internal driver events."""
+
     CONNECTING = 0
     CONNECTED = 1
     DISCONNECTED = 2
@@ -32,10 +44,27 @@ class EVENTS(IntEnum):
 
 
 class STATES(IntEnum):
+    """State of a connected AVR."""
+
     OFF = 0
     ON = 1
     PLAYING = 2
     PAUSED = 3
+
+
+def ssdp_request(ssdp_st: str, ssdp_mx: float = SSDP_MX) -> bytes:
+    """Return request bytes for given st and mx."""
+    return "\r\n".join(
+        [
+            "M-SEARCH * HTTP/1.1",
+            f"ST: {ssdp_st}",
+            f"MX: {ssdp_mx:d}",
+            'MAN: "ssdp:discover"',
+            f"HOST: {MCAST_GRP}:{MCAST_PORT}",
+            "",
+            "",
+        ]
+    ).encode("utf-8")
 
 
 async def discover_denon_avrs():
@@ -43,25 +72,23 @@ async def discover_denon_avrs():
     res = []
 
     for ssdp_device in SSDP_DEVICES:
-        MESSAGE = f'M-SEARCH * HTTP/1.1\r\nHOST: {MCAST_GRP}:{MCAST_PORT}\r\nMAN: "ssdp:discover"\r\nMX: 3\r\nST: {ssdp_device}\r\n\r\n'
-
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(3)
 
         try:
-            sock.sendto(MESSAGE.encode(), (MCAST_GRP, MCAST_PORT))
+            request = ssdp_request(ssdp_device)
+            sock.sendto(request, (MCAST_GRP, MCAST_PORT))
 
             while True:
                 try:
                     data, addr = sock.recvfrom(1024)
-                    LOG.info(f"Found SSDP device at {addr}:")
-                    LOG.debug(data.decode())
+                    LOG.info("Found SSDP device at %s: %s", addr, data.decode())
                     # TODO pre-filter out known non-Denon devices. Check keys: hue-bridgeid, X-RINCON-HOUSEHOLD
                     # LOG.debug("-"*30)
 
                     info = await get_denon_info(addr[0])
                     if info:
-                        LOG.info(f"Found Denon device {info}:")
+                        LOG.info("Found Denon device %s", info)
                         res.append(info)
                 except socket.timeout:
                     break
@@ -98,8 +125,11 @@ async def get_denon_info(ipaddress):
     }
 
 
-class DenonAVR(object):
+class DenonAVR:
+    """Representing a Denon AVR Device."""
+
     def __init__(self, loop, ipaddress):
+        """Create instance with given IP address of AVR."""
         self._loop = loop
         self.events = AsyncIOEventEmitter(self._loop)
         self._avr = None
@@ -108,7 +138,7 @@ class DenonAVR(object):
         self.manufacturer = ""
         self.id = ""
         self.ipaddress = ipaddress
-        self.gettingData = False
+        self.getting_data = False
 
         self.state = STATES.OFF
         self.volume = 0
@@ -120,7 +150,7 @@ class DenonAVR(object):
         self.position = 0
         self.duration = 0
 
-        LOG.debug("Denon AVR created: " + self.ipaddress)
+        LOG.debug("Denon AVR created: %s", self.ipaddress)
 
     @staticmethod
     def map_range(value, from_min, from_max, to_min, to_max):
@@ -134,13 +164,13 @@ class DenonAVR(object):
 
     @staticmethod
     def extract_values(input_string):
-        pattern = r'(\d+:\d+)\s+(\d+%)'
+        pattern = r"(\d+:\d+)\s+(\d+%)"
         matches = re.findall(pattern, input_string)
 
         if matches:
             return matches[0]
-        else:
-            return None
+
+        return None
 
     # TODO ADD METHOD FOR CHANGED IP ADDRESS
 
@@ -163,14 +193,9 @@ class DenonAVR(object):
         self.model = self._avr.model_name
         self.name = self._avr.name
         self.id = self._avr.serial_number
-        LOG.debug("Denon AVR connected.")
-        LOG.debug("Manufacturer: " + self.manufacturer)
-        LOG.debug("Model: " + self.model)
-        LOG.debug("Name: " + self.name)
-        LOG.debug("Id: " + self.id)
-        LOG.debug("State: " + self._avr.state)
+        LOG.debug("Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
+                  self.manufacturer, self.model, self.name, self.id, self._avr.state)
         await self.subscribe_events()
-        # FIXME emit expects a str, not an int!
         self.events.emit(EVENTS.CONNECTED, self.id)
 
         if self._avr.state == "on":
@@ -194,14 +219,13 @@ class DenonAVR(object):
     async def disconnect(self):
         await self.unsubscribe_events()
         self._avr = None
-        # FIXME emit expects a str, not an int!
         self.events.emit(EVENTS.DISCONNECTED, self.id)
 
     async def get_data(self):
-        if self.gettingData:
+        if self.getting_data:
             return
 
-        self.gettingData = True
+        self.getting_data = True
         LOG.debug("Getting track data.")
 
         try:
@@ -222,7 +246,6 @@ class DenonAVR(object):
                 elif self._avr.state == "paused":
                     self.state = STATES.PAUSED
 
-            # FIXME emit expects a str, not an int!
             self.events.emit(EVENTS.UPDATE, {
                 "state": self.state,
                 "artist": self.artist,
@@ -233,7 +256,7 @@ class DenonAVR(object):
         except denonavr.exceptions.DenonAvrError:
             pass
 
-        self.gettingData = False
+        self.getting_data = False
         LOG.debug("Getting track data done.")
 
     async def update_callback(self, zone, event, parameter):
@@ -245,7 +268,6 @@ class DenonAVR(object):
 
         if event == "MV":
             self.volume = self.convert_volume_to_percent(self._avr.volume)
-            # FIXME emit expects a str, not an int!
             self.events.emit(EVENTS.UPDATE, {"volume": self.volume})
         else:
             _ = asyncio.ensure_future(self.get_data())
@@ -261,9 +283,9 @@ class DenonAVR(object):
         #     result = self.extract_values(parameter)
         #     if result:
         #         time, percentage = result
-        #         hours, minutes = map(int, time.split(':'))
+        #         hours, minutes = map(int, time.split(":"))
         #         self.duration = hours * 3600 + minutes * 60
-        #         self.position = (int(percentage.strip('%')) / 100) * self.duration
+        #         self.position = (int(percentage.strip("%")) / 100) * self.duration
         #         self.events.emit(EVENTS.UPDATE, {
         #             "position": self.position,
         #             "total_time": self.duration
