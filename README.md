@@ -33,6 +33,35 @@ Manually install [ucapi](https://github.com/aitatoi/integration-python-library) 
 pip3 install ../integration-python-library/dist/ucapi-$UCAPI_PYTHON_LIB_VERSION-py3-none-any.whl
 ```
 
+## Code Style
+
+- Code line length: 120
+- Use double quotes as default (don't mix and match for simple quoting, checked with pylint).
+
+Install tooling:
+```console
+pip3 install -r test-requirements.txt
+```
+
+### Verify
+```console
+python -m pylint *.py
+python -m flake8 *.py --count --show-source --statistics
+python -m isort *.py --check --verbose 
+python -m black *.py --check --verbose --line-length 120
+```
+
+### Format Code
+```console
+python -m black *.py --line-length 120
+```
+
+### Sort Imports
+
+```console
+python -m isort *.py
+```
+
 ## Build self-contained binary
 
 After some tests, turns out python stuff on embedded is a nightmare. So we're better off creating a single binary file that has everything in it.
