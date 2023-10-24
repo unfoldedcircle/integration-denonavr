@@ -27,8 +27,6 @@ max-line-length=120
 # --disable=W"
 
 disable=
-    # just temporary until functions are all documented!
-    missing-function-docstring,
     too-many-instance-attributes,
     global-statement,
 

@@ -67,6 +67,11 @@ def ssdp_request(ssdp_st: str, ssdp_mx: float = SSDP_MX) -> bytes:
 
 
 async def discover_denon_avrs():
+    """
+    Discover Denon AVRs on the network with SSDP.
+
+    :return: array of device information objects.
+    """
     LOG.debug("Starting discovery")
     res = []
 
@@ -99,6 +104,12 @@ async def discover_denon_avrs():
 
 
 async def get_denon_info(ipaddress):
+    """
+    Connect to the given IP address of a Denon AVR and retrieve model information.
+
+    :param ipaddress: IP address of receiver to fetch information from.
+    :return: object with `id`, `manufacturer`, `model`, `name` and `ipaddress`
+    """
     LOG.debug("Trying to get device info for %s", ipaddress)
     d = None
 
@@ -152,17 +163,17 @@ class DenonAVR:
         LOG.debug("Denon AVR created: %s", self.ipaddress)
 
     @staticmethod
-    def map_range(value, from_min, from_max, to_min, to_max):
+    def _map_range(value, from_min, from_max, to_min, to_max):
         return (value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
 
-    def convert_volume_to_percent(self, value):
-        return self.map_range(value, -80.0, 0.0, 0, 100)
+    def _convert_volume_to_percent(self, value):
+        return self._map_range(value, -80.0, 0.0, 0, 100)
 
-    def convert_volume_to_db(self, value):
-        return self.map_range(value, 0, 100, -80.0, 0.0)
+    def _convert_volume_to_db(self, value):
+        return self._map_range(value, 0, 100, -80.0, 0.0)
 
     @staticmethod
-    def extract_values(input_string):
+    def _extract_values(input_string):
         pattern = r"(\d+:\d+)\s+(\d+%)"
         matches = re.findall(pattern, input_string)
 
@@ -174,9 +185,10 @@ class DenonAVR:
     # TODO ADD METHOD FOR CHANGED IP ADDRESS
 
     async def connect(self):
+        """Connect to AVR."""
         if self._avr is not None:
             LOG.debug("Already connected")
-            _ = asyncio.ensure_future(self.get_data())
+            _ = asyncio.ensure_future(self._get_data())
             return
 
         try:
@@ -200,7 +212,7 @@ class DenonAVR:
             self.id,
             self._avr.state,
         )
-        await self.subscribe_events()
+        await self._subscribe_events()
         self.events.emit(EVENTS.CONNECTED, self.id)
 
         if self._avr.state == "on":
@@ -214,7 +226,7 @@ class DenonAVR:
 
         self.input_list = self._avr.input_func_list
         self.input = self._avr.input_func
-        self.volume = self.convert_volume_to_percent(self._avr.volume)
+        self.volume = self._convert_volume_to_percent(self._avr.volume)
         self.artist = self._avr.artist
         self.title = self._avr.title
         self.artwork = self._avr.image_url
@@ -222,11 +234,12 @@ class DenonAVR:
         self.duration = 0
 
     async def disconnect(self):
-        await self.unsubscribe_events()
+        """Disconnect from AVR."""
+        await self._unsubscribe_events()
         self._avr = None
         self.events.emit(EVENTS.DISCONNECTED, self.id)
 
-    async def get_data(self):
+    async def _get_data(self):
         if self.getting_data:
             return
 
@@ -267,7 +280,7 @@ class DenonAVR:
         self.getting_data = False
         LOG.debug("Getting track data done.")
 
-    async def update_callback(self, zone, event, parameter):
+    async def _update_callback(self, zone, event, parameter):
         LOG.debug("Zone: " + zone + " Event: " + event + " Parameter: " + parameter)
         try:
             await self._avr.async_update()
@@ -275,10 +288,10 @@ class DenonAVR:
             pass
 
         if event == "MV":
-            self.volume = self.convert_volume_to_percent(self._avr.volume)
+            self.volume = self._convert_volume_to_percent(self._avr.volume)
             self.events.emit(EVENTS.UPDATE, {"volume": self.volume})
         else:
-            _ = asyncio.ensure_future(self.get_data())
+            _ = asyncio.ensure_future(self._get_data())
             # if self.state == STATES.OFF:
             #     self.state = STATES.ON
 
@@ -288,7 +301,7 @@ class DenonAVR:
         #     _ = asyncio.ensure_future(self.getData())
         # TODO: the duration and position needs more digging
         # if parameter.startswith("5"):
-        #     result = self.extract_values(parameter)
+        #     result = self._extract_values(parameter)
         #     if result:
         #         time, percentage = result
         #         hours, minutes = map(int, time.split(":"))
@@ -301,16 +314,16 @@ class DenonAVR:
 
         #         LOG.debug(f"Time: {self.position}, Percentage: {self.duration}")
 
-    async def subscribe_events(self):
+    async def _subscribe_events(self):
         # FIXME #9 add exception handling
         await self._avr.async_telnet_connect()
         await self._avr.async_update()
-        self._avr.register_callback("ALL", self.update_callback)
+        self._avr.register_callback("ALL", self._update_callback)
         LOG.debug("Subscribed to events")
 
-    async def unsubscribe_events(self):
+    async def _unsubscribe_events(self):
         # FIXME #9 add exception handling
-        self._avr.unregister_callback("ALL", self.update_callback)
+        self._avr.unregister_callback("ALL", self._update_callback)
         await self._avr.async_update()
         await self._avr.async_telnet_disconnect()
         LOG.debug("Unsubscribed to events")
@@ -326,27 +339,35 @@ class DenonAVR:
             return False
 
     async def power_on(self):
+        """Send power-on command to AVR."""
         return await self._command_wrapper(self._avr.async_power_on)
 
     async def power_off(self):
+        """Send power-off command to AVR."""
         return await self._command_wrapper(self._avr.async_power_off)
 
     async def volume_up(self):
+        """Send volume-up command to AVR."""
         return await self._command_wrapper(self._avr.async_volume_up)
 
     async def volume_down(self):
+        """Send volume-down command to AVR."""
         return await self._command_wrapper(self._avr.async_volume_down)
 
     async def play_pause(self):
+        """Send toggle-play-pause command to AVR."""
         return await self._command_wrapper(self._avr.async_toggle_play_pause)
 
     async def next(self):
+        """Send next-track command to AVR."""
         return await self._command_wrapper(self._avr.async_next_track)
 
     async def previous(self):
+        """Send previous-track command to AVR."""
         return await self._command_wrapper(self._avr.async_previous_track)
 
     async def mute(self, muted):
+        """Send mute command to AVR."""
         try:
             await self._avr.async_mute(muted)
             return True
@@ -354,6 +375,7 @@ class DenonAVR:
             return False
 
     async def set_input(self, input_source):
+        """Send input_source command to AVR."""
         try:
             await self._avr.async_set_input_func(input_source)
             return True

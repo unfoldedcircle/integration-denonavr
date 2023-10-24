@@ -38,7 +38,12 @@ async def clear_config():
         os.remove(CFG_FILE_PATH)
 
 
-async def store_config():
+async def store_config() -> bool:
+    """
+    Store the configuration file.
+
+    :return: True if the configuration could be saved.
+    """
     try:
         with open(CFG_FILE_PATH, "w+", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False)
@@ -68,7 +73,7 @@ async def load_config():
 
 # DRIVER SETUP
 @api.events.on(uc.uc.EVENTS.SETUP_DRIVER)
-async def on_setup_driver(websocket, req_id, _data):
+async def _on_setup_driver(websocket, req_id, _data):
     LOG.debug("Starting driver setup")
     await clear_config()
     await api.acknowledgeCommand(websocket, req_id)
@@ -105,7 +110,7 @@ async def on_setup_driver(websocket, req_id, _data):
 
 
 @api.events.on(uc.uc.EVENTS.SETUP_DRIVER_USER_DATA)
-async def on_setup_driver_user_data(websocket, req_id, data):
+async def _on_setup_driver_user_data(websocket, req_id, data):
     await api.acknowledgeCommand(websocket, req_id)
     await api.driverSetupProgress(websocket)
 
@@ -118,7 +123,7 @@ async def on_setup_driver_user_data(websocket, req_id, data):
         await obj.connect()
         configuredAVRs[obj.id] = obj
 
-        add_available_entity(obj.id, obj.name)
+        _add_available_entity(obj.id, obj.name)
 
         config.append({"id": obj.id, "name": obj.name, "ipaddress": obj.ipaddress})
         await store_config()
@@ -131,13 +136,13 @@ async def on_setup_driver_user_data(websocket, req_id, data):
 
 # When the core connects, we just set the device state
 @api.events.on(uc.uc.EVENTS.CONNECT)
-async def on_connect():
+async def _on_connect():
     await api.setDeviceState(uc.uc.DEVICE_STATES.CONNECTED)
 
 
 # When the core disconnects, we just set the device state
 @api.events.on(uc.uc.EVENTS.DISCONNECT)
-async def on_disconnect():
+async def _on_disconnect():
     for entity_id in configuredAVRs.items():
         LOG.debug("Client disconnected, disconnecting all AVRs")
         a = configuredAVRs[entity_id]
@@ -149,14 +154,14 @@ async def on_disconnect():
 
 # On standby, we disconnect every Denon AVR objects
 @api.events.on(uc.uc.EVENTS.ENTER_STANDBY)
-async def on_enter_standby():
+async def _on_enter_standby():
     for a in configuredAVRs.items():
         await configuredAVRs[a].disconnect()
 
 
 # On exit standby we wait a bit then connect all Denon AVR objects
 @api.events.on(uc.uc.EVENTS.EXIT_STANDBY)
-async def on_exit_standy():
+async def _on_exit_standy():
     await asyncio.sleep(2)
 
     for a in configuredAVRs.items():
@@ -166,7 +171,7 @@ async def on_exit_standy():
 # When the core subscribes to entities, we set these to UNAVAILABLE state
 # then we hook up to the signals of the object and then connect
 @api.events.on(uc.uc.EVENTS.SUBSCRIBE_ENTITIES)
-async def on_subscribe_entities(entity_ids):
+async def _on_subscribe_entities(entity_ids):
     # TODO verify if this is correct: pylint complains about `entity_id` and `a` being cell-var-from-loop
     # https://pylint.readthedocs.io/en/latest/user_guide/messages/warning/cell-var-from-loop.html
     for entity_id in entity_ids:
@@ -176,19 +181,19 @@ async def on_subscribe_entities(entity_ids):
 
             @a.events.on(avr.EVENTS.CONNECTED)
             async def _on_connected(identifier):
-                await handle_connected(identifier)
+                await _handle_connected(identifier)
 
             @a.events.on(avr.EVENTS.DISCONNECTED)
             async def _on_disconnected(identifier):
-                await handle_disconnected(identifier)
+                await _handle_disconnected(identifier)
 
             @a.events.on(avr.EVENTS.ERROR)
             async def _on_error(identifier, message):
-                await handle_connection_error(identifier, message)
+                await _handle_connection_error(identifier, message)
 
             @a.events.on(avr.EVENTS.UPDATE)
             async def on_update(update):
-                await handle_avr_update(entity_id, update)
+                await _handle_avr_update(entity_id, update)
 
             await a.connect()
 
@@ -210,7 +215,7 @@ async def on_subscribe_entities(entity_ids):
 
 # On unsubscribe, we disconnect the objects and remove listeners for events
 @api.events.on(uc.uc.EVENTS.UNSUBSCRIBE_ENTITIES)
-async def on_unsubscribe_entities(entity_ids):
+async def _on_unsubscribe_entities(entity_ids):
     for entity_id in entity_ids:
         if entity_id in configuredAVRs:
             LOG.debug("We have a match, stop listening to events")
@@ -221,7 +226,7 @@ async def on_unsubscribe_entities(entity_ids):
 
 # We handle commands here
 @api.events.on(uc.uc.EVENTS.ENTITY_COMMAND)
-async def on_entity_command(websocket, req_id, entity_id, _entity_type, cmd_id, params):
+async def _on_entity_command(websocket, req_id, entity_id, _entity_type, cmd_id, params):
     a = configuredAVRs[entity_id]
     configured_entity = api.configuredEntities.getEntity(entity_id)
 
@@ -272,7 +277,7 @@ async def on_entity_command(websocket, req_id, entity_id, _entity_type, cmd_id, 
         )
 
 
-def key_update_helper(key, value, attributes, configured_entity):
+def _key_update_helper(key, value, attributes, configured_entity):
     if value is None:
         return attributes
 
@@ -285,7 +290,7 @@ def key_update_helper(key, value, attributes, configured_entity):
     return attributes
 
 
-async def handle_connected(identifier):
+async def _handle_connected(identifier):
     LOG.debug("AVR connected: %s", identifier)
     configured_entity = api.configuredEntities.getEntity(identifier)
 
@@ -295,21 +300,21 @@ async def handle_connected(identifier):
         )
 
 
-async def handle_disconnected(identifier):
+async def _handle_disconnected(identifier):
     LOG.debug("AVR disconnected: %s", identifier)
     api.configuredEntities.updateEntityAttributes(
         identifier, {entities.media_player.ATTRIBUTES.STATE: entities.media_player.STATES.STANDBY}
     )
 
 
-async def handle_connection_error(identifier, message):
+async def _handle_connection_error(identifier, message):
     LOG.error(message)
     api.configuredEntities.updateEntityAttributes(
         identifier, {entities.media_player.ATTRIBUTES.STATE: entities.media_player.STATES.UNAVAILABLE}
     )
 
 
-async def handle_avr_update(entity_id, update):
+async def _handle_avr_update(entity_id, update):
     attributes = {}
 
     configured_entity = api.configuredEntities.getEntity(entity_id)
@@ -328,7 +333,7 @@ async def handle_avr_update(entity_id, update):
         elif update["state"] == avr.STATES.OFF:
             state = entities.media_player.STATES.OFF
 
-        attributes = key_update_helper(entities.media_player.ATTRIBUTES.STATE, state, attributes, configured_entity)
+        attributes = _key_update_helper(entities.media_player.ATTRIBUTES.STATE, state, attributes, configured_entity)
 
     # if "position" in update:
     #     attributes = keyUpdateHelper(entities.media_player.ATTRIBUTES.MEDIA_POSITION, update["position"], attributes,
@@ -339,19 +344,19 @@ async def handle_avr_update(entity_id, update):
     #     attributes = keyUpdateHelper(entities.media_player.ATTRIBUTES.MEDIA_DURATION, update["total_time"],
     #                                  attributes, configuredEntity)
     if "title" in update:
-        attributes = key_update_helper(
+        attributes = _key_update_helper(
             entities.media_player.ATTRIBUTES.MEDIA_TITLE, update["title"], attributes, configured_entity
         )
     if "artist" in update:
-        attributes = key_update_helper(
+        attributes = _key_update_helper(
             entities.media_player.ATTRIBUTES.MEDIA_ARTIST, update["artist"], attributes, configured_entity
         )
     if "album" in update:
-        attributes = key_update_helper(
+        attributes = _key_update_helper(
             entities.media_player.ATTRIBUTES.MEDIA_ALBUM, update["album"], attributes, configured_entity
         )
     if "source" in update:
-        attributes = key_update_helper(
+        attributes = _key_update_helper(
             entities.media_player.ATTRIBUTES.SOURCE, update["source"], attributes, configured_entity
         )
     if "sourceList" in update:
@@ -379,7 +384,7 @@ async def handle_avr_update(entity_id, update):
         api.configuredEntities.updateEntityAttributes(entity_id, attributes)
 
 
-def add_available_entity(identifier, name):
+def _add_available_entity(identifier, name):
     entity = entities.media_player.MediaPlayer(
         identifier,
         name,
@@ -419,6 +424,7 @@ def add_available_entity(identifier, name):
 
 
 async def main():
+    """Start the Remote Two integration driver."""
     global CFG_FILE_PATH
 
     path = api.configDirPath
@@ -430,7 +436,7 @@ async def main():
         for item in config:
             configuredAVRs[item["id"]] = avr.DenonAVR(LOOP, item["ipaddress"])
             await configuredAVRs[item["id"]].connect()
-            add_available_entity(item["id"], configuredAVRs[item["id"]].name)
+            _add_available_entity(item["id"], configuredAVRs[item["id"]].name)
     else:
         LOG.error("Cannot load config")
 
