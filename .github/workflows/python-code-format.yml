@@ -12,6 +12,9 @@ on:
 permissions:
   contents: read
 
+env:
+  INTG_LIB_VER: 0.0.10
+
 jobs:
   test:
     runs-on: ubuntu-22.04
@@ -19,6 +22,19 @@ jobs:
     name: Check Python code formatting
     steps:
       - uses: actions/checkout@v3
+
+      # We need the integration library, this is temporary until we decide to publish it to pypi
+      - name: Clone & install integrations library
+        shell: bash
+        run: |
+          git clone https://martonborzak:${{ secrets.PAT }}@github.com/aitatoi/integration-python-library.git
+          ls -lah
+          cd integration-python-library
+          git checkout v${INTG_LIB_VER}
+          python3 setup.py bdist_wheel
+          ls -lah dist
+          pip3 install -I dist/ucapi-${INTG_LIB_VER}-py3-none-any.whl
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
