@@ -55,7 +55,11 @@ async def store_config() -> bool:
 
 
 async def load_config():
-    """Load the config into the config global variable."""
+    """
+    Load the config into the config global variable.
+
+    :return: True if the configuration could be loaded.
+    """
     global config
 
     try:
