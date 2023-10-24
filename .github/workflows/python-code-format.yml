@@ -2,12 +2,18 @@ name: Check Python code formatting
 
 on:
   push:
-    branches: [main, cleanup]
+    paths:
+      - '*.py'
+      - 'requirements.txt'
+      - 'test-requirements.txt'
+      - 'tests/**'
+      - '.github/**/*.yml'
+      - '.pylintrc'
+      - 'pyproject.toml'
+      - 'tox.ini'
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
-  schedule:
-    - cron: "0 5 * * *"
 
 permissions:
   contents: read
@@ -37,7 +43,6 @@ jobs:
         shell: bash
         run: |
           git clone https://martonborzak:${{ secrets.PAT }}@github.com/aitatoi/integration-python-library.git
-          ls -lah
           cd integration-python-library
           git checkout v${INTG_LIB_VER}
           pip install wheel
