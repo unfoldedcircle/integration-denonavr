@@ -180,19 +180,21 @@ async def _on_subscribe_entities(entity_ids):
             a = configuredAVRs[entity_id]
 
             @a.events.on(avr.EVENTS.CONNECTED)
-            async def _on_connected(identifier):
+            async def on_connected(identifier):
                 await _handle_connected(identifier)
 
             @a.events.on(avr.EVENTS.DISCONNECTED)
-            async def _on_disconnected(identifier):
+            async def on_disconnected(identifier):
                 await _handle_disconnected(identifier)
 
             @a.events.on(avr.EVENTS.ERROR)
-            async def _on_error(identifier, message):
+            async def on_error(identifier, message):
                 await _handle_connection_error(identifier, message)
 
             @a.events.on(avr.EVENTS.UPDATE)
             async def on_update(update):
+                # FIXME W0640: Cell variable entity_id defined in loop (cell-var-from-loop)
+                #       This is most likely the WRONG entity_id if we have MULTIPLE configuredAVRs
                 await _handle_avr_update(entity_id, update)
 
             await a.connect()
@@ -322,17 +324,7 @@ async def _handle_avr_update(entity_id, update):
     LOG.debug(update)
 
     if "state" in update:
-        state = entities.media_player.STATES.UNKNOWN
-
-        if update["state"] == avr.STATES.ON:
-            state = entities.media_player.STATES.ON
-        elif update["state"] == avr.STATES.PLAYING:
-            state = entities.media_player.STATES.PLAYING
-        elif update["state"] == avr.STATES.PAUSED:
-            state = entities.media_player.STATES.PAUSED
-        elif update["state"] == avr.STATES.OFF:
-            state = entities.media_player.STATES.OFF
-
+        state = _get_media_player_state(update["state"])
         attributes = _key_update_helper(entities.media_player.ATTRIBUTES.STATE, state, attributes, configured_entity)
 
     # if "position" in update:
@@ -370,6 +362,37 @@ async def _handle_avr_update(entity_id, update):
     if "volume" in update:
         attributes[entities.media_player.ATTRIBUTES.VOLUME] = update["volume"]
 
+    _update_attributes(attributes)
+
+    if attributes:
+        api.configuredEntities.updateEntityAttributes(entity_id, attributes)
+
+
+def _get_media_player_state(avr_state) -> entities.media_player.STATES:
+    """
+    Convert AVR state to UC API media-player state.
+    :param avr_state: Denon AVR state
+    :return: UC API media_player state
+    """
+    state = entities.media_player.STATES.UNKNOWN
+
+    if avr_state == avr.STATES.ON:
+        state = entities.media_player.STATES.ON
+    elif avr_state == avr.STATES.PLAYING:
+        state = entities.media_player.STATES.PLAYING
+    elif avr_state == avr.STATES.PAUSED:
+        state = entities.media_player.STATES.PAUSED
+    elif avr_state == avr.STATES.OFF:
+        state = entities.media_player.STATES.OFF
+
+    return state
+
+
+def _update_attributes(attributes):
+    """
+    Update the entity attributes based on the state
+    :param attributes: entity attributes dictionary
+    """
     if entities.media_player.ATTRIBUTES.STATE in attributes:
         if attributes[entities.media_player.ATTRIBUTES.STATE] == entities.media_player.STATES.OFF:
             attributes[entities.media_player.ATTRIBUTES.MEDIA_IMAGE_URL] = ""
@@ -379,9 +402,6 @@ async def _handle_avr_update(entity_id, update):
             attributes[entities.media_player.ATTRIBUTES.MEDIA_TYPE] = ""
             attributes[entities.media_player.ATTRIBUTES.SOURCE] = ""
             # attributes[entities.media_player.ATTRIBUTES.MEDIA_DURATION] = 0
-
-    if attributes:
-        api.configuredEntities.updateEntityAttributes(entity_id, attributes)
 
 
 def _add_available_entity(identifier, name):
