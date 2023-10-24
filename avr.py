@@ -3,6 +3,7 @@ import asyncio
 
 import socket
 import denonavr
+import denonavr.exceptions
 import re
 
 from enum import IntEnum
@@ -20,8 +21,6 @@ SSDP_DEVICES = [
     "urn:schemas-denon-com:device:AiosDevice:1"
 ]
 
-BACKOFF_MAX = 30
-BACKOFF_SEC = 2
 
 class EVENTS(IntEnum):
     CONNECTING = 0
@@ -39,7 +38,7 @@ class STATES(IntEnum):
     PAUSED = 3
 
 
-async def discoverDenonAVRs():
+async def discover_denon_avrs():
     LOG.debug("Starting discovery")
     res = []
 
@@ -55,13 +54,15 @@ async def discoverDenonAVRs():
             while True:
                 try:
                     data, addr = sock.recvfrom(1024)
-                    LOG.debug(f"Found SSDP device at {addr}:")
+                    LOG.info(f"Found SSDP device at {addr}:")
                     LOG.debug(data.decode())
-                    LOG.debug("-"*30)
+                    # TODO pre-filter out known non-Denon devices. Check keys: hue-bridgeid, X-RINCON-HOUSEHOLD
+                    # LOG.debug("-"*30)
 
-                    info = await getDenonInfo(addr[0])
+                    info = await get_denon_info(addr[0])
                     if info:
-                        res.append(info);
+                        LOG.info(f"Found Denon device {info}:")
+                        res.append(info)
                 except socket.timeout:
                     break
         finally:
@@ -70,26 +71,31 @@ async def discoverDenonAVRs():
     LOG.debug("Discovery finished")
     return res
 
-async def getDenonInfo(ipaddress):
-    LOG.debug("Trying to get device info for " + ipaddress)
+
+async def get_denon_info(ipaddress):
+    LOG.debug("Trying to get device info for %s", ipaddress)
     d = None
-    res = {}
 
     try:
         d = denonavr.DenonAVR(ipaddress)
-    except:
-        LOG.error("Failed to get device info. Maybe not a Denon device.")
+    except denonavr.exceptions.DenonAvrError as e:
+        LOG.error("[%s] Failed to get device info. Maybe not a Denon device. %s", ipaddress, e)
+        return None
 
-    await d.async_setup()
-    await d.async_update()
+    try:
+        await d.async_setup()
+        await d.async_update()
+    except denonavr.exceptions.DenonAvrError as e:
+        LOG.error("[%s] Error initializing device: %s", ipaddress, e)
+        return None
 
-    res["id"] = d.serial_number
-    res["manufacturer"] = d.manufacturer
-    res["model"] = d.model_name
-    res["name"] = d.name
-    res["ipaddress"] = ipaddress
-
-    return res
+    return {
+        "id": d.serial_number,
+        "manufacturer": d.manufacturer,
+        "model": d.model_name,
+        "name": d.name,
+        "ipaddress": ipaddress
+    }
 
 
 class DenonAVR(object):
@@ -110,86 +116,91 @@ class DenonAVR(object):
         self.input_list = []
         self.artist = ""
         self.title = ""
-        self.artowrk = ""
+        self.artwork = ""
+        self.position = 0
+        self.duration = 0
 
         LOG.debug("Denon AVR created: " + self.ipaddress)
 
-    def backoff(self):
-        if self._connectionAttempts * BACKOFF_SEC >= BACKOFF_MAX:
-            return BACKOFF_MAX
-
-        return self._connectionAttempts * BACKOFF_SEC
-    
-    def mapRange(self, value, from_min, from_max, to_min, to_max):
+    @staticmethod
+    def map_range(value, from_min, from_max, to_min, to_max):
         return (value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
-    
-    def convertVolumeToPercent(self, value):
-        return self.mapRange(value, -80.0, 0.0, 0, 100)
-    
-    def convertVolumeToDb(self, value):
-        return self.mapRange(value, 0, 100, -80.0, 0.0)
-    
-    def extratValues(self, input_string):
+
+    def convert_volume_to_percent(self, value):
+        return self.map_range(value, -80.0, 0.0, 0, 100)
+
+    def convert_volume_to_db(self, value):
+        return self.map_range(value, 0, 100, -80.0, 0.0)
+
+    @staticmethod
+    def extract_values(input_string):
         pattern = r'(\d+:\d+)\s+(\d+%)'
         matches = re.findall(pattern, input_string)
-        
+
         if matches:
             return matches[0]
         else:
             return None
-    
+
     # TODO ADD METHOD FOR CHANGED IP ADDRESS
 
     async def connect(self):
-            if self._avr is not None:
-                LOG.debug("Already connected")
-                _ = asyncio.ensure_future(self.getData())
-                return
+        if self._avr is not None:
+            LOG.debug("Already connected")
+            _ = asyncio.ensure_future(self.get_data())
+            return
 
+        try:
             self._avr = denonavr.DenonAVR(self.ipaddress)
             await self._avr.async_setup()
             await self._avr.async_update()
-            self.manufacturer = self._avr.manufacturer
-            self.model = self._avr.model_name
-            self.name = self._avr.name
-            self.id = self._avr.serial_number
-            LOG.debug("Denon AVR connected.")
-            LOG.debug("Manufacturer: " + self.manufacturer)
-            LOG.debug("Model: " + self.model)
-            LOG.debug("Name: " + self.name)
-            LOG.debug("Id: " + self.id)
-            LOG.debug("State: " + self._avr.state)
-            await self.subscribeEvents()
-            self.events.emit(EVENTS.CONNECTED, self.id)
+        except denonavr.exceptions.DenonAvrError as e:
+            LOG.error("[%s] Error connecting to AVR: %s", self.ipaddress, e)
+            self._avr = None
+            return
 
-            if self._avr.state == "on":
-                self.state = STATES.ON
-            elif self._avr.state == "off":
-                self.state = STATES.OFF
-            elif self._avr.state == "playing":
-                self.state = STATES.PLAYING
-            elif self._avr.state == "paused":
-                self.state = STATES.PAUSED
-            
-            self.input_list = self._avr.input_func_list
-            self.input = self._avr.input_func
-            self.volume = self.convertVolumeToPercent(self._avr.volume)
-            self.artist = self._avr.artist
-            self.title = self._avr.title
-            self.artwork = self._avr.image_url
-            self.position = 0
-            self.duration = 0
+        self.manufacturer = self._avr.manufacturer
+        self.model = self._avr.model_name
+        self.name = self._avr.name
+        self.id = self._avr.serial_number
+        LOG.debug("Denon AVR connected.")
+        LOG.debug("Manufacturer: " + self.manufacturer)
+        LOG.debug("Model: " + self.model)
+        LOG.debug("Name: " + self.name)
+        LOG.debug("Id: " + self.id)
+        LOG.debug("State: " + self._avr.state)
+        await self.subscribe_events()
+        # FIXME emit expects a str, not an int!
+        self.events.emit(EVENTS.CONNECTED, self.id)
+
+        if self._avr.state == "on":
+            self.state = STATES.ON
+        elif self._avr.state == "off":
+            self.state = STATES.OFF
+        elif self._avr.state == "playing":
+            self.state = STATES.PLAYING
+        elif self._avr.state == "paused":
+            self.state = STATES.PAUSED
+
+        self.input_list = self._avr.input_func_list
+        self.input = self._avr.input_func
+        self.volume = self.convert_volume_to_percent(self._avr.volume)
+        self.artist = self._avr.artist
+        self.title = self._avr.title
+        self.artwork = self._avr.image_url
+        self.position = 0
+        self.duration = 0
 
     async def disconnect(self):
-        await self.unSubscribeEvents()
+        await self.unsubscribe_events()
         self._avr = None
+        # FIXME emit expects a str, not an int!
         self.events.emit(EVENTS.DISCONNECTED, self.id)
 
-
-    async def getData(self):
-        if self.gettingData == True:
+    async def get_data(self):
+        if self.gettingData:
             return
-        
+
         self.gettingData = True
         LOG.debug("Getting track data.")
 
@@ -211,6 +222,7 @@ class DenonAVR(object):
                 elif self._avr.state == "paused":
                     self.state = STATES.PAUSED
 
+            # FIXME emit expects a str, not an int!
             self.events.emit(EVENTS.UPDATE, {
                 "state": self.state,
                 "artist": self.artist,
@@ -218,100 +230,102 @@ class DenonAVR(object):
                 "artwork": self.artwork,
             })
             LOG.debug("Track data, artist: " + self.artist + " title: " + self.title + " artwork: " + self.artwork)
-        except:
+        except denonavr.exceptions.DenonAvrError:
             pass
 
         self.gettingData = False
         LOG.debug("Getting track data done.")
-    
+
     async def update_callback(self, zone, event, parameter):
         LOG.debug("Zone: " + zone + " Event: " + event + " Parameter: " + parameter)
         try:
             await self._avr.async_update()
-        except:
+        except denonavr.exceptions.DenonAvrError:
             pass
 
         if event == "MV":
-            self.volume = self.convertVolumeToPercent(self._avr.volume)
+            self.volume = self.convert_volume_to_percent(self._avr.volume)
+            # FIXME emit expects a str, not an int!
             self.events.emit(EVENTS.UPDATE, {"volume": self.volume})
         else:
-            _ = asyncio.ensure_future(self.getData())
+            _ = asyncio.ensure_future(self.get_data())
             # if self.state == STATES.OFF:
             #     self.state = STATES.ON
-            
+
             # if parameter == "OFF":
             #     self.state = STATES.OFF
         # elif event == "NSE":
         #     _ = asyncio.ensure_future(self.getData())
-            # TODO: the duration and position needs more digging
-            # if parameter.startswith("5"):
-            #     result = self.extratValues(parameter)
-            #     if result:
-            #         time, percentage = result
-            #         hours, minutes = map(int, time.split(':'))
-            #         self.duration = hours * 3600 + minutes * 60
-            #         self.position = (int(percentage.strip('%')) / 100) * self.duration
-            #         self.events.emit(EVENTS.UPDATE, {
-            #             "position": self.position,
-            #             "total_time": self.duration
-            #         })
+        # TODO: the duration and position needs more digging
+        # if parameter.startswith("5"):
+        #     result = self.extract_values(parameter)
+        #     if result:
+        #         time, percentage = result
+        #         hours, minutes = map(int, time.split(':'))
+        #         self.duration = hours * 3600 + minutes * 60
+        #         self.position = (int(percentage.strip('%')) / 100) * self.duration
+        #         self.events.emit(EVENTS.UPDATE, {
+        #             "position": self.position,
+        #             "total_time": self.duration
+        #         })
 
-            #         LOG.debug(f"Time: {self.position}, Percentage: {self.duration}")
+        #         LOG.debug(f"Time: {self.position}, Percentage: {self.duration}")
 
-    
-    async def subscribeEvents(self):
+    async def subscribe_events(self):
+        # FIXME #9 add exception handling
         await self._avr.async_telnet_connect()
         await self._avr.async_update()
         self._avr.register_callback("ALL", self.update_callback)
         LOG.debug("Subscribed to events")
 
-    async def unSubscribeEvents(self):
+    async def unsubscribe_events(self):
+        # FIXME #9 add exception handling
         self._avr.unregister_callback("ALL", self.update_callback)
         await self._avr.async_update()
         await self._avr.async_telnet_disconnect()
         LOG.debug("Unsubscribed to events")
 
     # TODO add commands
-    async def _commandWrapper(self, fn):   
+    # FIXME #8 command execution check
+    async def _command_wrapper(self, fn):
         try:
             await fn()
             return True
-        except:
+        except denonavr.exceptions.DenonAvrError:
+            # TODO logging & retry handling
             return False
 
-    async def powerOn(self):
-        return await self._commandWrapper(self._avr.async_power_on)
+    async def power_on(self):
+        return await self._command_wrapper(self._avr.async_power_on)
 
-    async def powerOff(self):
-        return await self._commandWrapper(self._avr.async_power_off)
-    
-    async def volumeUp(self):
-        return await self._commandWrapper(self._avr.async_volume_up)
-    
-    async def volumeDown(self):
-        return await self._commandWrapper(self._avr.async_volume_down)
-    
-    async def playPause(self):
-        return await self._commandWrapper(self._avr.async_toggle_play_pause)
-    
+    async def power_off(self):
+        return await self._command_wrapper(self._avr.async_power_off)
+
+    async def volume_up(self):
+        return await self._command_wrapper(self._avr.async_volume_up)
+
+    async def volume_down(self):
+        return await self._command_wrapper(self._avr.async_volume_down)
+
+    async def play_pause(self):
+        return await self._command_wrapper(self._avr.async_toggle_play_pause)
+
     async def next(self):
-        return await self._commandWrapper(self._avr.async_next_track)
-    
+        return await self._command_wrapper(self._avr.async_next_track)
+
     async def previous(self):
-        return await self._commandWrapper(self._avr.async_previous_track)
-    
+        return await self._command_wrapper(self._avr.async_previous_track)
+
     async def mute(self, muted):
         try:
             await self._avr.async_mute(muted)
             return True
-        except:
+        except denonavr.exceptions.DenonAvrError:
             return False
-        
-    async def setInput(self, input):
+
+    async def set_input(self, input_source):
         try:
-            await self._avr.async_set_input_func(input)
+            await self._avr.async_set_input_func(input_source)
             return True
-        except:
+        except denonavr.exceptions.DenonAvrError:
             return False
-
-
