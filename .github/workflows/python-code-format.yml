@@ -57,7 +57,7 @@ jobs:
           python -m isort *.py --check --verbose
       - name: Check code formatting with black
         run: |
-          python -m black *.py --check --verbose
+          python -m black *.py --check --verbose --line-length 120
       - name: Lint with flake8
         run: |
           python -m flake8 *.py --count --show-source --statistics
