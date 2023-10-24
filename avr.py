@@ -27,7 +27,7 @@ SSDP_MX = 3
 SSDP_DEVICES = [
     "urn:schemas-upnp-org:device:MediaRenderer:1",
     "urn:schemas-upnp-org:device:MediaServer:1",
-    "urn:schemas-denon-com:device:AiosDevice:1"
+    "urn:schemas-denon-com:device:AiosDevice:1",
 ]
 
 
@@ -120,7 +120,7 @@ async def get_denon_info(ipaddress):
         "manufacturer": d.manufacturer,
         "model": d.model_name,
         "name": d.name,
-        "ipaddress": ipaddress
+        "ipaddress": ipaddress,
     }
 
 
@@ -192,8 +192,14 @@ class DenonAVR:
         self.model = self._avr.model_name
         self.name = self._avr.name
         self.id = self._avr.serial_number
-        LOG.debug("Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
-                  self.manufacturer, self.model, self.name, self.id, self._avr.state)
+        LOG.debug(
+            "Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
+            self.manufacturer,
+            self.model,
+            self.name,
+            self.id,
+            self._avr.state,
+        )
         await self.subscribe_events()
         self.events.emit(EVENTS.CONNECTED, self.id)
 
@@ -245,12 +251,15 @@ class DenonAVR:
                 elif self._avr.state == "paused":
                     self.state = STATES.PAUSED
 
-            self.events.emit(EVENTS.UPDATE, {
-                "state": self.state,
-                "artist": self.artist,
-                "title": self.title,
-                "artwork": self.artwork,
-            })
+            self.events.emit(
+                EVENTS.UPDATE,
+                {
+                    "state": self.state,
+                    "artist": self.artist,
+                    "title": self.title,
+                    "artwork": self.artwork,
+                },
+            )
             LOG.debug("Track data, artist: " + self.artist + " title: " + self.title + " artwork: " + self.artwork)
         except denonavr.exceptions.DenonAvrError:
             pass
