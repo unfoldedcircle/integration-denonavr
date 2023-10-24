@@ -48,10 +48,10 @@ pip3 install -r test-requirements.txt
 The following tests are run as GitHub action for each push on the main branch and for pull requests.
 They can also be run anytime on a local developer machine:
 ```console
-python -m pylint *.py
-python -m flake8 *.py --count --show-source --statistics
-python -m isort *.py --check --verbose 
-python -m black *.py --check --verbose --line-length 120
+python -m pylint intg-denonavr
+python -m flake8 intg-denonavr --count --show-source --statistics
+python -m isort intg-denonavr/. --check --verbose 
+python -m black intg-denonavr --check --verbose --line-length 120
 ```
 
 Linting integration in PyCharm/IntelliJ IDEA:
@@ -60,7 +60,7 @@ Linting integration in PyCharm/IntelliJ IDEA:
 
 ### Format Code
 ```console
-python -m black *.py --line-length 120
+python -m black intg-denonavr --line-length 120
 ```
 
 PyCharm/IntelliJ IDEA integration:
@@ -73,7 +73,7 @@ PyCharm/IntelliJ IDEA integration:
 ### Sort Imports
 
 ```console
-python -m isort *.py
+python -m isort intg-denonavr/.
 ```
 
 ## Build self-contained binary
@@ -92,7 +92,7 @@ docker run --platform=aarch64 -v "$PWD:/io" -it ubuntu:focal
 cd /io
 apt-get update && apt-get install -y python3-pip
 pip3 install pyinstaller -r requirements.txt
-pyinstaller --clean --onefile driver.py
+pyinstaller --clean --onefile intg-denonavr/driver.py
 ```
 
 ## Licenses
