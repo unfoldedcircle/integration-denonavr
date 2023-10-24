@@ -33,6 +33,49 @@ Manually install [ucapi](https://github.com/aitatoi/integration-python-library) 
 pip3 install ../integration-python-library/dist/ucapi-$UCAPI_PYTHON_LIB_VERSION-py3-none-any.whl
 ```
 
+## Code Style
+
+- Code line length: 120
+- Use double quotes as default (don't mix and match for simple quoting, checked with pylint).
+
+Install tooling:
+```console
+pip3 install -r test-requirements.txt
+```
+
+### Verify
+
+The following tests are run as GitHub action for each push on the main branch and for pull requests.
+They can also be run anytime on a local developer machine:
+```console
+python -m pylint intg-denonavr
+python -m flake8 intg-denonavr --count --show-source --statistics
+python -m isort intg-denonavr/. --check --verbose 
+python -m black intg-denonavr --check --verbose --line-length 120
+```
+
+Linting integration in PyCharm/IntelliJ IDEA:
+1. Install plugin [Pylint](https://plugins.jetbrains.com/plugin/11084-pylint)
+2. Open Pylint window and run a scan: `Check Module` or `Check Current File`
+
+### Format Code
+```console
+python -m black intg-denonavr --line-length 120
+```
+
+PyCharm/IntelliJ IDEA integration:
+1. Go to `Preferences or Settings -> Tools -> Black`
+2. Configure:
+  - Python interpreter
+  - Use Black formatter: `On code reformat` & optionally `On save`
+  - Arguments: `--line-length 120`
+
+### Sort Imports
+
+```console
+python -m isort intg-denonavr/.
+```
+
 ## Build self-contained binary
 
 After some tests, turns out python stuff on embedded is a nightmare. So we're better off creating a single binary file that has everything in it.
@@ -49,7 +92,7 @@ docker run --platform=aarch64 -v "$PWD:/io" -it ubuntu:focal
 cd /io
 apt-get update && apt-get install -y python3-pip
 pip3 install pyinstaller -r requirements.txt
-pyinstaller --clean --onefile driver.py
+pyinstaller --clean --onefile intg-denonavr/driver.py
 ```
 
 ## Licenses

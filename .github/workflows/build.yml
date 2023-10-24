@@ -1,4 +1,4 @@
-# GitHub Action to build a self contained binary of the Denon AVR Python driver
+# GitHub Action to build a self-contained binary of the Denon AVR Python driver
 ---
 name: "Build & Release"
 
@@ -15,6 +15,7 @@ on:
 env:
   INTG_NAME: denonavr
   HASH_FILENAME: uc-intg-denonavr.hash
+  INTG_LIB_VER: 0.0.10
   
 jobs:
   build:
@@ -29,7 +30,9 @@ jobs:
         run: |
           git clone https://martonborzak:${{ secrets.PAT }}@github.com/aitatoi/integration-python-library.git
           ls -lah
-          
+          cd integration-python-library
+          git checkout v${INTG_LIB_VER}
+
       - name: Prepare
         run: |
           sudo apt-get update && sudo apt-get install -y qemu binfmt-support qemu-user-static
@@ -37,9 +40,9 @@ jobs:
           docker run --name builder --platform=aarch64 -v ${GITHUB_WORKSPACE}:/io -d ubuntu:focal tail -f /dev/null
           
           docker exec builder bash -c "apt-get update && apt-get install -y python3-pip"
-          docker exec builder bash -c "cd /io/integration-python-library && python3 setup.py bdist_wheel && pip3 install -I dist/ucapi-0.0.10-py3-none-any.whl"
+          docker exec builder bash -c "cd /io/integration-python-library && python3 setup.py bdist_wheel && pip3 install -I dist/ucapi-${INTG_LIB_VER}-py3-none-any.whl"
           docker exec builder bash -c "pip3 install pyinstaller -r /io/requirements.txt"
-          docker exec builder bash -c "cd /io && pyinstaller --clean --onefile --name intg-denonavr driver.py"
+          docker exec builder bash -c "cd /io && pyinstaller --clean --onefile --name intg-denonavr intg-denonavr/driver.py"
             
       - name: Fetch all tags to determine version
         run: |
