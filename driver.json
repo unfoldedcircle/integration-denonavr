@@ -5,7 +5,9 @@
 	"name": { "en": "Denon AVR" },
 	"icon": "uc:integration",
 	"description": {
-		"en": "Control your Denon or Marantz AVRs with Remote Two."
+		"en": "Control your Denon or Marantz AVRs with Remote Two.",
+		"de": "Steuere Denon oder Marantz AVRs mit Remote Two.",
+		"fr": "Contrôler Denon ou Marantz AVRs avec Remote Two."
 	},
 	"developer": {
 		"name": "Unfolded Circle ApS",
@@ -15,18 +17,24 @@
 	"home_page": "https://www.unfoldedcircle.com",
 	"setup_data_schema": {
 		"title": {
-			"en": "Integration setup"
+			"en": "Integration setup",
+			"de": "Integrationssetup",
+			"fr": "Configuration de l'intégration"
 		},
 		"settings": [
 			{
 				"id": "info",
 				"label": {
-					"en": "Setup process"
+					"en": "Setup process",
+					"de": "Setup Fortschritt",
+					"fr": "Progrès de la configuration"
 				},
 				"field": {
 					"label": {
 						"value": {
-							"en": "The integration will discover your Denon or Marantz AVRs on your network."
+							"en": "The integration will discover your Denon or Marantz AVRs on your network.",
+							"de": "Diese Integration wird Denon und Marantz AVRs im Netzwerk finden.",
+							"fr": "Cette intégration trouvera des AVR Denon et Marantz dans le réseau."
 						}
 					}
 				}

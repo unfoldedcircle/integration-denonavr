@@ -16,9 +16,8 @@ import avr
 import ucapi.api as uc
 from ucapi import entities
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
 LOOP = asyncio.get_event_loop()
-LOG.setLevel(logging.DEBUG)
 
 CFG_FILENAME = "config.json"
 # Global variables
@@ -86,17 +85,13 @@ async def _on_setup_driver(websocket, req_id, _data):
     avrs = await avr.discover_denon_avrs()
     dropdown_items = []
 
-    LOG.debug(avrs)
-
     for a in avrs:
-        tv_data = {"id": a["ipaddress"], "label": {"en": a["name"] + " " + a["manufacturer"] + " " + a["model"]}}
-
+        tv_data = {"id": a["host"], "label": {"en": f"{a['friendlyName']} ({a['modelName']}) [{a['host']}]"}}
         dropdown_items.append(tv_data)
 
     if not dropdown_items:
         LOG.warning("No AVRs found")
         await api.driverSetupError(websocket)
-        # TODO START AGAIN
         return
 
     await api.requestDriverSetupUserInput(
@@ -106,7 +101,11 @@ async def _on_setup_driver(websocket, req_id, _data):
             {
                 "field": {"dropdown": {"value": dropdown_items[0]["id"], "items": dropdown_items}},
                 "id": "choice",
-                "label": {"en": "Choose your Denon AVR"},
+                "label": {
+                    "en": "Choose your Denon AVR",
+                    "de": "Wähle deinen Denon AVR",
+                    "fr": "Choisissez votre Denon AVR",
+                },
             }
         ],
     )
@@ -324,7 +323,7 @@ async def _handle_avr_update(entity_id, update):
 
     configured_entity = api.configuredEntities.getEntity(entity_id)
 
-    LOG.debug(update)
+    LOG.debug("AVR update: %s", update)
 
     if "state" in update:
         state = _get_media_player_state(update["state"])
@@ -451,6 +450,10 @@ def _add_available_entity(identifier, name):
 async def main():
     """Start the Remote Two integration driver."""
     global CFG_FILE_PATH
+
+    level = os.getenv("UC_LOG_LEVEL", "DEBUG").upper()
+    logging.getLogger("avr").setLevel(level)
+    logging.getLogger("driver").setLevel(level)
 
     path = api.configDirPath
     CFG_FILE_PATH = os.path.join(path, CFG_FILENAME)

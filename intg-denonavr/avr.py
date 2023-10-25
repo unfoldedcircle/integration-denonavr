@@ -9,7 +9,6 @@ This module implements the Denon AVR receiver communication of the Remote Two in
 import asyncio
 import logging
 import re
-import socket
 from enum import IntEnum
 
 import denonavr
@@ -17,18 +16,6 @@ import denonavr.exceptions
 from pyee import AsyncIOEventEmitter
 
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
-
-MCAST_GRP = "239.255.255.250"
-MCAST_PORT = 1900
-# is this correct? denonavr uses 2
-SSDP_MX = 3
-
-SSDP_DEVICES = [
-    "urn:schemas-upnp-org:device:MediaRenderer:1",
-    "urn:schemas-upnp-org:device:MediaServer:1",
-    "urn:schemas-denon-com:device:AiosDevice:1",
-]
 
 
 class EVENTS(IntEnum):
@@ -51,21 +38,6 @@ class STATES(IntEnum):
     PAUSED = 3
 
 
-def ssdp_request(ssdp_st: str, ssdp_mx: float = SSDP_MX) -> bytes:
-    """Return request bytes for given st and mx."""
-    return "\r\n".join(
-        [
-            "M-SEARCH * HTTP/1.1",
-            f"ST: {ssdp_st}",
-            f"MX: {ssdp_mx:d}",
-            'MAN: "ssdp:discover"',
-            f"HOST: {MCAST_GRP}:{MCAST_PORT}",
-            "",
-            "",
-        ]
-    ).encode("utf-8")
-
-
 async def discover_denon_avrs():
     """
     Discover Denon AVRs on the network with SSDP.
@@ -73,66 +45,15 @@ async def discover_denon_avrs():
     :return: array of device information objects.
     """
     LOG.debug("Starting discovery")
-    res = []
 
-    for ssdp_device in SSDP_DEVICES:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(3)
+    avrs = await denonavr.async_discover()
+    if not avrs:
+        LOG.info("No AVRs discovered")
+        return []
 
-        try:
-            request = ssdp_request(ssdp_device)
-            sock.sendto(request, (MCAST_GRP, MCAST_PORT))
+    LOG.info("Found AVR(s): %s", avrs)
 
-            while True:
-                try:
-                    data, addr = sock.recvfrom(1024)
-                    LOG.info("Found SSDP device at %s: %s", addr, data.decode())
-                    # TODO pre-filter out known non-Denon devices. Check keys: hue-bridgeid, X-RINCON-HOUSEHOLD
-                    # LOG.debug("-"*30)
-
-                    info = await get_denon_info(addr[0])
-                    if info:
-                        LOG.info("Found Denon device %s", info)
-                        res.append(info)
-                except socket.timeout:
-                    break
-        finally:
-            sock.close()
-
-    LOG.debug("Discovery finished")
-    return res
-
-
-async def get_denon_info(ipaddress):
-    """
-    Connect to the given IP address of a Denon AVR and retrieve model information.
-
-    :param ipaddress: IP address of receiver to fetch information from.
-    :return: object with `id`, `manufacturer`, `model`, `name` and `ipaddress`
-    """
-    LOG.debug("Trying to get device info for %s", ipaddress)
-    d = None
-
-    try:
-        d = denonavr.DenonAVR(ipaddress)
-    except denonavr.exceptions.DenonAvrError as e:
-        LOG.error("[%s] Failed to get device info. Maybe not a Denon device. %s", ipaddress, e)
-        return None
-
-    try:
-        await d.async_setup()
-        await d.async_update()
-    except denonavr.exceptions.DenonAvrError as e:
-        LOG.error("[%s] Error initializing device: %s", ipaddress, e)
-        return None
-
-    return {
-        "id": d.serial_number,
-        "manufacturer": d.manufacturer,
-        "model": d.model_name,
-        "name": d.name,
-        "ipaddress": ipaddress,
-    }
+    return avrs
 
 
 class DenonAVR:
@@ -273,7 +194,7 @@ class DenonAVR:
                     "artwork": self.artwork,
                 },
             )
-            LOG.debug("Track data, artist: " + self.artist + " title: " + self.title + " artwork: " + self.artwork)
+            LOG.debug("Track data: artist: %s title: %s artwork: %s", self.artist, self.title, self.artwork)
         except denonavr.exceptions.DenonAvrError as e:
             LOG.error("Failed to get latest status information: %s", e)
 
@@ -281,7 +202,7 @@ class DenonAVR:
         LOG.debug("Getting track data done.")
 
     async def _update_callback(self, zone, event, parameter):
-        LOG.debug("Zone: " + zone + " Event: " + event + " Parameter: " + parameter)
+        LOG.debug("Zone: %s Event: %s Parameter: %s", zone, event, parameter)
         try:
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
