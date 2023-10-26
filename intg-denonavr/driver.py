@@ -21,10 +21,10 @@ LOOP = asyncio.get_event_loop()
 
 CFG_FILENAME = "config.json"
 # Global variables
-CFG_FILE_PATH = None
+CFG_FILE_PATH: str | None = None
 api = uc.IntegrationAPI(LOOP)
-config = []
-configuredAVRs = {}
+config: list[dict[str, any]] = []
+configuredAVRs: dict[str, avr.DenonAVR] = {}
 
 
 async def clear_config():
@@ -145,11 +145,10 @@ async def _on_connect():
 # When the core disconnects, we just set the device state
 @api.events.on(uc.uc.EVENTS.DISCONNECT)
 async def _on_disconnect():
-    for entity_id in configuredAVRs.items():
-        LOG.debug("Client disconnected, disconnecting all AVRs")
-        a = configuredAVRs[entity_id]
-        a.events.remove_all_listeners()
-        await a.disconnect()
+    LOG.debug("Client disconnected, disconnecting all AVRs")
+    for configured in configuredAVRs.values():
+        configured.events.remove_all_listeners()
+        await configured.disconnect()
 
     await api.setDeviceState(uc.uc.DEVICE_STATES.DISCONNECTED)
 
@@ -157,17 +156,17 @@ async def _on_disconnect():
 # On standby, we disconnect every Denon AVR objects
 @api.events.on(uc.uc.EVENTS.ENTER_STANDBY)
 async def _on_enter_standby():
-    for a in configuredAVRs.items():
-        await configuredAVRs[a].disconnect()
+    for configured in configuredAVRs.values():
+        await configured.disconnect()
 
 
 # On exit standby we wait a bit then connect all Denon AVR objects
 @api.events.on(uc.uc.EVENTS.EXIT_STANDBY)
-async def _on_exit_standy():
+async def _on_exit_standby():
     await asyncio.sleep(2)
 
-    for a in configuredAVRs.items():
-        await configuredAVRs[a].connect()
+    for configured in configuredAVRs.values():
+        await configured.connect()
 
 
 # When the core subscribes to entities, we set these to UNAVAILABLE state

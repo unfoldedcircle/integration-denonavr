@@ -9,6 +9,7 @@ This module implements the Denon AVR receiver communication of the Remote Two in
 import asyncio
 import logging
 import re
+from asyncio import AbstractEventLoop
 from enum import IntEnum
 
 import denonavr
@@ -59,27 +60,28 @@ async def discover_denon_avrs():
 class DenonAVR:
     """Representing a Denon AVR Device."""
 
-    def __init__(self, loop, ipaddress):
+    def __init__(self, loop: AbstractEventLoop, ipaddress: str):
         """Create instance with given IP address of AVR."""
-        self._loop = loop
+        self._loop: AbstractEventLoop = loop
         self.events = AsyncIOEventEmitter(self._loop)
-        self._avr = None
-        self.name = ""
-        self.model = ""
-        self.manufacturer = ""
-        self.id = ""
-        self.ipaddress = ipaddress
-        self.getting_data = False
+        self._avr: denonavr.DenonAVR | None = None
+        self.name: str | None = None
+        self.model: str | None = None
+        self.manufacturer: str | None = None
+        self.id: str | None = None
+        self.ipaddress: str = ipaddress
+        self.getting_data: bool = False
 
-        self.state = STATES.OFF
-        self.volume = 0
-        self.input = ""
-        self.input_list = []
-        self.artist = ""
-        self.title = ""
-        self.artwork = ""
-        self.position = 0
-        self.duration = 0
+        # TODO shouldn't default state be UNKNOWN from the entity base class?
+        self.state: STATES = STATES.OFF
+        self.volume: float = 0
+        self.input: str | None = None
+        self.input_list: list[str] = []
+        self.artist: str | None = None
+        self.title: str | None = None
+        self.artwork: str | None = None
+        self.position: int = 0
+        self.duration: int = 0
 
         LOG.debug("Denon AVR created: %s", self.ipaddress)
 
@@ -124,7 +126,9 @@ class DenonAVR:
         self.manufacturer = self._avr.manufacturer
         self.model = self._avr.model_name
         self.name = self._avr.name
+        # TODO any chance we don't get a serial number from the device?
         self.id = self._avr.serial_number
+
         LOG.debug(
             "Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
             self.manufacturer,
@@ -133,8 +137,12 @@ class DenonAVR:
             self.id,
             self._avr.state,
         )
+
         await self._subscribe_events()
-        self.events.emit(EVENTS.CONNECTED, self.id)
+        if self.id:
+            self.events.emit(EVENTS.CONNECTED, self.id)
+        else:
+            LOG.error("Device communication error: no serial number retrieved from AVR!")
 
         if self._avr.state == "on":
             self.state = STATES.ON
@@ -158,9 +166,12 @@ class DenonAVR:
         """Disconnect from AVR."""
         await self._unsubscribe_events()
         self._avr = None
-        self.events.emit(EVENTS.DISCONNECTED, self.id)
+        if self.id:
+            self.events.emit(EVENTS.DISCONNECTED, self.id)
 
     async def _get_data(self):
+        if self._avr is None:
+            return
         if self.getting_data:
             return
 
@@ -203,6 +214,8 @@ class DenonAVR:
 
     async def _update_callback(self, zone, event, parameter):
         LOG.debug("Zone: %s Event: %s Parameter: %s", zone, event, parameter)
+        if self._avr is None:
+            return
         try:
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
@@ -236,6 +249,8 @@ class DenonAVR:
         #         LOG.debug(f"Time: {self.position}, Percentage: {self.duration}")
 
     async def _subscribe_events(self):
+        if self._avr is None:
+            return
         try:
             await self._avr.async_telnet_connect()
             await self._avr.async_update()
@@ -245,6 +260,9 @@ class DenonAVR:
         LOG.debug("Subscribed to events")
 
     async def _unsubscribe_events(self):
+        if self._avr is None:
+            return
+
         try:
             self._avr.unregister_callback("ALL", self._update_callback)
             # TODO is async_update() required?
@@ -270,34 +288,50 @@ class DenonAVR:
 
     async def power_on(self):
         """Send power-on command to AVR."""
+        if self._avr is None:
+            return
         return await self._command_wrapper(self._avr.async_power_on)
 
     async def power_off(self):
         """Send power-off command to AVR."""
+        if self._avr is None:
+            return
         return await self._command_wrapper(self._avr.async_power_off)
 
     async def volume_up(self):
         """Send volume-up command to AVR."""
+        if self._avr is None:
+            return
         return await self._command_wrapper(self._avr.async_volume_up)
 
     async def volume_down(self):
         """Send volume-down command to AVR."""
+        if self._avr is None:
+            return
         return await self._command_wrapper(self._avr.async_volume_down)
 
     async def play_pause(self):
         """Send toggle-play-pause command to AVR."""
+        if self._avr is None:
+            return
         return await self._command_wrapper(self._avr.async_toggle_play_pause)
 
     async def next(self):
         """Send next-track command to AVR."""
+        if self._avr is None:
+            return
         return await self._command_wrapper(self._avr.async_next_track)
 
     async def previous(self):
         """Send previous-track command to AVR."""
+        if self._avr is None:
+            return
         return await self._command_wrapper(self._avr.async_previous_track)
 
     async def mute(self, muted):
         """Send mute command to AVR."""
+        if self._avr is None:
+            return
         try:
             await self._avr.async_mute(muted)
             return True
@@ -307,6 +341,8 @@ class DenonAVR:
 
     async def set_input(self, input_source):
         """Send input_source command to AVR."""
+        if self._avr is None:
+            return
         try:
             await self._avr.async_set_input_func(input_source)
             return True
