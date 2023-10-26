@@ -19,7 +19,7 @@ from pyee import AsyncIOEventEmitter
 LOG = logging.getLogger(__name__)
 
 
-class EVENTS(IntEnum):
+class Events(IntEnum):
     """Internal driver events."""
 
     CONNECTING = 0
@@ -30,13 +30,15 @@ class EVENTS(IntEnum):
     UPDATE = 5
 
 
-class STATES(IntEnum):
+class States(IntEnum):
     """State of a connected AVR."""
 
-    OFF = 0
-    ON = 1
-    PLAYING = 2
-    PAUSED = 3
+    UNKNOWN = 0
+    UNAVAILABLE = 1
+    OFF = 2
+    ON = 3
+    PLAYING = 4
+    PAUSED = 5
 
 
 async def discover_denon_avrs():
@@ -72,8 +74,7 @@ class DenonAVR:
         self.ipaddress: str = ipaddress
         self.getting_data: bool = False
 
-        # TODO shouldn't default state be UNKNOWN from the entity base class?
-        self.state: STATES = STATES.OFF
+        self.state: States = States.UNKNOWN
         self.volume: float = 0
         self.input: str | None = None
         self.input_list: list[str] = []
@@ -140,18 +141,11 @@ class DenonAVR:
 
         await self._subscribe_events()
         if self.id:
-            self.events.emit(EVENTS.CONNECTED, self.id)
+            self.events.emit(Events.CONNECTED, self.id)
         else:
             LOG.error("Device communication error: no serial number retrieved from AVR!")
 
-        if self._avr.state == "on":
-            self.state = STATES.ON
-        elif self._avr.state == "off":
-            self.state = STATES.OFF
-        elif self._avr.state == "playing":
-            self.state = STATES.PLAYING
-        elif self._avr.state == "paused":
-            self.state = STATES.PAUSED
+        self.state = self._map_denonavr_state(self._avr.state)
 
         self.input_list = self._avr.input_func_list
         self.input = self._avr.input_func
@@ -167,7 +161,21 @@ class DenonAVR:
         await self._unsubscribe_events()
         self._avr = None
         if self.id:
-            self.events.emit(EVENTS.DISCONNECTED, self.id)
+            self.events.emit(Events.DISCONNECTED, self.id)
+
+    @staticmethod
+    def _map_denonavr_state(avr_state: str | None) -> States:
+        """Map the DenonAVR library state to our state."""
+        state = States.UNKNOWN
+        if avr_state == "on":
+            state = States.ON
+        elif avr_state == "off":
+            state = States.OFF
+        elif avr_state == "playing":
+            state = States.PLAYING
+        elif avr_state == "paused":
+            state = States.PAUSED
+        return state
 
     async def _get_data(self):
         if self._avr is None:
@@ -185,19 +193,12 @@ class DenonAVR:
             self.artwork = self._avr.image_url
 
             if self._avr.power == "OFF":
-                self.state = STATES.OFF
+                self.state = States.OFF
             else:
-                if self._avr.state == "on":
-                    self.state = STATES.ON
-                elif self._avr.state == "off":
-                    self.state = STATES.OFF
-                elif self._avr.state == "playing":
-                    self.state = STATES.PLAYING
-                elif self._avr.state == "paused":
-                    self.state = STATES.PAUSED
+                self.state = self._map_denonavr_state(self._avr.state)
 
             self.events.emit(
-                EVENTS.UPDATE,
+                Events.UPDATE,
                 {
                     "state": self.state,
                     "artist": self.artist,
@@ -223,7 +224,7 @@ class DenonAVR:
 
         if event == "MV":
             self.volume = self._convert_volume_to_percent(self._avr.volume)
-            self.events.emit(EVENTS.UPDATE, {"volume": self.volume})
+            self.events.emit(Events.UPDATE, {"volume": self.volume})
         else:
             _ = asyncio.ensure_future(self._get_data())
             # if self.state == STATES.OFF:

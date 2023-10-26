@@ -180,19 +180,19 @@ async def _on_subscribe_entities(entity_ids):
             LOG.debug("We have a match, start listening to events")
             a = configuredAVRs[entity_id]
 
-            @a.events.on(avr.EVENTS.CONNECTED)
+            @a.events.on(avr.Events.CONNECTED)
             async def on_connected(identifier):
                 await _handle_connected(identifier)
 
-            @a.events.on(avr.EVENTS.DISCONNECTED)
+            @a.events.on(avr.Events.DISCONNECTED)
             async def on_disconnected(identifier):
                 await _handle_disconnected(identifier)
 
-            @a.events.on(avr.EVENTS.ERROR)
+            @a.events.on(avr.Events.ERROR)
             async def on_error(identifier, message):
                 await _handle_connection_error(identifier, message)
 
-            @a.events.on(avr.EVENTS.UPDATE)
+            @a.events.on(avr.Events.UPDATE)
             async def on_update(update):
                 # FIXME W0640: Cell variable entity_id defined in loop (cell-var-from-loop)
                 #       This is most likely the WRONG entity_id if we have MULTIPLE configuredAVRs
@@ -203,9 +203,7 @@ async def _on_subscribe_entities(entity_ids):
             api.configuredEntities.updateEntityAttributes(
                 entity_id,
                 {
-                    entities.media_player.ATTRIBUTES.STATE: entities.media_player.STATES.ON
-                    if a.state == avr.STATES.ON
-                    else entities.media_player.STATES.OFF,
+                    entities.media_player.ATTRIBUTES.STATE: _media_player_state_from_avr(a.state),
                     entities.media_player.ATTRIBUTES.SOURCE_LIST: a.input_list,
                     entities.media_player.ATTRIBUTES.SOURCE: a.input,
                     entities.media_player.ATTRIBUTES.VOLUME: a.volume,
@@ -214,6 +212,22 @@ async def _on_subscribe_entities(entity_ids):
                     entities.media_player.ATTRIBUTES.MEDIA_IMAGE_URL: a.artwork,
                 },
             )
+
+
+def _media_player_state_from_avr(avr_state: avr.States) -> entities.media_player.STATES:
+    """Convert the AVR device state to a media-player entity state."""
+    state = entities.media_player.STATES.UNKNOWN
+    if avr_state == avr.States.ON:
+        state = entities.media_player.STATES.ON
+    elif avr_state == avr.States.OFF:
+        state = entities.media_player.STATES.OFF
+    elif avr_state == avr.States.PLAYING:
+        state = entities.media_player.STATES.PLAYING
+    elif avr_state == avr.States.PAUSED:
+        state = entities.media_player.STATES.PAUSED
+    elif avr_state == avr.States.UNAVAILABLE:
+        state = entities.media_player.STATES.UNAVAILABLE
+    return state
 
 
 # On unsubscribe, we disconnect the objects and remove listeners for events
@@ -378,13 +392,13 @@ def _get_media_player_state(avr_state) -> entities.media_player.STATES:
     """
     state = entities.media_player.STATES.UNKNOWN
 
-    if avr_state == avr.STATES.ON:
+    if avr_state == avr.States.ON:
         state = entities.media_player.STATES.ON
-    elif avr_state == avr.STATES.PLAYING:
+    elif avr_state == avr.States.PLAYING:
         state = entities.media_player.STATES.PLAYING
-    elif avr_state == avr.STATES.PAUSED:
+    elif avr_state == avr.States.PAUSED:
         state = entities.media_player.STATES.PAUSED
-    elif avr_state == avr.STATES.OFF:
+    elif avr_state == avr.States.OFF:
         state = entities.media_player.STATES.OFF
 
     return state
