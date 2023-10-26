@@ -1,6 +1,58 @@
+# TODO this is work in progress
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "intg-denonavr"
+version = "0.1.0"
+authors = [
+    {name = "Unfolded Circle ApS", email = "hello@unfoldedcircle.com"}
+]
+license = {text = "MPL-2.0"}
+description = "Remote Two integration for Denon AVRs"
+# TODO check & update classifiers
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MPL-2.0 License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Home Automation",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "asyncio==3.4.3",
+    "denonavr==0.11.4",
+    "pyee==9.0.4",
+    "websockets==11.0.3",
+    "zeroconf==0.119.0",
+]
+
 [project.readme]
 file = "README.md"
 content-type = "text/markdown; charset=UTF-8"
+
+[project.optional-dependencies]
+testing = [
+    "pylint",
+    "flake8-docstrings",
+    "flake8",
+    "black",
+    "isort",
+]
+
+[tool.setuptools]
+zip-safe = false
+platforms = ["any"]
+license-files = ["LICENSE"]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+exclude = ["tests"]
+namespaces = false
 
 [tool.isort]
 profile = "black"
