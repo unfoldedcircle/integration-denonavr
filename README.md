@@ -30,6 +30,7 @@ pip3 install -r requirements.txt
 
 Manually install [ucapi](https://github.com/aitatoi/integration-python-library) library:
 ```console
+export UCAPI_PYTHON_LIB_VERSION=0.0.11
 pip3 install ../integration-python-library/dist/ucapi-$UCAPI_PYTHON_LIB_VERSION-py3-none-any.whl
 ```
 
