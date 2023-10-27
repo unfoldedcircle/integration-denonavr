@@ -13,28 +13,27 @@ import logging
 import os
 
 import avr
-import ucapi.api as uc
-import ucapi.api_definitions as api_def
+import ucapi
 from ucapi import media_player
 
 _LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
-LOOP = asyncio.get_event_loop()
+_LOOP = asyncio.get_event_loop()
 
-CFG_FILENAME = "config.json"
+_CFG_FILENAME = "config.json"
 # Global variables
-CFG_FILE_PATH: str | None = None
-api = uc.IntegrationAPI(LOOP)
-config: list[dict[str, any]] = []
-configured_avrs: dict[str, avr.DenonAVR] = {}
+_CFG_FILE_PATH: str | None = None
+api = ucapi.IntegrationAPI(_LOOP)
+_config: list[dict[str, any]] = []
+_configured_avrs: dict[str, avr.DenonAVR] = {}
 
 
 async def clear_config():
     """Remove the configuration file."""
-    global config
-    config = []
+    global _config
+    _config = []
 
-    if os.path.exists(CFG_FILE_PATH):
-        os.remove(CFG_FILE_PATH)
+    if os.path.exists(_CFG_FILE_PATH):
+        os.remove(_CFG_FILE_PATH)
 
 
 async def store_config() -> bool:
@@ -44,8 +43,8 @@ async def store_config() -> bool:
     :return: True if the configuration could be saved.
     """
     try:
-        with open(CFG_FILE_PATH, "w+", encoding="utf-8") as f:
-            json.dump(config, f, ensure_ascii=False)
+        with open(_CFG_FILE_PATH, "w+", encoding="utf-8") as f:
+            json.dump(_config, f, ensure_ascii=False)
         return True
     except OSError:
         _LOG.error("Cannot write the config file")
@@ -59,12 +58,12 @@ async def load_config():
 
     :return: True if the configuration could be loaded.
     """
-    global config
+    global _config
 
     try:
-        with open(CFG_FILE_PATH, "r", encoding="utf-8") as f:
+        with open(_CFG_FILE_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
-        config = data
+        _config = data
         return True
     except OSError:
         _LOG.error("Cannot open the config file")
@@ -75,7 +74,7 @@ async def load_config():
 
 
 # DRIVER SETUP
-@api.events.on(api_def.Events.SETUP_DRIVER)
+@api.events.on(ucapi.Events.SETUP_DRIVER)
 async def _on_setup_driver(websocket, req_id, _data):
     _LOG.debug("Starting driver setup")
     await clear_config()
@@ -112,7 +111,7 @@ async def _on_setup_driver(websocket, req_id, _data):
     )
 
 
-@api.events.on(api_def.Events.SETUP_DRIVER_USER_DATA)
+@api.events.on(ucapi.Events.SETUP_DRIVER_USER_DATA)
 async def _on_setup_driver_user_data(websocket, req_id, data):
     await api.acknowledge_command(websocket, req_id)
     await api.driver_setup_progress(websocket)
@@ -121,14 +120,14 @@ async def _on_setup_driver_user_data(websocket, req_id, data):
         choice = data["choice"]
         _LOG.debug("Chosen Denon AVR: %s", choice)
 
-        obj = avr.DenonAVR(LOOP, choice)
+        obj = avr.DenonAVR(_LOOP, choice)
         # FIXME handle connect error!
         await obj.connect()
-        configured_avrs[obj.id] = obj
+        _configured_avrs[obj.id] = obj
 
         _add_available_entity(obj.id, obj.name)
 
-        config.append({"id": obj.id, "name": obj.name, "ipaddress": obj.ipaddress})
+        _config.append({"id": obj.id, "name": obj.name, "ipaddress": obj.ipaddress})
         await store_config()
 
         await api.driver_setup_complete(websocket)
@@ -138,48 +137,48 @@ async def _on_setup_driver_user_data(websocket, req_id, data):
 
 
 # When the core connects, we just set the device state
-@api.events.on(api_def.Events.CONNECT)
+@api.events.on(ucapi.Events.CONNECT)
 async def _on_connect():
-    await api.set_device_state(api_def.DeviceStates.CONNECTED)
+    await api.set_device_state(ucapi.DeviceStates.CONNECTED)
 
 
 # When the core disconnects, we just set the device state
-@api.events.on(api_def.Events.DISCONNECT)
+@api.events.on(ucapi.Events.DISCONNECT)
 async def _on_disconnect():
     _LOG.debug("Client disconnected, disconnecting all AVRs")
-    for configured in configured_avrs.values():
+    for configured in _configured_avrs.values():
         configured.events.remove_all_listeners()
         await configured.disconnect()
 
-    await api.set_device_state(api_def.DeviceStates.DISCONNECTED)
+    await api.set_device_state(ucapi.DeviceStates.DISCONNECTED)
 
 
 # On standby, we disconnect every Denon AVR objects
-@api.events.on(api_def.Events.ENTER_STANDBY)
+@api.events.on(ucapi.Events.ENTER_STANDBY)
 async def _on_enter_standby():
-    for configured in configured_avrs.values():
+    for configured in _configured_avrs.values():
         await configured.disconnect()
 
 
 # On exit standby we wait a bit then connect all Denon AVR objects
-@api.events.on(api_def.Events.EXIT_STANDBY)
+@api.events.on(ucapi.Events.EXIT_STANDBY)
 async def _on_exit_standby():
     await asyncio.sleep(2)
 
-    for configured in configured_avrs.values():
+    for configured in _configured_avrs.values():
         await configured.connect()
 
 
 # When the core subscribes to entities, we set these to UNAVAILABLE state
 # then we hook up to the signals of the object and then connect
-@api.events.on(api_def.Events.SUBSCRIBE_ENTITIES)
+@api.events.on(ucapi.Events.SUBSCRIBE_ENTITIES)
 async def _on_subscribe_entities(entity_ids):
     # TODO verify if this is correct: pylint complains about `entity_id` and `a` being cell-var-from-loop
     # https://pylint.readthedocs.io/en/latest/user_guide/messages/warning/cell-var-from-loop.html
     for entity_id in entity_ids:
-        if entity_id in configured_avrs:
+        if entity_id in _configured_avrs:
             _LOG.debug("We have a match, start listening to events")
-            a = configured_avrs[entity_id]
+            a = _configured_avrs[entity_id]
 
             @a.events.on(avr.Events.CONNECTED)
             async def on_connected(identifier):
@@ -232,66 +231,66 @@ def _media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
 
 
 # On unsubscribe, we disconnect the objects and remove listeners for events
-@api.events.on(api_def.Events.UNSUBSCRIBE_ENTITIES)
+@api.events.on(ucapi.Events.UNSUBSCRIBE_ENTITIES)
 async def _on_unsubscribe_entities(entity_ids):
     for entity_id in entity_ids:
-        if entity_id in configured_avrs:
+        if entity_id in _configured_avrs:
             _LOG.debug("We have a match, stop listening to events")
-            a = configured_avrs[entity_id]
+            a = _configured_avrs[entity_id]
             a.events.remove_all_listeners()
             await a.disconnect()
 
 
 # We handle commands here
-@api.events.on(api_def.Events.ENTITY_COMMAND)
+@api.events.on(ucapi.Events.ENTITY_COMMAND)
 async def _on_entity_command(websocket, req_id, entity_id, _entity_type, cmd_id, params):
-    a = configured_avrs[entity_id]
+    a = _configured_avrs[entity_id]
     configured_entity = api.configured_entities.get(entity_id)
 
     if cmd_id == media_player.Commands.PLAY_PAUSE:
         res = await a.play_pause()
         await api.acknowledge_command(
-            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
+            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
         )
     elif cmd_id == media_player.Commands.NEXT:
         res = await a.next()
         await api.acknowledge_command(
-            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
+            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
         )
     elif cmd_id == media_player.Commands.PREVIOUS:
         res = await a.previous()
         await api.acknowledge_command(
-            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
+            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
         )
     elif cmd_id == media_player.Commands.VOLUME_UP:
         res = await a.volume_up()
         await api.acknowledge_command(
-            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
+            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
         )
     elif cmd_id == media_player.Commands.VOLUME_DOWN:
         res = await a.volume_down()
         await api.acknowledge_command(
-            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
+            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
         )
     elif cmd_id == media_player.Commands.MUTE_TOGGLE:
         res = await a.mute(not configured_entity.attributes[media_player.Attributes.MUTED])
         await api.acknowledge_command(
-            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
+            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
         )
     elif cmd_id == media_player.Commands.ON:
         res = await a.power_on()
         await api.acknowledge_command(
-            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
+            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
         )
     elif cmd_id == media_player.Commands.OFF:
         res = await a.power_off()
         await api.acknowledge_command(
-            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
+            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
         )
     elif cmd_id == media_player.Commands.SELECT_SOURCE:
         res = await a.set_input(params["source"])
         await api.acknowledge_command(
-            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
+            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
         )
 
 
@@ -457,7 +456,7 @@ def _add_available_entity(identifier, name):
 
 async def main():
     """Start the Remote Two integration driver."""
-    global CFG_FILE_PATH
+    global _CFG_FILE_PATH
 
     logging.basicConfig()
 
@@ -466,15 +465,15 @@ async def main():
     logging.getLogger("driver").setLevel(level)
 
     path = api.config_dir_path
-    CFG_FILE_PATH = os.path.join(path, CFG_FILENAME)
+    _CFG_FILE_PATH = os.path.join(path, _CFG_FILENAME)
 
     res = await load_config()
 
     if res is True:
-        for item in config:
-            configured_avrs[item["id"]] = avr.DenonAVR(LOOP, item["ipaddress"])
-            await configured_avrs[item["id"]].connect()
-            _add_available_entity(item["id"], configured_avrs[item["id"]].name)
+        for item in _config:
+            _configured_avrs[item["id"]] = avr.DenonAVR(_LOOP, item["ipaddress"])
+            await _configured_avrs[item["id"]].connect()
+            _add_available_entity(item["id"], _configured_avrs[item["id"]].name)
     else:
         _LOG.error("Cannot load config")
 
@@ -482,5 +481,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    LOOP.run_until_complete(main())
-    LOOP.run_forever()
+    _LOOP.run_until_complete(main())
+    _LOOP.run_forever()
