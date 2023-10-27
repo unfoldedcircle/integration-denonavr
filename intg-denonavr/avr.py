@@ -271,6 +271,10 @@ class DenonAVR:
         except denonavr.exceptions.DenonAvrError as e:
             LOG.error("Failed to get latest status information: %s", e)
         try:
+            # avr might be gone by now! Otherwise, process terminates with:
+            # AttributeError: 'NoneType' object has no attribute 'async_telnet_disconnect'
+            if self._avr is None:
+                return
             await self._avr.async_telnet_disconnect()
         except denonavr.exceptions.DenonAvrError:
             pass
