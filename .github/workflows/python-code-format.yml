@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 env:
-  INTG_LIB_VER: 0.0.11
+  INTG_LIB_VER: 0.1.0
 
 jobs:
   test:

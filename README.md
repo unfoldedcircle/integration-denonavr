@@ -24,14 +24,14 @@ Supported commands:
 
 ## Setup
 
-```console
+```shell
 pip3 install -r requirements.txt
 ```
 
 Manually install [ucapi](https://github.com/aitatoi/integration-python-library) library:
-```console
-export UCAPI_PYTHON_LIB_VERSION=0.0.11
-pip3 install ../integration-python-library/dist/ucapi-$UCAPI_PYTHON_LIB_VERSION-py3-none-any.whl
+```shell
+export UCAPI_PYTHON_LIB_VERSION=0.1.0
+pip3 install --force-reinstall ../integration-python-library/dist/ucapi-$UCAPI_PYTHON_LIB_VERSION-py3-none-any.whl
 ```
 
 ## Code Style
@@ -40,7 +40,7 @@ pip3 install ../integration-python-library/dist/ucapi-$UCAPI_PYTHON_LIB_VERSION-
 - Use double quotes as default (don't mix and match for simple quoting, checked with pylint).
 
 Install tooling:
-```console
+```shell
 pip3 install -r test-requirements.txt
 ```
 
@@ -48,7 +48,7 @@ pip3 install -r test-requirements.txt
 
 The following tests are run as GitHub action for each push on the main branch and for pull requests.
 They can also be run anytime on a local developer machine:
-```console
+```shell
 python -m pylint intg-denonavr
 python -m flake8 intg-denonavr --count --show-source --statistics
 python -m isort intg-denonavr/. --check --verbose 
@@ -60,7 +60,7 @@ Linting integration in PyCharm/IntelliJ IDEA:
 2. Open Pylint window and run a scan: `Check Module` or `Check Current File`
 
 ### Format Code
-```console
+```shell
 python -m black intg-denonavr --line-length 120
 ```
 
@@ -73,7 +73,7 @@ PyCharm/IntelliJ IDEA integration:
 
 ### Sort Imports
 
-```console
+```shell
 python -m isort intg-denonavr/.
 ```
 
@@ -103,7 +103,7 @@ to extract the license information in JSON format. The output JSON is then trans
 custom script.
 
 Create a virtual environment for pip-licenses, since it operates on the packages installed with pip:
-```console
+```shell
 python3 -m venv env
 source env/bin/activate
 pip3 install -r requirements.txt
@@ -111,7 +111,7 @@ pip3 install -r requirements.txt
 Exit `venv` with `deactivate`.
 
 Gather licenses:
-```console
+```shell
 pip-licenses --python ./env/bin/python \
   --with-description --with-urls \
   --with-license-file --no-license-path \
@@ -120,7 +120,7 @@ pip-licenses --python ./env/bin/python \
 ```
 
 Transform:
-```console
+```shell
 cd tools
 node transform-pip-licenses.js ../licenses.json licenses.md
 ```
