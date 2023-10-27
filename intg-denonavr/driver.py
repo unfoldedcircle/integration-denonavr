@@ -14,9 +14,10 @@ import os
 
 import avr
 import ucapi.api as uc
+import ucapi.api_definitions as api_def
 from ucapi import media_player
 
-LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
+_LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
 LOOP = asyncio.get_event_loop()
 
 CFG_FILENAME = "config.json"
@@ -24,7 +25,7 @@ CFG_FILENAME = "config.json"
 CFG_FILE_PATH: str | None = None
 api = uc.IntegrationAPI(LOOP)
 config: list[dict[str, any]] = []
-configuredAVRs: dict[str, avr.DenonAVR] = {}
+configured_avrs: dict[str, avr.DenonAVR] = {}
 
 
 async def clear_config():
@@ -47,7 +48,7 @@ async def store_config() -> bool:
             json.dump(config, f, ensure_ascii=False)
         return True
     except OSError:
-        LOG.error("Cannot write the config file")
+        _LOG.error("Cannot write the config file")
 
     return False
 
@@ -66,22 +67,22 @@ async def load_config():
         config = data
         return True
     except OSError:
-        LOG.error("Cannot open the config file")
+        _LOG.error("Cannot open the config file")
     except ValueError:
-        LOG.error("Empty or invalid config file")
+        _LOG.error("Empty or invalid config file")
 
     return False
 
 
 # DRIVER SETUP
-@api.events.on(uc.uc.EVENTS.SETUP_DRIVER)
+@api.events.on(api_def.Events.SETUP_DRIVER)
 async def _on_setup_driver(websocket, req_id, _data):
-    LOG.debug("Starting driver setup")
+    _LOG.debug("Starting driver setup")
     await clear_config()
-    await api.acknowledgeCommand(websocket, req_id)
-    await api.driverSetupProgress(websocket)
+    await api.acknowledge_command(websocket, req_id)
+    await api.driver_setup_progress(websocket)
 
-    LOG.debug("Starting discovery")
+    _LOG.debug("Starting discovery")
     avrs = await avr.discover_denon_avrs()
     dropdown_items = []
 
@@ -90,11 +91,11 @@ async def _on_setup_driver(websocket, req_id, _data):
         dropdown_items.append(tv_data)
 
     if not dropdown_items:
-        LOG.warning("No AVRs found")
-        await api.driverSetupError(websocket)
+        _LOG.warning("No AVRs found")
+        await api.driver_setup_error(websocket)
         return
 
-    await api.requestDriverSetupUserInput(
+    await api.request_driver_setup_user_input(
         websocket,
         "Please choose your Denon AVR",
         [
@@ -111,74 +112,74 @@ async def _on_setup_driver(websocket, req_id, _data):
     )
 
 
-@api.events.on(uc.uc.EVENTS.SETUP_DRIVER_USER_DATA)
+@api.events.on(api_def.Events.SETUP_DRIVER_USER_DATA)
 async def _on_setup_driver_user_data(websocket, req_id, data):
-    await api.acknowledgeCommand(websocket, req_id)
-    await api.driverSetupProgress(websocket)
+    await api.acknowledge_command(websocket, req_id)
+    await api.driver_setup_progress(websocket)
 
     if "choice" in data:
         choice = data["choice"]
-        LOG.debug("Chosen Denon AVR: %s", choice)
+        _LOG.debug("Chosen Denon AVR: %s", choice)
 
         obj = avr.DenonAVR(LOOP, choice)
         # FIXME handle connect error!
         await obj.connect()
-        configuredAVRs[obj.id] = obj
+        configured_avrs[obj.id] = obj
 
         _add_available_entity(obj.id, obj.name)
 
         config.append({"id": obj.id, "name": obj.name, "ipaddress": obj.ipaddress})
         await store_config()
 
-        await api.driverSetupComplete(websocket)
+        await api.driver_setup_complete(websocket)
     else:
-        LOG.error("No choice was received")
-        await api.driverSetupError(websocket)
+        _LOG.error("No choice was received")
+        await api.driver_setup_error(websocket)
 
 
 # When the core connects, we just set the device state
-@api.events.on(uc.uc.EVENTS.CONNECT)
+@api.events.on(api_def.Events.CONNECT)
 async def _on_connect():
-    await api.setDeviceState(uc.uc.DEVICE_STATES.CONNECTED)
+    await api.set_device_state(api_def.DeviceStates.CONNECTED)
 
 
 # When the core disconnects, we just set the device state
-@api.events.on(uc.uc.EVENTS.DISCONNECT)
+@api.events.on(api_def.Events.DISCONNECT)
 async def _on_disconnect():
-    LOG.debug("Client disconnected, disconnecting all AVRs")
-    for configured in configuredAVRs.values():
+    _LOG.debug("Client disconnected, disconnecting all AVRs")
+    for configured in configured_avrs.values():
         configured.events.remove_all_listeners()
         await configured.disconnect()
 
-    await api.setDeviceState(uc.uc.DEVICE_STATES.DISCONNECTED)
+    await api.set_device_state(api_def.DeviceStates.DISCONNECTED)
 
 
 # On standby, we disconnect every Denon AVR objects
-@api.events.on(uc.uc.EVENTS.ENTER_STANDBY)
+@api.events.on(api_def.Events.ENTER_STANDBY)
 async def _on_enter_standby():
-    for configured in configuredAVRs.values():
+    for configured in configured_avrs.values():
         await configured.disconnect()
 
 
 # On exit standby we wait a bit then connect all Denon AVR objects
-@api.events.on(uc.uc.EVENTS.EXIT_STANDBY)
+@api.events.on(api_def.Events.EXIT_STANDBY)
 async def _on_exit_standby():
     await asyncio.sleep(2)
 
-    for configured in configuredAVRs.values():
+    for configured in configured_avrs.values():
         await configured.connect()
 
 
 # When the core subscribes to entities, we set these to UNAVAILABLE state
 # then we hook up to the signals of the object and then connect
-@api.events.on(uc.uc.EVENTS.SUBSCRIBE_ENTITIES)
+@api.events.on(api_def.Events.SUBSCRIBE_ENTITIES)
 async def _on_subscribe_entities(entity_ids):
     # TODO verify if this is correct: pylint complains about `entity_id` and `a` being cell-var-from-loop
     # https://pylint.readthedocs.io/en/latest/user_guide/messages/warning/cell-var-from-loop.html
     for entity_id in entity_ids:
-        if entity_id in configuredAVRs:
-            LOG.debug("We have a match, start listening to events")
-            a = configuredAVRs[entity_id]
+        if entity_id in configured_avrs:
+            _LOG.debug("We have a match, start listening to events")
+            a = configured_avrs[entity_id]
 
             @a.events.on(avr.Events.CONNECTED)
             async def on_connected(identifier):
@@ -200,97 +201,97 @@ async def _on_subscribe_entities(entity_ids):
 
             await a.connect()
 
-            api.configuredEntities.updateEntityAttributes(
+            api.configured_entities.update_attributes(
                 entity_id,
                 {
-                    media_player.ATTRIBUTES.STATE: _media_player_state_from_avr(a.state),
-                    media_player.ATTRIBUTES.SOURCE_LIST: a.input_list,
-                    media_player.ATTRIBUTES.SOURCE: a.input,
-                    media_player.ATTRIBUTES.VOLUME: a.volume,
-                    media_player.ATTRIBUTES.MEDIA_ARTIST: a.artist,
-                    media_player.ATTRIBUTES.MEDIA_TITLE: a.title,
-                    media_player.ATTRIBUTES.MEDIA_IMAGE_URL: a.artwork,
+                    media_player.Attributes.STATE: _media_player_state_from_avr(a.state),
+                    media_player.Attributes.SOURCE_LIST: a.input_list,
+                    media_player.Attributes.SOURCE: a.input,
+                    media_player.Attributes.VOLUME: a.volume,
+                    media_player.Attributes.MEDIA_ARTIST: a.artist,
+                    media_player.Attributes.MEDIA_TITLE: a.title,
+                    media_player.Attributes.MEDIA_IMAGE_URL: a.artwork,
                 },
             )
 
 
-def _media_player_state_from_avr(avr_state: avr.States) -> media_player.STATES:
+def _media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
     """Convert the AVR device state to a media-player entity state."""
-    state = media_player.STATES.UNKNOWN
+    state = media_player.States.UNKNOWN
     if avr_state == avr.States.ON:
-        state = media_player.STATES.ON
+        state = media_player.States.ON
     elif avr_state == avr.States.OFF:
-        state = media_player.STATES.OFF
+        state = media_player.States.OFF
     elif avr_state == avr.States.PLAYING:
-        state = media_player.STATES.PLAYING
+        state = media_player.States.PLAYING
     elif avr_state == avr.States.PAUSED:
-        state = media_player.STATES.PAUSED
+        state = media_player.States.PAUSED
     elif avr_state == avr.States.UNAVAILABLE:
-        state = media_player.STATES.UNAVAILABLE
+        state = media_player.States.UNAVAILABLE
     return state
 
 
 # On unsubscribe, we disconnect the objects and remove listeners for events
-@api.events.on(uc.uc.EVENTS.UNSUBSCRIBE_ENTITIES)
+@api.events.on(api_def.Events.UNSUBSCRIBE_ENTITIES)
 async def _on_unsubscribe_entities(entity_ids):
     for entity_id in entity_ids:
-        if entity_id in configuredAVRs:
-            LOG.debug("We have a match, stop listening to events")
-            a = configuredAVRs[entity_id]
+        if entity_id in configured_avrs:
+            _LOG.debug("We have a match, stop listening to events")
+            a = configured_avrs[entity_id]
             a.events.remove_all_listeners()
             await a.disconnect()
 
 
 # We handle commands here
-@api.events.on(uc.uc.EVENTS.ENTITY_COMMAND)
+@api.events.on(api_def.Events.ENTITY_COMMAND)
 async def _on_entity_command(websocket, req_id, entity_id, _entity_type, cmd_id, params):
-    a = configuredAVRs[entity_id]
-    configured_entity = api.configuredEntities.getEntity(entity_id)
+    a = configured_avrs[entity_id]
+    configured_entity = api.configured_entities.get(entity_id)
 
-    if cmd_id == media_player.COMMANDS.PLAY_PAUSE:
+    if cmd_id == media_player.Commands.PLAY_PAUSE:
         res = await a.play_pause()
-        await api.acknowledgeCommand(
-            websocket, req_id, uc.uc.STATUS_CODES.OK if res is True else uc.uc.STATUS_CODES.SERVER_ERROR
+        await api.acknowledge_command(
+            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
         )
-    elif cmd_id == media_player.COMMANDS.NEXT:
+    elif cmd_id == media_player.Commands.NEXT:
         res = await a.next()
-        await api.acknowledgeCommand(
-            websocket, req_id, uc.uc.STATUS_CODES.OK if res is True else uc.uc.STATUS_CODES.SERVER_ERROR
+        await api.acknowledge_command(
+            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
         )
-    elif cmd_id == media_player.COMMANDS.PREVIOUS:
+    elif cmd_id == media_player.Commands.PREVIOUS:
         res = await a.previous()
-        await api.acknowledgeCommand(
-            websocket, req_id, uc.uc.STATUS_CODES.OK if res is True else uc.uc.STATUS_CODES.SERVER_ERROR
+        await api.acknowledge_command(
+            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
         )
-    elif cmd_id == media_player.COMMANDS.VOLUME_UP:
+    elif cmd_id == media_player.Commands.VOLUME_UP:
         res = await a.volume_up()
-        await api.acknowledgeCommand(
-            websocket, req_id, uc.uc.STATUS_CODES.OK if res is True else uc.uc.STATUS_CODES.SERVER_ERROR
+        await api.acknowledge_command(
+            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
         )
-    elif cmd_id == media_player.COMMANDS.VOLUME_DOWN:
+    elif cmd_id == media_player.Commands.VOLUME_DOWN:
         res = await a.volume_down()
-        await api.acknowledgeCommand(
-            websocket, req_id, uc.uc.STATUS_CODES.OK if res is True else uc.uc.STATUS_CODES.SERVER_ERROR
+        await api.acknowledge_command(
+            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
         )
-    elif cmd_id == media_player.COMMANDS.MUTE_TOGGLE:
-        res = await a.mute(not configured_entity.attributes[media_player.ATTRIBUTES.MUTED])
-        await api.acknowledgeCommand(
-            websocket, req_id, uc.uc.STATUS_CODES.OK if res is True else uc.uc.STATUS_CODES.SERVER_ERROR
+    elif cmd_id == media_player.Commands.MUTE_TOGGLE:
+        res = await a.mute(not configured_entity.attributes[media_player.Attributes.MUTED])
+        await api.acknowledge_command(
+            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
         )
-    elif cmd_id == media_player.COMMANDS.ON:
+    elif cmd_id == media_player.Commands.ON:
         res = await a.power_on()
-        await api.acknowledgeCommand(
-            websocket, req_id, uc.uc.STATUS_CODES.OK if res is True else uc.uc.STATUS_CODES.SERVER_ERROR
+        await api.acknowledge_command(
+            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
         )
-    elif cmd_id == media_player.COMMANDS.OFF:
+    elif cmd_id == media_player.Commands.OFF:
         res = await a.power_off()
-        await api.acknowledgeCommand(
-            websocket, req_id, uc.uc.STATUS_CODES.OK if res is True else uc.uc.STATUS_CODES.SERVER_ERROR
+        await api.acknowledge_command(
+            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
         )
-    elif cmd_id == media_player.COMMANDS.SELECT_SOURCE:
+    elif cmd_id == media_player.Commands.SELECT_SOURCE:
         res = await a.set_input(params["source"])
-        await api.acknowledgeCommand(
-            websocket, req_id, uc.uc.STATUS_CODES.OK if res is True else uc.uc.STATUS_CODES.SERVER_ERROR
+        await api.acknowledge_command(
+            websocket, req_id, api_def.StatusCodes.OK if res is True else api_def.StatusCodes.SERVER_ERROR
         )
 
 
@@ -308,94 +309,92 @@ def _key_update_helper(key, value, attributes, configured_entity):
 
 
 async def _handle_connected(identifier):
-    LOG.debug("AVR connected: %s", identifier)
-    configured_entity = api.configuredEntities.getEntity(identifier)
+    _LOG.debug("AVR connected: %s", identifier)
+    configured_entity = api.configured_entities.get(identifier)
 
-    if configured_entity.attributes[media_player.ATTRIBUTES.STATE] == media_player.STATES.UNAVAILABLE:
-        api.configuredEntities.updateEntityAttributes(
-            identifier, {media_player.ATTRIBUTES.STATE: media_player.STATES.STANDBY}
+    if configured_entity.attributes[media_player.Attributes.STATE] == media_player.States.UNAVAILABLE:
+        api.configured_entities.update_attributes(
+            identifier, {media_player.Attributes.STATE: media_player.States.STANDBY}
         )
 
 
 async def _handle_disconnected(identifier):
-    LOG.debug("AVR disconnected: %s", identifier)
-    api.configuredEntities.updateEntityAttributes(
-        identifier, {media_player.ATTRIBUTES.STATE: media_player.STATES.STANDBY}
-    )
+    _LOG.debug("AVR disconnected: %s", identifier)
+    api.configured_entities.update_attributes(identifier, {media_player.Attributes.STATE: media_player.States.STANDBY})
 
 
 async def _handle_connection_error(identifier, message):
-    LOG.error(message)
-    api.configuredEntities.updateEntityAttributes(
-        identifier, {media_player.ATTRIBUTES.STATE: media_player.STATES.UNAVAILABLE}
+    _LOG.error(message)
+    api.configured_entities.update_attributes(
+        identifier, {media_player.Attributes.STATE: media_player.States.UNAVAILABLE}
     )
 
 
 async def _handle_avr_update(entity_id, update):
     attributes = {}
 
-    configured_entity = api.configuredEntities.getEntity(entity_id)
+    configured_entity = api.configured_entities.get(entity_id)
 
-    LOG.debug("AVR update: %s", update)
+    _LOG.debug("AVR update: %s", update)
 
     if "state" in update:
         state = _get_media_player_state(update["state"])
-        attributes = _key_update_helper(media_player.ATTRIBUTES.STATE, state, attributes, configured_entity)
+        attributes = _key_update_helper(media_player.Attributes.STATE, state, attributes, configured_entity)
 
     # if "position" in update:
-    #     attributes = keyUpdateHelper(media_player.ATTRIBUTES.MEDIA_POSITION, update["position"], attributes,
+    #     attributes = keyUpdateHelper(media_player.Attributes.MEDIA_POSITION, update["position"], attributes,
     #                                  configuredEntity)
     if "artwork" in update:
-        attributes[media_player.ATTRIBUTES.MEDIA_IMAGE_URL] = update["artwork"]
+        attributes[media_player.Attributes.MEDIA_IMAGE_URL] = update["artwork"]
     # if "total_time" in update:
-    #     attributes = keyUpdateHelper(media_player.ATTRIBUTES.MEDIA_DURATION, update["total_time"],
+    #     attributes = keyUpdateHelper(media_player.Attributes.MEDIA_DURATION, update["total_time"],
     #                                  attributes, configuredEntity)
     if "title" in update:
         attributes = _key_update_helper(
-            media_player.ATTRIBUTES.MEDIA_TITLE, update["title"], attributes, configured_entity
+            media_player.Attributes.MEDIA_TITLE, update["title"], attributes, configured_entity
         )
     if "artist" in update:
         attributes = _key_update_helper(
-            media_player.ATTRIBUTES.MEDIA_ARTIST, update["artist"], attributes, configured_entity
+            media_player.Attributes.MEDIA_ARTIST, update["artist"], attributes, configured_entity
         )
     if "album" in update:
         attributes = _key_update_helper(
-            media_player.ATTRIBUTES.MEDIA_ALBUM, update["album"], attributes, configured_entity
+            media_player.Attributes.MEDIA_ALBUM, update["album"], attributes, configured_entity
         )
     if "source" in update:
-        attributes = _key_update_helper(media_player.ATTRIBUTES.SOURCE, update["source"], attributes, configured_entity)
+        attributes = _key_update_helper(media_player.Attributes.SOURCE, update["source"], attributes, configured_entity)
     if "sourceList" in update:
-        if media_player.ATTRIBUTES.SOURCE_LIST in configured_entity.attributes:
-            if len(configured_entity.attributes[media_player.ATTRIBUTES.SOURCE_LIST]) != len(update["sourceList"]):
-                attributes[media_player.ATTRIBUTES.SOURCE_LIST] = update["sourceList"]
+        if media_player.Attributes.SOURCE_LIST in configured_entity.attributes:
+            if len(configured_entity.attributes[media_player.Attributes.SOURCE_LIST]) != len(update["sourceList"]):
+                attributes[media_player.Attributes.SOURCE_LIST] = update["sourceList"]
         else:
-            attributes[media_player.ATTRIBUTES.SOURCE_LIST] = update["sourceList"]
+            attributes[media_player.Attributes.SOURCE_LIST] = update["sourceList"]
     if "volume" in update:
-        attributes[media_player.ATTRIBUTES.VOLUME] = update["volume"]
+        attributes[media_player.Attributes.VOLUME] = update["volume"]
 
     _update_attributes(attributes)
 
     if attributes:
-        api.configuredEntities.updateEntityAttributes(entity_id, attributes)
+        api.configured_entities.update_attributes(entity_id, attributes)
 
 
-def _get_media_player_state(avr_state) -> media_player.STATES:
+def _get_media_player_state(avr_state) -> media_player.States:
     """
     Convert AVR state to UC API media-player state.
 
     :param avr_state: Denon AVR state
     :return: UC API media_player state
     """
-    state = media_player.STATES.UNKNOWN
+    state = media_player.States.UNKNOWN
 
     if avr_state == avr.States.ON:
-        state = media_player.STATES.ON
+        state = media_player.States.ON
     elif avr_state == avr.States.PLAYING:
-        state = media_player.STATES.PLAYING
+        state = media_player.States.PLAYING
     elif avr_state == avr.States.PAUSED:
-        state = media_player.STATES.PAUSED
+        state = media_player.States.PAUSED
     elif avr_state == avr.States.OFF:
-        state = media_player.STATES.OFF
+        state = media_player.States.OFF
 
     return state
 
@@ -406,15 +405,15 @@ def _update_attributes(attributes):
 
     :param attributes: entity attributes dictionary
     """
-    if media_player.ATTRIBUTES.STATE in attributes:
-        if attributes[media_player.ATTRIBUTES.STATE] == media_player.STATES.OFF:
-            attributes[media_player.ATTRIBUTES.MEDIA_IMAGE_URL] = ""
-            attributes[media_player.ATTRIBUTES.MEDIA_ALBUM] = ""
-            attributes[media_player.ATTRIBUTES.MEDIA_ARTIST] = ""
-            attributes[media_player.ATTRIBUTES.MEDIA_TITLE] = ""
-            attributes[media_player.ATTRIBUTES.MEDIA_TYPE] = ""
-            attributes[media_player.ATTRIBUTES.SOURCE] = ""
-            # attributes[media_player.ATTRIBUTES.MEDIA_DURATION] = 0
+    if media_player.Attributes.STATE in attributes:
+        if attributes[media_player.Attributes.STATE] == media_player.States.OFF:
+            attributes[media_player.Attributes.MEDIA_IMAGE_URL] = ""
+            attributes[media_player.Attributes.MEDIA_ALBUM] = ""
+            attributes[media_player.Attributes.MEDIA_ARTIST] = ""
+            attributes[media_player.Attributes.MEDIA_TITLE] = ""
+            attributes[media_player.Attributes.MEDIA_TYPE] = ""
+            attributes[media_player.Attributes.SOURCE] = ""
+            # attributes[media_player.Attributes.MEDIA_DURATION] = 0
 
 
 def _add_available_entity(identifier, name):
@@ -422,60 +421,62 @@ def _add_available_entity(identifier, name):
         identifier,
         name,
         [
-            media_player.FEATURES.ON_OFF,
-            media_player.FEATURES.VOLUME,
-            media_player.FEATURES.VOLUME_UP_DOWN,
-            media_player.FEATURES.MUTE_TOGGLE,
-            media_player.FEATURES.PLAY_PAUSE,
-            media_player.FEATURES.NEXT,
-            media_player.FEATURES.PREVIOUS,
-            # media_player.FEATURES.MEDIA_DURATION,
-            # media_player.FEATURES.MEDIA_POSITION,
-            media_player.FEATURES.MEDIA_TITLE,
-            media_player.FEATURES.MEDIA_ARTIST,
-            media_player.FEATURES.MEDIA_ALBUM,
-            media_player.FEATURES.MEDIA_IMAGE_URL,
-            media_player.FEATURES.MEDIA_TYPE,
-            media_player.FEATURES.SELECT_SOURCE,
+            media_player.Features.ON_OFF,
+            media_player.Features.VOLUME,
+            media_player.Features.VOLUME_UP_DOWN,
+            media_player.Features.MUTE_TOGGLE,
+            media_player.Features.PLAY_PAUSE,
+            media_player.Features.NEXT,
+            media_player.Features.PREVIOUS,
+            # media_player.Features.MEDIA_DURATION,
+            # media_player.Features.MEDIA_POSITION,
+            media_player.Features.MEDIA_TITLE,
+            media_player.Features.MEDIA_ARTIST,
+            media_player.Features.MEDIA_ALBUM,
+            media_player.Features.MEDIA_IMAGE_URL,
+            media_player.Features.MEDIA_TYPE,
+            media_player.Features.SELECT_SOURCE,
         ],
         {
-            media_player.ATTRIBUTES.STATE: media_player.STATES.UNAVAILABLE,
-            media_player.ATTRIBUTES.VOLUME: 0,
-            media_player.ATTRIBUTES.MUTED: False,
-            # media_player.ATTRIBUTES.MEDIA_DURATION: 0,
-            # media_player.ATTRIBUTES.MEDIA_POSITION: 0,
-            media_player.ATTRIBUTES.MEDIA_IMAGE_URL: "",
-            media_player.ATTRIBUTES.MEDIA_TITLE: "",
-            media_player.ATTRIBUTES.MEDIA_ARTIST: "",
-            media_player.ATTRIBUTES.MEDIA_ALBUM: "",
-            media_player.ATTRIBUTES.SOURCE: "",
+            media_player.Attributes.STATE: media_player.States.UNAVAILABLE,
+            media_player.Attributes.VOLUME: 0,
+            media_player.Attributes.MUTED: False,
+            # media_player.Attributes.MEDIA_DURATION: 0,
+            # media_player.Attributes.MEDIA_POSITION: 0,
+            media_player.Attributes.MEDIA_IMAGE_URL: "",
+            media_player.Attributes.MEDIA_TITLE: "",
+            media_player.Attributes.MEDIA_ARTIST: "",
+            media_player.Attributes.MEDIA_ALBUM: "",
+            media_player.Attributes.SOURCE: "",
         },
-        deviceClass=media_player.DEVICECLASSES.RECEIVER,
+        device_class=media_player.DeviceClasses.RECEIVER,
     )
 
-    api.availableEntities.addEntity(entity)
+    api.available_entities.add(entity)
 
 
 async def main():
     """Start the Remote Two integration driver."""
     global CFG_FILE_PATH
 
+    logging.basicConfig()
+
     level = os.getenv("UC_LOG_LEVEL", "DEBUG").upper()
     logging.getLogger("avr").setLevel(level)
     logging.getLogger("driver").setLevel(level)
 
-    path = api.configDirPath
+    path = api.config_dir_path
     CFG_FILE_PATH = os.path.join(path, CFG_FILENAME)
 
     res = await load_config()
 
     if res is True:
         for item in config:
-            configuredAVRs[item["id"]] = avr.DenonAVR(LOOP, item["ipaddress"])
-            await configuredAVRs[item["id"]].connect()
-            _add_available_entity(item["id"], configuredAVRs[item["id"]].name)
+            configured_avrs[item["id"]] = avr.DenonAVR(LOOP, item["ipaddress"])
+            await configured_avrs[item["id"]].connect()
+            _add_available_entity(item["id"], configured_avrs[item["id"]].name)
     else:
-        LOG.error("Cannot load config")
+        _LOG.error("Cannot load config")
 
     await api.init("driver.json")
 

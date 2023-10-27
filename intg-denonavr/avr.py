@@ -16,7 +16,7 @@ import denonavr
 import denonavr.exceptions
 from pyee import AsyncIOEventEmitter
 
-LOG = logging.getLogger(__name__)
+_LOG = logging.getLogger(__name__)
 
 
 class Events(IntEnum):
@@ -47,14 +47,14 @@ async def discover_denon_avrs():
 
     :return: array of device information objects.
     """
-    LOG.debug("Starting discovery")
+    _LOG.debug("Starting discovery")
 
     avrs = await denonavr.async_discover()
     if not avrs:
-        LOG.info("No AVRs discovered")
+        _LOG.info("No AVRs discovered")
         return []
 
-    LOG.info("Found AVR(s): %s", avrs)
+    _LOG.info("Found AVR(s): %s", avrs)
 
     return avrs
 
@@ -84,7 +84,7 @@ class DenonAVR:
         self.position: int = 0
         self.duration: int = 0
 
-        LOG.debug("Denon AVR created: %s", self.ipaddress)
+        _LOG.debug("Denon AVR created: %s", self.ipaddress)
 
     @staticmethod
     def _map_range(value, from_min, from_max, to_min, to_max):
@@ -111,7 +111,7 @@ class DenonAVR:
     async def connect(self):
         """Connect to AVR."""
         if self._avr is not None:
-            LOG.debug("Already connected")
+            _LOG.debug("Already connected")
             _ = asyncio.ensure_future(self._get_data())
             return
 
@@ -120,7 +120,9 @@ class DenonAVR:
             await self._avr.async_setup()
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("[%s] Error connecting to AVR: %s", self.ipaddress, e)
+            _LOG.error("[%s] Error connecting to AVR: %s", self.ipaddress, e)
+            # FIXME connection retry missing! If no AVR is available at startup, the driver never connects :-(
+            #       Message: NetworkError: All connection attempts failed
             self._avr = None
             return
 
@@ -130,7 +132,7 @@ class DenonAVR:
         # TODO any chance we don't get a serial number from the device?
         self.id = self._avr.serial_number
 
-        LOG.debug(
+        _LOG.debug(
             "Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
             self.manufacturer,
             self.model,
@@ -143,7 +145,7 @@ class DenonAVR:
         if self.id:
             self.events.emit(Events.CONNECTED, self.id)
         else:
-            LOG.error("Device communication error: no serial number retrieved from AVR!")
+            _LOG.error("Device communication error: no serial number retrieved from AVR!")
 
         self.state = self._map_denonavr_state(self._avr.state)
 
@@ -184,7 +186,7 @@ class DenonAVR:
             return
 
         self.getting_data = True
-        LOG.debug("Getting track data.")
+        _LOG.debug("Getting track data.")
 
         try:
             await self._avr.async_update()
@@ -206,21 +208,21 @@ class DenonAVR:
                     "artwork": self.artwork,
                 },
             )
-            LOG.debug("Track data: artist: %s title: %s artwork: %s", self.artist, self.title, self.artwork)
+            _LOG.debug("Track data: artist: %s title: %s artwork: %s", self.artist, self.title, self.artwork)
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to get latest status information: %s", e)
+            _LOG.error("Failed to get latest status information: %s", e)
 
         self.getting_data = False
-        LOG.debug("Getting track data done.")
+        _LOG.debug("Getting track data done.")
 
     async def _update_callback(self, zone, event, parameter):
-        LOG.debug("Zone: %s Event: %s Parameter: %s", zone, event, parameter)
+        _LOG.debug("Zone: %s Event: %s Parameter: %s", zone, event, parameter)
         if self._avr is None:
             return
         try:
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to get latest status information: %s", e)
+            _LOG.error("Failed to get latest status information: %s", e)
 
         if event == "MV":
             self.volume = self._convert_volume_to_percent(self._avr.volume)
@@ -256,9 +258,9 @@ class DenonAVR:
             await self._avr.async_telnet_connect()
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to get latest status information: %s", e)
+            _LOG.error("Failed to get latest status information: %s", e)
         self._avr.register_callback("ALL", self._update_callback)
-        LOG.debug("Subscribed to events")
+        _LOG.debug("Subscribed to events")
 
     async def _unsubscribe_events(self):
         if self._avr is None:
@@ -269,7 +271,7 @@ class DenonAVR:
             # TODO is async_update() required?
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to get latest status information: %s", e)
+            _LOG.error("Failed to get latest status information: %s", e)
         try:
             # avr might be gone by now! Otherwise, process terminates with:
             # AttributeError: 'NoneType' object has no attribute 'async_telnet_disconnect'
@@ -278,7 +280,7 @@ class DenonAVR:
             await self._avr.async_telnet_disconnect()
         except denonavr.exceptions.DenonAvrError:
             pass
-        LOG.debug("Unsubscribed to events")
+        _LOG.debug("Unsubscribed to events")
 
     # TODO add commands
     # FIXME #8 command execution check
@@ -287,7 +289,7 @@ class DenonAVR:
             await fn()
             return True
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to execute command: %s", e)
+            _LOG.error("Failed to execute command: %s", e)
             # TODO retry handling?
             return False
 
@@ -341,7 +343,7 @@ class DenonAVR:
             await self._avr.async_mute(muted)
             return True
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to execute mute command: %s", e)
+            _LOG.error("Failed to execute mute command: %s", e)
             return False
 
     async def set_input(self, input_source):
@@ -352,5 +354,5 @@ class DenonAVR:
             await self._avr.async_set_input_func(input_source)
             return True
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to execute input_source command: %s", e)
+            _LOG.error("Failed to execute input_source command: %s", e)
             return False
