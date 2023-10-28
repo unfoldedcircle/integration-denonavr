@@ -165,12 +165,13 @@ async def _on_connect():
 async def _on_disconnect():
     # TODO why disconnect all AVR connections if the integration WS connection to UCR2 disconnects?
     #      This can cause issues and longer reconnect attempts. At least keep the AVR connections up for a certain time!
-    _LOG.debug("Client disconnected, disconnecting all AVRs")
-    for configured in _configured_avrs.values():
-        configured.events.remove_all_listeners()
-        await configured.disconnect()
-
-    await api.set_device_state(ucapi.DeviceStates.DISCONNECTED)
+    # _LOG.debug("Client disconnected, disconnecting all AVRs")
+    # for configured in _configured_avrs.values():
+    #     configured.events.remove_all_listeners()
+    #     await configured.disconnect()
+    #
+    # await api.set_device_state(ucapi.DeviceStates.DISCONNECTED)
+    _LOG.debug("Client disconnected")
 
 
 # On standby, we disconnect every Denon AVR objects
@@ -193,8 +194,6 @@ async def _on_exit_standby():
 # then we hook up to the signals of the object and then connect
 @api.events.on(ucapi.Events.SUBSCRIBE_ENTITIES)
 async def _on_subscribe_entities(entity_ids: list[str]):
-    # TODO verify if this is correct: pylint complains about `entity_id` and `a` being cell-var-from-loop
-    # https://pylint.readthedocs.io/en/latest/user_guide/messages/warning/cell-var-from-loop.html
     for entity_id in entity_ids:
         if not entity_id.startswith("media_player."):
             _LOG.warning("Cannot subscribe to unknown entity: %s", entity_id)
@@ -209,23 +208,10 @@ async def _on_subscribe_entities(entity_ids: list[str]):
         _LOG.debug("Subscribing entity '%s' to AVR events", entity_id)
         a = _configured_avrs[configured_id]
 
-        @a.events.on(avr.Events.CONNECTED)
-        async def on_connected(avr_id: str):
-            await _handle_connected(avr_id)
-
-        @a.events.on(avr.Events.DISCONNECTED)
-        async def on_disconnected(avr_id: str):
-            await _handle_disconnected(avr_id)
-
-        @a.events.on(avr.Events.ERROR)
-        async def on_error(avr_id: str, message):
-            await _handle_connection_error(avr_id, message)
-
-        @a.events.on(avr.Events.UPDATE)
-        async def on_update(update):
-            # FIXME W0640: Cell variable entity_id defined in loop (cell-var-from-loop)
-            #       This is most likely the WRONG entity_id if we have MULTIPLE configuredAVRs
-            await _handle_avr_update(configured_id, update)
+        a.events.on(avr.Events.CONNECTED, _handle_connected)
+        a.events.on(avr.Events.DISCONNECTED, _handle_disconnected)
+        a.events.on(avr.Events.ERROR, _handle_connection_error)
+        a.events.on(avr.Events.UPDATE, _handle_avr_update)
 
         await a.connect()
 
