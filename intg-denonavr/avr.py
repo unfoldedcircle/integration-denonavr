@@ -126,6 +126,9 @@ class DenonAVR:
             self._avr = None
             return
 
+        if self._avr is None:
+            return
+
         self.manufacturer = self._avr.manufacturer
         self.model = self._avr.model_name
         self.name = self._avr.name
@@ -190,6 +193,10 @@ class DenonAVR:
 
         try:
             await self._avr.async_update()
+            if self._avr is None:
+                _LOG.warning("AVR went away, cannot get data")
+                return
+
             self.artist = self._avr.artist
             self.title = self._avr.title
             self.artwork = self._avr.image_url
@@ -216,17 +223,27 @@ class DenonAVR:
         _LOG.debug("Getting track data done.")
 
     async def _update_callback(self, zone, event, parameter):
-        _LOG.debug("Zone: %s Event: %s Parameter: %s", zone, event, parameter)
+        _LOG.debug("[%s] zone: %s, event: %s, parameter: %s", self.id, zone, event, parameter)
         if self._avr is None:
             return
         try:
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
-            _LOG.error("Failed to get latest status information: %s", e)
+            _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
+
+        # async_update() might take a while and _avr could have gone away
+        if self._avr is None:
+            return
 
         if event == "MV":
             self.volume = self._convert_volume_to_percent(self._avr.volume)
             self.events.emit(Events.UPDATE, {"volume": self.volume})
+        elif event == "PW":
+            if parameter == "ON":
+                self.state = States.ON
+            elif parameter in ("STANDBY", "OFF"):
+                self.state = States.OFF
+            self.events.emit(Events.UPDATE, {"state": self.state})
         else:
             _ = asyncio.ensure_future(self._get_data())
             # if self.state == STATES.OFF:
@@ -258,7 +275,7 @@ class DenonAVR:
             await self._avr.async_telnet_connect()
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
-            _LOG.error("Failed to get latest status information: %s", e)
+            _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
         self._avr.register_callback("ALL", self._update_callback)
         _LOG.debug("Subscribed to events")
 
