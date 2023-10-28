@@ -459,7 +459,7 @@ def _update_media_player(configured_entity: ucapi.Entity, update) -> dict[str, a
 
 def _avr_from_entity_id(entity_id: str) -> str | None:
     """
-    Returns the avr_id prefix of an entity_id.
+    Return the avr_id prefix of an entity_id.
 
     The prefix is the part before the first dot in the name and refers to the AVR device identifier.
 
