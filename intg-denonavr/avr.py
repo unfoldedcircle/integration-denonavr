@@ -221,9 +221,9 @@ class DenonAVR:
             )
         except denonavr.exceptions.DenonAvrError as e:
             _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
-
-        self.getting_data = False
-        _LOG.debug("[%s] Getting track data done.", self.id)
+            return
+        finally:
+            self.getting_data = False
 
     async def _update_callback(self, zone, event, parameter):
         _LOG.debug("[%s] zone: %s, event: %s, parameter: %s", self.id, zone, event, parameter)

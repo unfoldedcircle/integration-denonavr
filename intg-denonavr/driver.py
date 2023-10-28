@@ -11,10 +11,11 @@ import asyncio
 import json
 import logging
 import os
+from typing import Any
 
 import avr
 import ucapi
-from ucapi import media_player
+from ucapi import MediaPlayer, media_player
 
 _LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
 _LOOP = asyncio.get_event_loop()
@@ -28,7 +29,7 @@ _config: list[dict[str, any]] = []
 _configured_avrs: dict[str, avr.DenonAVR] = {}
 
 
-async def clear_config():
+async def clear_config() -> None:
     """Remove the configuration file."""
     global _config
     _config = []
@@ -53,7 +54,7 @@ async def store_config() -> bool:
     return False
 
 
-async def load_config():
+async def load_config() -> bool:
     """
     Load the config into the config global variable.
 
@@ -79,8 +80,8 @@ async def load_config():
 # - Return object must be the next step in the setup flow.
 # - The client should not have to know or call driver_setup_error / request_driver_setup_user_input!
 # - Don't expose websocket.
-@api.events.on(ucapi.Events.SETUP_DRIVER)
-async def _on_setup_driver(websocket, req_id: int, _data) -> None:
+@api.listens_to(ucapi.Events.SETUP_DRIVER)
+async def on_setup_driver(websocket, req_id: int, _data) -> None:
     """
     Remote Two request callback to setup the driver.
 
@@ -129,8 +130,15 @@ async def _on_setup_driver(websocket, req_id: int, _data) -> None:
 # - Return object must be the next step in the setup flow.
 # - The client should not have to know or call driver_setup_complete / driver_setup_error!
 # - Don't expose websocket.
-@api.events.on(ucapi.Events.SETUP_DRIVER_USER_DATA)
-async def _on_setup_driver_user_data(websocket, req_id: int, data):
+@api.listens_to(ucapi.Events.SETUP_DRIVER_USER_DATA)
+async def on_setup_driver_user_data(websocket, req_id: int, data):
+    """
+    Remote Two callback to provide requested user data during the driver setup process.
+
+    :param websocket: client connection
+    :param req_id: request id
+    :param data: response data from the requested user data
+    """
     await api.acknowledge_command(websocket, req_id)
     await api.driver_setup_progress(websocket)
 
@@ -154,17 +162,18 @@ async def _on_setup_driver_user_data(websocket, req_id: int, data):
         await api.driver_setup_error(websocket)
 
 
-# When the core connects, we just set the device state
-@api.events.on(ucapi.Events.CONNECT)
-async def _on_connect():
+#
+@api.listens_to(ucapi.Events.CONNECT)
+async def on_connect() -> None:
+    """When the remote connects, we just set the device state."""
+    # TODO is this correct? Shouldn't we check if the AVR is connected? --> check integration-API docs!
     await api.set_device_state(ucapi.DeviceStates.CONNECTED)
 
 
-# When the core disconnects, we just set the device state
-@api.events.on(ucapi.Events.DISCONNECT)
-async def _on_disconnect():
-    # TODO why disconnect all AVR connections if the integration WS connection to UCR2 disconnects?
-    #      This can cause issues and longer reconnect attempts. At least keep the AVR connections up for a certain time!
+@api.listens_to(ucapi.Events.DISCONNECT)
+async def on_disconnect() -> None:
+    """UCR2 disconnect notification."""
+    # There should be no need to disconnect the AVR, most likely the client just reconnects again.
     # _LOG.debug("Client disconnected, disconnecting all AVRs")
     # for configured in _configured_avrs.values():
     #     configured.events.remove_all_listeners()
@@ -174,16 +183,25 @@ async def _on_disconnect():
     _LOG.debug("Client disconnected")
 
 
-# On standby, we disconnect every Denon AVR objects
-@api.events.on(ucapi.Events.ENTER_STANDBY)
-async def _on_enter_standby():
+@api.listens_to(ucapi.Events.ENTER_STANDBY)
+async def on_enter_standby() -> None:
+    """
+    Enter standby notification.
+
+    Disconnect every Denon AVR objects.
+    """
     for configured in _configured_avrs.values():
         await configured.disconnect()
 
 
-# On exit standby we wait a bit then connect all Denon AVR objects
-@api.events.on(ucapi.Events.EXIT_STANDBY)
-async def _on_exit_standby():
+@api.listens_to(ucapi.Events.EXIT_STANDBY)
+async def on_exit_standby() -> None:
+    """
+    Exit standby notification.
+
+    Connect all Denon AVR objects.
+    """
+    # delay is only a temporary workaround, until the core verifies first that the network is up with an IP address
     await asyncio.sleep(2)
 
     for configured in _configured_avrs.values():
@@ -192,8 +210,13 @@ async def _on_exit_standby():
 
 # When the core subscribes to entities, we set these to UNAVAILABLE state
 # then we hook up to the signals of the object and then connect
-@api.events.on(ucapi.Events.SUBSCRIBE_ENTITIES)
-async def _on_subscribe_entities(entity_ids: list[str]):
+@api.listens_to(ucapi.Events.SUBSCRIBE_ENTITIES)
+async def on_subscribe_entities(entity_ids: list[str]) -> None:
+    """
+    Subscribe to given entities.
+
+    :param entity_ids: entity identifiers.
+    """
     for entity_id in entity_ids:
         if not entity_id.startswith("media_player."):
             _LOG.warning("Cannot subscribe to unknown entity: %s", entity_id)
@@ -206,30 +229,30 @@ async def _on_subscribe_entities(entity_ids: list[str]):
             continue
 
         _LOG.debug("Subscribing entity '%s' to AVR events", entity_id)
-        a = _configured_avrs[configured_id]
+        device = _configured_avrs[configured_id]
 
-        a.events.on(avr.Events.CONNECTED, _handle_connected)
-        a.events.on(avr.Events.DISCONNECTED, _handle_disconnected)
-        a.events.on(avr.Events.ERROR, _handle_connection_error)
-        a.events.on(avr.Events.UPDATE, _handle_avr_update)
+        device.events.on(avr.Events.CONNECTED, on_avr_connected)
+        device.events.on(avr.Events.DISCONNECTED, on_avr_disconnected)
+        device.events.on(avr.Events.ERROR, on_avr_connection_error)
+        device.events.on(avr.Events.UPDATE, on_avr_update)
 
-        await a.connect()
+        await device.connect()
 
         api.configured_entities.update_attributes(
             entity_id,
             {
-                media_player.Attributes.STATE: _media_player_state_from_avr(a.state),
-                media_player.Attributes.SOURCE_LIST: a.input_list,
-                media_player.Attributes.SOURCE: a.input,
-                media_player.Attributes.VOLUME: a.volume,
-                media_player.Attributes.MEDIA_ARTIST: a.artist,
-                media_player.Attributes.MEDIA_TITLE: a.title,
-                media_player.Attributes.MEDIA_IMAGE_URL: a.artwork,
+                media_player.Attributes.STATE: media_player_state_from_avr(device.state),
+                media_player.Attributes.SOURCE_LIST: device.input_list,
+                media_player.Attributes.SOURCE: device.input,
+                media_player.Attributes.VOLUME: device.volume,
+                media_player.Attributes.MEDIA_ARTIST: device.artist,
+                media_player.Attributes.MEDIA_TITLE: device.title,
+                media_player.Attributes.MEDIA_IMAGE_URL: device.artwork,
             },
         )
 
 
-def _media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
+def media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
     """Convert the AVR device state to a media-player entity state."""
     state = media_player.States.UNKNOWN
     if avr_state == avr.States.ON:
@@ -245,9 +268,9 @@ def _media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
     return state
 
 
-# On unsubscribe, we disconnect the objects and remove listeners for events
-@api.events.on(ucapi.Events.UNSUBSCRIBE_ENTITIES)
-async def _on_unsubscribe_entities(entity_ids):
+@api.listens_to(ucapi.Events.UNSUBSCRIBE_ENTITIES)
+async def on_unsubscribe_entities(entity_ids: list[str]) -> None:
+    """On unsubscribe, we disconnect the objects and remove listeners for events."""
     for entity_id in entity_ids:
         avr_id = _avr_from_entity_id(entity_id)
         if avr_id is None:
@@ -260,68 +283,52 @@ async def _on_unsubscribe_entities(entity_ids):
             await a.disconnect()
 
 
-# We handle commands here
-@api.events.on(ucapi.Events.ENTITY_COMMAND)
-async def _on_entity_command(websocket, req_id: int, entity_id: str, _entity_type, cmd_id: str, params):
-    configured_entity = api.configured_entities.get(entity_id)
-    if configured_entity is None:
-        _LOG.warning("Cannot execute command '%s' for '%s': no configured entity found", cmd_id, entity_id)
-        return
+async def media_player_cmd_handler(
+    entity: MediaPlayer, cmd_id: str, params: dict[str, Any] | None
+) -> ucapi.StatusCodes:
+    """
+    Media-player entity command handler.
 
-    avr_id = _avr_from_entity_id(entity_id)
+    Called by the integration-API if a command is sent to a configured media-player entity.
+
+    :param entity: media-player entity
+    :param cmd_id: command
+    :param params: optional command parameters
+    :return:
+    """
+    _LOG.info("Got %s command request: %s %s", entity.id, cmd_id, params)
+
+    avr_id = _avr_from_entity_id(entity.id)
     if avr_id is None:
-        return
+        return ucapi.StatusCodes.NOT_FOUND
 
     a = _configured_avrs[avr_id]
     if a is None:
-        _LOG.warning("No AVR device found for entity: %s", entity_id)
-        return
+        _LOG.warning("No AVR device found for entity: %s", entity.id)
+        return ucapi.StatusCodes.SERVICE_UNAVAILABLE
 
     if cmd_id == media_player.Commands.PLAY_PAUSE:
         res = await a.play_pause()
-        await api.acknowledge_command(
-            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
-        )
     elif cmd_id == media_player.Commands.NEXT:
         res = await a.next()
-        await api.acknowledge_command(
-            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
-        )
     elif cmd_id == media_player.Commands.PREVIOUS:
         res = await a.previous()
-        await api.acknowledge_command(
-            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
-        )
     elif cmd_id == media_player.Commands.VOLUME_UP:
         res = await a.volume_up()
-        await api.acknowledge_command(
-            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
-        )
     elif cmd_id == media_player.Commands.VOLUME_DOWN:
         res = await a.volume_down()
-        await api.acknowledge_command(
-            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
-        )
     elif cmd_id == media_player.Commands.MUTE_TOGGLE:
-        res = await a.mute(not configured_entity.attributes[media_player.Attributes.MUTED])
-        await api.acknowledge_command(
-            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
-        )
+        res = await a.mute(not entity.attributes[media_player.Attributes.MUTED])
     elif cmd_id == media_player.Commands.ON:
         res = await a.power_on()
-        await api.acknowledge_command(
-            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
-        )
     elif cmd_id == media_player.Commands.OFF:
         res = await a.power_off()
-        await api.acknowledge_command(
-            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
-        )
     elif cmd_id == media_player.Commands.SELECT_SOURCE:
         res = await a.set_input(params["source"])
-        await api.acknowledge_command(
-            websocket, req_id, ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
-        )
+    else:
+        return ucapi.StatusCodes.NOT_IMPLEMENTED
+
+    return ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
 
 
 def _key_update_helper(key: str, value: str | None, attributes, configured_entity):
@@ -337,7 +344,8 @@ def _key_update_helper(key: str, value: str | None, attributes, configured_entit
     return attributes
 
 
-async def _handle_connected(avr_id: str):
+async def on_avr_connected(avr_id: str):
+    """Handle AVR connection."""
     _LOG.debug("AVR connected: %s", avr_id)
 
     for entity_id in _entities_from_avr(avr_id):
@@ -353,7 +361,8 @@ async def _handle_connected(avr_id: str):
                 )
 
 
-async def _handle_disconnected(avr_id: str):
+async def on_avr_disconnected(avr_id: str):
+    """Handle AVR disconnection."""
     _LOG.debug("AVR disconnected: %s", avr_id)
 
     for entity_id in _entities_from_avr(avr_id):
@@ -368,7 +377,8 @@ async def _handle_disconnected(avr_id: str):
             )
 
 
-async def _handle_connection_error(avr_id: str, message):
+async def on_avr_connection_error(avr_id: str, message):
+    """Set entities of AVR to state UNAVAILABLE if AVR connection error occurred."""
     _LOG.error(message)
 
     for entity_id in _entities_from_avr(avr_id):
@@ -382,7 +392,13 @@ async def _handle_connection_error(avr_id: str, message):
             )
 
 
-async def _handle_avr_update(avr_id: str, update):
+async def on_avr_update(avr_id: str, update: dict[str, Any]) -> None:
+    """
+    Update attributes of configured media-player entity if AVR properties changed.
+
+    :param avr_id: AVR identifier
+    :param update: dictionary containing the updated properties
+    """
     _LOG.debug("[%s] AVR update: %s", avr_id, update)
 
     attributes = None
@@ -507,7 +523,7 @@ def _update_attributes(attributes, entity_type: ucapi.EntityTypes):
 
 def _add_available_entity(avr_id: str, name):
     # plain and simple for now: only one media_player per AVR device
-    entity = media_player.MediaPlayer(
+    entity = MediaPlayer(
         _create_entity_id(avr_id, ucapi.EntityTypes.MEDIA_PLAYER),
         name,
         [
@@ -540,6 +556,7 @@ def _add_available_entity(avr_id: str, name):
             media_player.Attributes.SOURCE: "",
         },
         device_class=media_player.DeviceClasses.RECEIVER,
+        cmd_handler=media_player_cmd_handler,
     )
 
     api.available_entities.add(entity)
