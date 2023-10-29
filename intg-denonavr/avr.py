@@ -108,12 +108,12 @@ class DenonAVR:
 
     # TODO ADD METHOD FOR CHANGED IP ADDRESS
 
-    async def connect(self):
+    async def connect(self) -> bool:
         """Connect to AVR."""
         if self._avr is not None:
             _LOG.debug("[%s] Already connected", self.id)
             _ = asyncio.ensure_future(self._get_data())
-            return
+            return True
 
         try:
             self._avr = denonavr.DenonAVR(self.ipaddress)
@@ -124,10 +124,10 @@ class DenonAVR:
             # FIXME connection retry missing! If no AVR is available at startup, the driver never connects :-(
             #       Message: NetworkError: All connection attempts failed
             self._avr = None
-            return
 
         if self._avr is None:
-            return
+            self.state = States.UNAVAILABLE
+            return False
 
         self.manufacturer = self._avr.manufacturer
         self.model = self._avr.model_name
@@ -161,9 +161,15 @@ class DenonAVR:
         self.position = 0
         self.duration = 0
 
+        return True
+
     async def disconnect(self):
         """Disconnect from AVR."""
         await self._unsubscribe_events()
+        try:
+            self._avr.async_telnet_disconnect()
+        except denonavr.exceptions.DenonAvrError:
+            pass
         self._avr = None
         if self.id:
             self.events.emit(Events.DISCONNECTED, self.id)
@@ -183,9 +189,7 @@ class DenonAVR:
         return state
 
     async def _get_data(self):
-        if self._avr is None:
-            return
-        if self.getting_data:
+        if self._avr is None or self.getting_data:
             return
 
         self.getting_data = True

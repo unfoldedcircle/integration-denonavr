@@ -15,7 +15,17 @@ from typing import Any
 
 import avr
 import ucapi
-from ucapi import MediaPlayer, media_player
+from ucapi import (
+    DriverSetupRequest,
+    MediaPlayer,
+    RequestUserInput,
+    SetupAction,
+    SetupComplete,
+    SetupDriver,
+    SetupError,
+    UserDataResponse,
+    media_player,
+)
 
 _LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
 _LOOP = asyncio.get_event_loop()
@@ -75,24 +85,39 @@ async def load_config() -> bool:
     return False
 
 
-# DRIVER SETUP
-# TODO redesign API for better dev UX
-# - Return object must be the next step in the setup flow.
-# - The client should not have to know or call driver_setup_error / request_driver_setup_user_input!
-# - Don't expose websocket.
-@api.listens_to(ucapi.Events.SETUP_DRIVER)
-async def on_setup_driver(websocket, req_id: int, _data) -> None:
+async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
     """
-    Remote Two request callback to setup the driver.
+    Dispatch driver setup requests to corresponding handlers.
 
-    :param websocket: client connection
-    :param req_id: request id
-    :param _data: not used
+    Either start the setup process or handle the selected AVR device.
+
+    :param msg: the setup driver request object, either DriverSetupRequest or UserDataResponse
+    :return: the setup action on how to continue
+    """
+    if isinstance(msg, DriverSetupRequest):
+        return await handle_driver_setup(msg)
+    if isinstance(msg, UserDataResponse):
+        return await handle_user_data_response(msg)
+
+    # user confirmation not used in setup process
+    # if isinstance(msg, UserConfirmationResponse):
+    #     return handle_user_confirmation(msg)
+
+    return SetupError()
+
+
+async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | SetupError:
+    """
+    Start driver setup.
+
+    Initiated by Remote Two to setup the driver.
+    Start AVR discovery and present the found devices to the user to choose from.
+
+    :param _msg: not used, we don't have any input fields in the first setup screen.
+    :return: the setup action on how to continue
     """
     _LOG.debug("Starting driver setup")
     await clear_config()
-    await api.acknowledge_command(websocket, req_id)
-    await api.driver_setup_progress(websocket)
 
     _LOG.debug("Starting discovery")
     avrs = await avr.discover_denon_avrs()
@@ -106,11 +131,9 @@ async def on_setup_driver(websocket, req_id: int, _data) -> None:
         _LOG.warning("No AVRs found")
         # TODO can't we use a NOT_FOUND error to clearly indicate that nothing was found?
         #      Otherwise, this looks like an internal error to the user.
-        await api.driver_setup_error(websocket)
-        return
+        return SetupError()
 
-    await api.request_driver_setup_user_input(
-        websocket,
+    return RequestUserInput(
         {"en": "Please choose your Denon AVR", "de": "Bitte Denon AVR auswählen"},
         [
             {
@@ -126,24 +149,17 @@ async def on_setup_driver(websocket, req_id: int, _data) -> None:
     )
 
 
-# TODO redesign API for better dev UX
-# - Return object must be the next step in the setup flow.
-# - The client should not have to know or call driver_setup_complete / driver_setup_error!
-# - Don't expose websocket.
-@api.listens_to(ucapi.Events.SETUP_DRIVER_USER_DATA)
-async def on_setup_driver_user_data(websocket, req_id: int, data):
+async def handle_user_data_response(msg: UserDataResponse) -> SetupComplete | SetupError:
     """
-    Remote Two callback to provide requested user data during the driver setup process.
+    Process user data response in a setup process.
 
-    :param websocket: client connection
-    :param req_id: request id
-    :param data: response data from the requested user data
+    Driver setup callback to provide requested user data during the setup process.
+
+    :param msg: response data from the requested user data
+    :return: the setup action on how to continue: SetupComplete if a valid AVR device was chosen.
     """
-    await api.acknowledge_command(websocket, req_id)
-    await api.driver_setup_progress(websocket)
-
-    if "choice" in data:
-        choice = data["choice"]
+    if "choice" in msg.input_values:
+        choice = msg.input_values["choice"]
         _LOG.debug("Chosen Denon AVR: %s", choice)
 
         obj = avr.DenonAVR(_LOOP, choice)
@@ -156,13 +172,12 @@ async def on_setup_driver_user_data(websocket, req_id: int, data):
         _config.append({"id": obj.id, "name": obj.name, "ipaddress": obj.ipaddress})
         await store_config()
 
-        await api.driver_setup_complete(websocket)
-    else:
-        _LOG.error("No choice was received")
-        await api.driver_setup_error(websocket)
+        return SetupComplete()
+
+    _LOG.error("No choice was received")
+    return SetupError()
 
 
-#
 @api.listens_to(ucapi.Events.CONNECT)
 async def on_connect() -> None:
     """When the remote connects, we just set the device state."""
@@ -170,17 +185,18 @@ async def on_connect() -> None:
     await api.set_device_state(ucapi.DeviceStates.CONNECTED)
 
 
-@api.listens_to(ucapi.Events.DISCONNECT)
-async def on_disconnect() -> None:
-    """UCR2 disconnect notification."""
-    # There should be no need to disconnect the AVR, most likely the client just reconnects again.
-    # _LOG.debug("Client disconnected, disconnecting all AVRs")
-    # for configured in _configured_avrs.values():
-    #     configured.events.remove_all_listeners()
-    #     await configured.disconnect()
-    #
-    # await api.set_device_state(ucapi.DeviceStates.DISCONNECTED)
-    _LOG.debug("Client disconnected")
+# TODO There should be no need to disconnect the AVR, most likely the client just reconnects again.
+# When integration is running on the device: disconnect _should_ only happen if service is shut down.
+# @api.listens_to(ucapi.Events.DISCONNECT)
+# async def on_disconnect() -> None:
+#     """UCR2 disconnect notification."""
+#     _LOG.debug("Client disconnected, disconnecting all AVRs")
+#     for configured in _configured_avrs.values():
+#         configured.events.remove_all_listeners()
+#         await configured.disconnect()
+#
+#     await api.set_device_state(ucapi.DeviceStates.DISCONNECTED)
+#     _LOG.debug("Client disconnected")
 
 
 @api.listens_to(ucapi.Events.ENTER_STANDBY)
@@ -188,7 +204,7 @@ async def on_enter_standby() -> None:
     """
     Enter standby notification.
 
-    Disconnect every Denon AVR objects.
+    Disconnect every Denon AVR instances.
     """
     for configured in _configured_avrs.values():
         await configured.disconnect()
@@ -199,7 +215,7 @@ async def on_exit_standby() -> None:
     """
     Exit standby notification.
 
-    Connect all Denon AVR objects.
+    Connect all Denon AVR instances.
     """
     # delay is only a temporary workaround, until the core verifies first that the network is up with an IP address
     await asyncio.sleep(2)
@@ -222,14 +238,14 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
             _LOG.warning("Cannot subscribe to unknown entity: %s", entity_id)
             continue
 
-        configured_id = _avr_from_entity_id(entity_id)
+        avr_id = _avr_from_entity_id(entity_id)
 
-        if configured_id not in _configured_avrs:
+        if avr_id not in _configured_avrs:
             _LOG.warning("Cannot subscribe entity '%s' to AVR events: AVR not configured", entity_id)
             continue
 
         _LOG.debug("Subscribing entity '%s' to AVR events", entity_id)
-        device = _configured_avrs[configured_id]
+        device = _configured_avrs[avr_id]
 
         device.events.on(avr.Events.CONNECTED, on_avr_connected)
         device.events.on(avr.Events.DISCONNECTED, on_avr_disconnected)
@@ -279,8 +295,14 @@ async def on_unsubscribe_entities(entity_ids: list[str]) -> None:
             _LOG.debug("Unsubscribing entity `%s` from events", entity_id)
             a = _configured_avrs[avr_id]
             # TODO this doesn't work once we have more than one entity per device!
+            # --- START HACK ---
+            # Since an AVR instance only provides exactly one media-player, it's save to disconnect if the entity is
+            # unsubscribed. This should be changed to a more generic logic, also as template for other integrations!
+            # Otherwise this sets a bad copy-paste example and leads to more issues in the future.
+            # --> correct logic: check configured_entities, if empty: disconnect
             a.events.remove_all_listeners()
             await a.disconnect()
+            # --- END HACK ---
 
 
 async def media_player_cmd_handler(
@@ -589,7 +611,7 @@ async def main():
     else:
         _LOG.error("Cannot load config")
 
-    await api.init("driver.json")
+    await api.init("driver.json", driver_setup_handler)
 
 
 if __name__ == "__main__":
