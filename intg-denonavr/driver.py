@@ -543,7 +543,7 @@ def _update_attributes(attributes, entity_type: ucapi.EntityTypes):
             # attributes[media_player.Attributes.MEDIA_DURATION] = 0
 
 
-def _add_available_entity(avr_id: str, name):
+def _add_available_entity(avr_id: str, name: str | dict[str, str]):
     # plain and simple for now: only one media_player per AVR device
     entity = MediaPlayer(
         _create_entity_id(avr_id, ucapi.EntityTypes.MEDIA_PLAYER),
@@ -601,15 +601,11 @@ async def main():
     path = api.config_dir_path
     _CFG_FILE_PATH = os.path.join(path, _CFG_FILENAME)
 
-    res = await load_config()
-
-    if res is True:
+    if await load_config():
         for item in _config:
             _configured_avrs[item["id"]] = avr.DenonAVR(_LOOP, item["ipaddress"])
             await _configured_avrs[item["id"]].connect()
             _add_available_entity(item["id"], _configured_avrs[item["id"]].name)
-    else:
-        _LOG.error("Cannot load config")
 
     await api.init("driver.json", driver_setup_handler)
 
