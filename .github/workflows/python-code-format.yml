@@ -20,8 +20,6 @@ permissions:
 
 env:
   INTG_LIB_VER: 0.1.0
-  # use development branch while refactoring
-  INTG_LIB_GIT: refactor
 
 jobs:
   test:
@@ -44,10 +42,8 @@ jobs:
       - name: Clone & install integrations library
         shell: bash
         run: |
-          git clone https://martonborzak:${{ secrets.PAT }}@github.com/aitatoi/integration-python-library.git
+          git clone --depth 1 --branch v${INTG_LIB_VER} https://martonborzak:${{ secrets.PAT }}@github.com/aitatoi/integration-python-library.git
           cd integration-python-library
-          # git checkout v${INTG_LIB_VER}
-          git checkout $INTG_LIB_GIT
           pip install wheel
           python setup.py bdist_wheel
           ls -lah dist
