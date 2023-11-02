@@ -9,11 +9,13 @@ This module implements the Denon AVR receiver communication of the Remote Two in
 import asyncio
 import logging
 import re
+import sys
 from asyncio import AbstractEventLoop
 from enum import IntEnum
 
 import denonavr
 import denonavr.exceptions
+import ucapi
 from pyee import AsyncIOEventEmitter
 
 _LOG = logging.getLogger(__name__)
@@ -167,7 +169,7 @@ class DenonAVR:
         """Disconnect from AVR."""
         await self._unsubscribe_events()
         try:
-            self._avr.async_telnet_disconnect()
+            await self._avr.async_telnet_disconnect()
         except denonavr.exceptions.DenonAvrError:
             pass
         self._avr = None
@@ -306,77 +308,79 @@ class DenonAVR:
             pass
         _LOG.debug("[%s] Unsubscribed to events", self.id)
 
-    # TODO add commands
+    # TODO add commands, simplify copy paste logic.
+    #      Python decorator for _avr None check? Or better yet a dynamic method call?
     # FIXME #8 command execution check
-    async def _command_wrapper(self, fn):
+    # TODO retry handling in case of exception?
+    async def _command_wrapper(self, fn) -> ucapi.StatusCodes:
         try:
+            if fn is None:
+                return ucapi.StatusCodes.SERVICE_UNAVAILABLE
+
             await fn()
-            return True
+            return ucapi.StatusCodes.OK
+        except denonavr.exceptions.AvrTimoutError as e:
+            _LOG.error("[%s] Timeout while sending command: %s", self.id, e)
+            return ucapi.StatusCodes.TIMEOUT
+        except denonavr.exceptions.AvrNetworkError as e:
+            _LOG.error("[%s] Network error while sending command: %s", self.id, e)
+            return ucapi.StatusCodes.SERVICE_UNAVAILABLE
         except denonavr.exceptions.DenonAvrError as e:
             _LOG.error("[%s] Failed to execute command: %s", self.id, e)
-            # TODO retry handling?
-            return False
+            return ucapi.StatusCodes.SERVER_ERROR
 
-    async def power_on(self):
+    async def power_on(self) -> ucapi.StatusCodes:
         """Send power-on command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_power_on)
+        return await self._command_wrapper(self._avr.async_power_on if self._avr else None)
 
-    async def power_off(self):
+    async def power_off(self) -> ucapi.StatusCodes:
         """Send power-off command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_power_off)
+        return await self._command_wrapper(self._avr.async_power_off if self._avr else None)
 
-    async def volume_up(self):
+    async def volume_up(self) -> ucapi.StatusCodes:
         """Send volume-up command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_volume_up)
+        return await self._command_wrapper(self._avr.async_volume_up if self._avr else None)
 
-    async def volume_down(self):
+    async def volume_down(self) -> ucapi.StatusCodes:
         """Send volume-down command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_volume_down)
+        return await self._command_wrapper(self._avr.async_volume_down if self._avr else None)
 
-    async def play_pause(self):
+    async def play_pause(self) -> ucapi.StatusCodes:
         """Send toggle-play-pause command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_toggle_play_pause)
+        return await self._command_wrapper(self._avr.async_toggle_play_pause if self._avr else None)
 
-    async def next(self):
+    async def next(self) -> ucapi.StatusCodes:
         """Send next-track command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_next_track)
+        return await self._command_wrapper(self._avr.async_next_track if self._avr else None)
 
-    async def previous(self):
+    async def previous(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_previous_track)
+        return await self._command_wrapper(self._avr.async_previous_track if self._avr else None)
 
-    async def mute(self, muted):
+    async def mute(self, muted) -> ucapi.StatusCodes:
         """Send mute command to AVR."""
         if self._avr is None:
-            return
+            return ucapi.StatusCodes.SERVICE_UNAVAILABLE
         try:
             await self._avr.async_mute(muted)
-            return True
+            return ucapi.StatusCodes.OK
         except denonavr.exceptions.DenonAvrError as e:
             _LOG.error("[%s] Failed to execute mute command: %s", self.id, e)
-            return False
+            return ucapi.StatusCodes.SERVER_ERROR
 
-    async def set_input(self, input_source):
+    async def set_input(self, input_source) -> ucapi.StatusCodes:
         """Send input_source command to AVR."""
         if self._avr is None:
-            return
+            return ucapi.StatusCodes.SERVICE_UNAVAILABLE
         try:
             await self._avr.async_set_input_func(input_source)
-            return True
+            return ucapi.StatusCodes.OK
         except denonavr.exceptions.DenonAvrError as e:
             _LOG.error("[%s] Failed to execute input_source command: %s", self.id, e)
-            return False
+
+            # hackish... we could catch AvrCommandError, but then we'd still have to check the message
+            _ex_type, ex_value, _ex_traceback = sys.exc_info()
+            if str(ex_value).startswith("No mapping for input source"):
+                return ucapi.StatusCodes.BAD_REQUEST
+
+            return ucapi.StatusCodes.SERVER_ERROR

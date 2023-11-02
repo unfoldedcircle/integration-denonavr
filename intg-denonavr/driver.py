@@ -110,7 +110,7 @@ async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | Se
     """
     Start driver setup.
 
-    Initiated by Remote Two to setup the driver.
+    Initiated by Remote Two to set up the driver.
     Start AVR discovery and present the found devices to the user to choose from.
 
     :param _msg: not used, we don't have any input fields in the first setup screen.
@@ -270,6 +270,7 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
 
 def media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
     """Convert the AVR device state to a media-player entity state."""
+    # TODO simplify using a dict
     state = media_player.States.UNKNOWN
     if avr_state == avr.States.ON:
         state = media_player.States.ON
@@ -350,7 +351,7 @@ async def media_player_cmd_handler(
     else:
         return ucapi.StatusCodes.NOT_IMPLEMENTED
 
-    return ucapi.StatusCodes.OK if res is True else ucapi.StatusCodes.SERVER_ERROR
+    return res
 
 
 def _key_update_helper(key: str, value: str | None, attributes, configured_entity):
