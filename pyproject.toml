@@ -24,11 +24,11 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "asyncio==3.4.3",
-    "denonavr==0.11.4",
-    "pyee==9.0.4",
-    "websockets==11.0.3",
-    "zeroconf==0.119.0",
+    "asyncio~=3.4.3",
+    "denonavr~=0.11.4",
+    "pyee~=9.0.4",
+    "websockets~=11.0.3",
+    "zeroconf~=0.119.0",
 ]
 
 [project.readme]
