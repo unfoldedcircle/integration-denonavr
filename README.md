@@ -28,12 +28,6 @@ Supported commands:
 pip3 install -r requirements.txt
 ```
 
-Manually install [ucapi](https://github.com/aitatoi/integration-python-library) library:
-```shell
-export UCAPI_PYTHON_LIB_VERSION=0.1.0
-pip3 install --force-reinstall ../integration-python-library/dist/ucapi-$UCAPI_PYTHON_LIB_VERSION-py3-none-any.whl
-```
-
 ## Code Style
 
 - Code line length: 120
@@ -77,25 +71,46 @@ PyCharm/IntelliJ IDEA integration:
 python -m isort intg-denonavr/.
 ```
 
-## Build self-contained binary
+## Build self-contained binary for Remote Two
 
 After some tests, turns out python stuff on embedded is a nightmare. So we're better off creating a single binary file that has everything in it.
 
 To do that, we need to compile it on the target architecture as `pyinstaller` does not support cross compilation.
 
-The following can be used on x86 Linux:
+### x86-64 Linux
 
+On x86-64 Linux we need Qemu to emulate the aarch64 target platform:
 ```bash
 sudo apt-get install qemu binfmt-support qemu-user-static
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-docker run --platform=aarch64 -v "$PWD:/io" -it ubuntu:focal
-
-cd /io
-apt-get update && apt-get install -y python3-pip
-pip3 install pyinstaller -r requirements.txt
-pyinstaller --clean --onefile intg-denonavr/driver.py
 ```
 
+Run pyinstaller:
+```shell
+docker run --rm --name builder \
+    --platform=aarch64 \
+    --user=$(id -u):$(id -g) \
+    -v "$PWD":/workspace \
+    docker.io/unfoldedcircle/r2-pyinstaller:3.10.13  \
+    bash -c \
+      "cd /workspace && \
+      python -m pip install -r requirements.txt && \
+      pyinstaller --clean --onefile --name intg-denonavr intg-denonavr/driver.py"
+```
+
+### aarch64 Linux / Mac
+
+On an aarch64 host platform, the build image can be run directly (and much faster):
+```shell
+docker run --rm --name builder \
+    --user=$(id -u):$(id -g) \
+    -v "$PWD":/workspace \
+    docker.io/unfoldedcircle/r2-pyinstaller:3.10.13  \
+    bash -c \
+      "cd /workspace && \
+      python -m pip install -r requirements.txt && \
+      pyinstaller --clean --onefile --name intg-denonavr intg-denonavr/driver.py"
+```
 ## Licenses
 
 To generate the license overview file for remote-ui, [pip-licenses](https://pypi.org/project/pip-licenses/) is used
