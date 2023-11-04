@@ -9,6 +9,7 @@
 		"de": "Steuere Denon oder Marantz AVRs mit Remote Two.",
 		"fr": "Contrôler Denon ou Marantz AVRs avec Remote Two."
 	},
+	"port": 8092,
 	"developer": {
 		"name": "Unfolded Circle ApS",
 		"email": "hello@unfoldedcircle.com",

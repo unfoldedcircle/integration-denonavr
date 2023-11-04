@@ -9,14 +9,16 @@ This module implements the Denon AVR receiver communication of the Remote Two in
 import asyncio
 import logging
 import re
+import sys
 from asyncio import AbstractEventLoop
 from enum import IntEnum
 
 import denonavr
 import denonavr.exceptions
+import ucapi
 from pyee import AsyncIOEventEmitter
 
-LOG = logging.getLogger(__name__)
+_LOG = logging.getLogger(__name__)
 
 
 class Events(IntEnum):
@@ -47,14 +49,14 @@ async def discover_denon_avrs():
 
     :return: array of device information objects.
     """
-    LOG.debug("Starting discovery")
+    _LOG.debug("Starting discovery")
 
     avrs = await denonavr.async_discover()
     if not avrs:
-        LOG.info("No AVRs discovered")
+        _LOG.info("No AVRs discovered")
         return []
 
-    LOG.info("Found AVR(s): %s", avrs)
+    _LOG.info("Found AVR(s): %s", avrs)
 
     return avrs
 
@@ -84,7 +86,7 @@ class DenonAVR:
         self.position: int = 0
         self.duration: int = 0
 
-        LOG.debug("Denon AVR created: %s", self.ipaddress)
+        _LOG.debug("Denon AVR created: %s", self.ipaddress)
 
     @staticmethod
     def _map_range(value, from_min, from_max, to_min, to_max):
@@ -108,21 +110,26 @@ class DenonAVR:
 
     # TODO ADD METHOD FOR CHANGED IP ADDRESS
 
-    async def connect(self):
+    async def connect(self) -> bool:
         """Connect to AVR."""
         if self._avr is not None:
-            LOG.debug("Already connected")
+            _LOG.debug("[%s] Already connected", self.id)
             _ = asyncio.ensure_future(self._get_data())
-            return
+            return True
 
         try:
             self._avr = denonavr.DenonAVR(self.ipaddress)
             await self._avr.async_setup()
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("[%s] Error connecting to AVR: %s", self.ipaddress, e)
+            _LOG.error("[%s] Error connecting to AVR: %s", self.ipaddress, e)
+            # FIXME connection retry missing! If no AVR is available at startup, the driver never connects :-(
+            #       Message: NetworkError: All connection attempts failed
             self._avr = None
-            return
+
+        if self._avr is None:
+            self.state = States.UNAVAILABLE
+            return False
 
         self.manufacturer = self._avr.manufacturer
         self.model = self._avr.model_name
@@ -130,7 +137,7 @@ class DenonAVR:
         # TODO any chance we don't get a serial number from the device?
         self.id = self._avr.serial_number
 
-        LOG.debug(
+        _LOG.debug(
             "Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
             self.manufacturer,
             self.model,
@@ -143,7 +150,7 @@ class DenonAVR:
         if self.id:
             self.events.emit(Events.CONNECTED, self.id)
         else:
-            LOG.error("Device communication error: no serial number retrieved from AVR!")
+            _LOG.error("Device communication error: no serial number retrieved from AVR!")
 
         self.state = self._map_denonavr_state(self._avr.state)
 
@@ -156,9 +163,15 @@ class DenonAVR:
         self.position = 0
         self.duration = 0
 
+        return True
+
     async def disconnect(self):
         """Disconnect from AVR."""
         await self._unsubscribe_events()
+        try:
+            await self._avr.async_telnet_disconnect()
+        except denonavr.exceptions.DenonAvrError:
+            pass
         self._avr = None
         if self.id:
             self.events.emit(Events.DISCONNECTED, self.id)
@@ -178,16 +191,18 @@ class DenonAVR:
         return state
 
     async def _get_data(self):
-        if self._avr is None:
-            return
-        if self.getting_data:
+        if self._avr is None or self.getting_data:
             return
 
         self.getting_data = True
-        LOG.debug("Getting track data.")
+        _LOG.debug("[%s] Getting track data.", self.id)
 
         try:
             await self._avr.async_update()
+            if self._avr is None:
+                _LOG.warning("[%s] AVR went away, cannot get data", self.id)
+                return
+
             self.artist = self._avr.artist
             self.title = self._avr.title
             self.artwork = self._avr.image_url
@@ -199,6 +214,7 @@ class DenonAVR:
 
             self.events.emit(
                 Events.UPDATE,
+                self.id,
                 {
                     "state": self.state,
                     "artist": self.artist,
@@ -206,25 +222,37 @@ class DenonAVR:
                     "artwork": self.artwork,
                 },
             )
-            LOG.debug("Track data: artist: %s title: %s artwork: %s", self.artist, self.title, self.artwork)
+            _LOG.debug(
+                "[%s] Track data: artist: %s title: %s artwork: %s", self.id, self.artist, self.title, self.artwork
+            )
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to get latest status information: %s", e)
-
-        self.getting_data = False
-        LOG.debug("Getting track data done.")
+            _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
+            return
+        finally:
+            self.getting_data = False
 
     async def _update_callback(self, zone, event, parameter):
-        LOG.debug("Zone: %s Event: %s Parameter: %s", zone, event, parameter)
+        _LOG.debug("[%s] zone: %s, event: %s, parameter: %s", self.id, zone, event, parameter)
         if self._avr is None:
             return
         try:
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to get latest status information: %s", e)
+            _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
+
+        # async_update() might take a while and _avr could have gone away
+        if self._avr is None:
+            return
 
         if event == "MV":
             self.volume = self._convert_volume_to_percent(self._avr.volume)
-            self.events.emit(Events.UPDATE, {"volume": self.volume})
+            self.events.emit(Events.UPDATE, self.id, {"volume": self.volume})
+        elif event == "PW":
+            if parameter == "ON":
+                self.state = States.ON
+            elif parameter in ("STANDBY", "OFF"):
+                self.state = States.OFF
+            self.events.emit(Events.UPDATE, self.id, {"state": self.state})
         else:
             _ = asyncio.ensure_future(self._get_data())
             # if self.state == STATES.OFF:
@@ -242,7 +270,7 @@ class DenonAVR:
         #         hours, minutes = map(int, time.split(":"))
         #         self.duration = hours * 3600 + minutes * 60
         #         self.position = (int(percentage.strip("%")) / 100) * self.duration
-        #         self.events.emit(EVENTS.UPDATE, {
+        #         self.events.emit(EVENTS.UPDATE, self.id, {
         #             "position": self.position,
         #             "total_time": self.duration
         #         })
@@ -256,9 +284,9 @@ class DenonAVR:
             await self._avr.async_telnet_connect()
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to get latest status information: %s", e)
+            _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
         self._avr.register_callback("ALL", self._update_callback)
-        LOG.debug("Subscribed to events")
+        _LOG.debug("[%s] Subscribed to events", self.id)
 
     async def _unsubscribe_events(self):
         if self._avr is None:
@@ -269,7 +297,7 @@ class DenonAVR:
             # TODO is async_update() required?
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to get latest status information: %s", e)
+            _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
         try:
             # avr might be gone by now! Otherwise, process terminates with:
             # AttributeError: 'NoneType' object has no attribute 'async_telnet_disconnect'
@@ -278,79 +306,81 @@ class DenonAVR:
             await self._avr.async_telnet_disconnect()
         except denonavr.exceptions.DenonAvrError:
             pass
-        LOG.debug("Unsubscribed to events")
+        _LOG.debug("[%s] Unsubscribed to events", self.id)
 
-    # TODO add commands
+    # TODO add commands, simplify copy paste logic.
+    #      Python decorator for _avr None check? Or better yet a dynamic method call?
     # FIXME #8 command execution check
-    async def _command_wrapper(self, fn):
+    # TODO retry handling in case of exception?
+    async def _command_wrapper(self, fn) -> ucapi.StatusCodes:
         try:
+            if fn is None:
+                return ucapi.StatusCodes.SERVICE_UNAVAILABLE
+
             await fn()
-            return True
+            return ucapi.StatusCodes.OK
+        except denonavr.exceptions.AvrTimoutError as e:
+            _LOG.error("[%s] Timeout while sending command: %s", self.id, e)
+            return ucapi.StatusCodes.TIMEOUT
+        except denonavr.exceptions.AvrNetworkError as e:
+            _LOG.error("[%s] Network error while sending command: %s", self.id, e)
+            return ucapi.StatusCodes.SERVICE_UNAVAILABLE
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to execute command: %s", e)
-            # TODO retry handling?
-            return False
+            _LOG.error("[%s] Failed to execute command: %s", self.id, e)
+            return ucapi.StatusCodes.SERVER_ERROR
 
-    async def power_on(self):
+    async def power_on(self) -> ucapi.StatusCodes:
         """Send power-on command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_power_on)
+        return await self._command_wrapper(self._avr.async_power_on if self._avr else None)
 
-    async def power_off(self):
+    async def power_off(self) -> ucapi.StatusCodes:
         """Send power-off command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_power_off)
+        return await self._command_wrapper(self._avr.async_power_off if self._avr else None)
 
-    async def volume_up(self):
+    async def volume_up(self) -> ucapi.StatusCodes:
         """Send volume-up command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_volume_up)
+        return await self._command_wrapper(self._avr.async_volume_up if self._avr else None)
 
-    async def volume_down(self):
+    async def volume_down(self) -> ucapi.StatusCodes:
         """Send volume-down command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_volume_down)
+        return await self._command_wrapper(self._avr.async_volume_down if self._avr else None)
 
-    async def play_pause(self):
+    async def play_pause(self) -> ucapi.StatusCodes:
         """Send toggle-play-pause command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_toggle_play_pause)
+        return await self._command_wrapper(self._avr.async_toggle_play_pause if self._avr else None)
 
-    async def next(self):
+    async def next(self) -> ucapi.StatusCodes:
         """Send next-track command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_next_track)
+        return await self._command_wrapper(self._avr.async_next_track if self._avr else None)
 
-    async def previous(self):
+    async def previous(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
-        if self._avr is None:
-            return
-        return await self._command_wrapper(self._avr.async_previous_track)
+        return await self._command_wrapper(self._avr.async_previous_track if self._avr else None)
 
-    async def mute(self, muted):
+    async def mute(self, muted) -> ucapi.StatusCodes:
         """Send mute command to AVR."""
         if self._avr is None:
-            return
+            return ucapi.StatusCodes.SERVICE_UNAVAILABLE
         try:
             await self._avr.async_mute(muted)
-            return True
+            return ucapi.StatusCodes.OK
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to execute mute command: %s", e)
-            return False
+            _LOG.error("[%s] Failed to execute mute command: %s", self.id, e)
+            return ucapi.StatusCodes.SERVER_ERROR
 
-    async def set_input(self, input_source):
+    async def set_input(self, input_source) -> ucapi.StatusCodes:
         """Send input_source command to AVR."""
         if self._avr is None:
-            return
+            return ucapi.StatusCodes.SERVICE_UNAVAILABLE
         try:
             await self._avr.async_set_input_func(input_source)
-            return True
+            return ucapi.StatusCodes.OK
         except denonavr.exceptions.DenonAvrError as e:
-            LOG.error("Failed to execute input_source command: %s", e)
-            return False
+            _LOG.error("[%s] Failed to execute input_source command: %s", self.id, e)
+
+            # hackish... we could catch AvrCommandError, but then we'd still have to check the message
+            _ex_type, ex_value, _ex_traceback = sys.exc_info()
+            if str(ex_value).startswith("No mapping for input source"):
+                return ucapi.StatusCodes.BAD_REQUEST
+
+            return ucapi.StatusCodes.SERVER_ERROR

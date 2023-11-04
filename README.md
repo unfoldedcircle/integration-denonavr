@@ -24,14 +24,8 @@ Supported commands:
 
 ## Setup
 
-```console
+```shell
 pip3 install -r requirements.txt
-```
-
-Manually install [ucapi](https://github.com/aitatoi/integration-python-library) library:
-```console
-export UCAPI_PYTHON_LIB_VERSION=0.0.11
-pip3 install ../integration-python-library/dist/ucapi-$UCAPI_PYTHON_LIB_VERSION-py3-none-any.whl
 ```
 
 ## Code Style
@@ -40,7 +34,7 @@ pip3 install ../integration-python-library/dist/ucapi-$UCAPI_PYTHON_LIB_VERSION-
 - Use double quotes as default (don't mix and match for simple quoting, checked with pylint).
 
 Install tooling:
-```console
+```shell
 pip3 install -r test-requirements.txt
 ```
 
@@ -48,7 +42,7 @@ pip3 install -r test-requirements.txt
 
 The following tests are run as GitHub action for each push on the main branch and for pull requests.
 They can also be run anytime on a local developer machine:
-```console
+```shell
 python -m pylint intg-denonavr
 python -m flake8 intg-denonavr --count --show-source --statistics
 python -m isort intg-denonavr/. --check --verbose 
@@ -60,7 +54,7 @@ Linting integration in PyCharm/IntelliJ IDEA:
 2. Open Pylint window and run a scan: `Check Module` or `Check Current File`
 
 ### Format Code
-```console
+```shell
 python -m black intg-denonavr --line-length 120
 ```
 
@@ -73,29 +67,50 @@ PyCharm/IntelliJ IDEA integration:
 
 ### Sort Imports
 
-```console
+```shell
 python -m isort intg-denonavr/.
 ```
 
-## Build self-contained binary
+## Build self-contained binary for Remote Two
 
 After some tests, turns out python stuff on embedded is a nightmare. So we're better off creating a single binary file that has everything in it.
 
 To do that, we need to compile it on the target architecture as `pyinstaller` does not support cross compilation.
 
-The following can be used on x86 Linux:
+### x86-64 Linux
 
+On x86-64 Linux we need Qemu to emulate the aarch64 target platform:
 ```bash
 sudo apt-get install qemu binfmt-support qemu-user-static
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-docker run --platform=aarch64 -v "$PWD:/io" -it ubuntu:focal
-
-cd /io
-apt-get update && apt-get install -y python3-pip
-pip3 install pyinstaller -r requirements.txt
-pyinstaller --clean --onefile intg-denonavr/driver.py
 ```
 
+Run pyinstaller:
+```shell
+docker run --rm --name builder \
+    --platform=aarch64 \
+    --user=$(id -u):$(id -g) \
+    -v "$PWD":/workspace \
+    docker.io/unfoldedcircle/r2-pyinstaller:3.10.13  \
+    bash -c \
+      "cd /workspace && \
+      python -m pip install -r requirements.txt && \
+      pyinstaller --clean --onefile --name intg-denonavr intg-denonavr/driver.py"
+```
+
+### aarch64 Linux / Mac
+
+On an aarch64 host platform, the build image can be run directly (and much faster):
+```shell
+docker run --rm --name builder \
+    --user=$(id -u):$(id -g) \
+    -v "$PWD":/workspace \
+    docker.io/unfoldedcircle/r2-pyinstaller:3.10.13  \
+    bash -c \
+      "cd /workspace && \
+      python -m pip install -r requirements.txt && \
+      pyinstaller --clean --onefile --name intg-denonavr intg-denonavr/driver.py"
+```
 ## Licenses
 
 To generate the license overview file for remote-ui, [pip-licenses](https://pypi.org/project/pip-licenses/) is used
@@ -103,7 +118,7 @@ to extract the license information in JSON format. The output JSON is then trans
 custom script.
 
 Create a virtual environment for pip-licenses, since it operates on the packages installed with pip:
-```console
+```shell
 python3 -m venv env
 source env/bin/activate
 pip3 install -r requirements.txt
@@ -111,7 +126,7 @@ pip3 install -r requirements.txt
 Exit `venv` with `deactivate`.
 
 Gather licenses:
-```console
+```shell
 pip-licenses --python ./env/bin/python \
   --with-description --with-urls \
   --with-license-file --no-license-path \
@@ -120,7 +135,7 @@ pip-licenses --python ./env/bin/python \
 ```
 
 Transform:
-```console
+```shell
 cd tools
 node transform-pip-licenses.js ../licenses.json licenses.md
 ```
