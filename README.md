@@ -91,7 +91,7 @@ docker run --rm --name builder \
     --platform=aarch64 \
     --user=$(id -u):$(id -g) \
     -v "$PWD":/workspace \
-    docker.io/unfoldedcircle/r2-pyinstaller:3.10.13  \
+    docker.io/unfoldedcircle/r2-pyinstaller:3.11.6  \
     bash -c \
       "cd /workspace && \
       python -m pip install -r requirements.txt && \
@@ -105,12 +105,13 @@ On an aarch64 host platform, the build image can be run directly (and much faste
 docker run --rm --name builder \
     --user=$(id -u):$(id -g) \
     -v "$PWD":/workspace \
-    docker.io/unfoldedcircle/r2-pyinstaller:3.10.13  \
+    docker.io/unfoldedcircle/r2-pyinstaller:3.11.6  \
     bash -c \
       "cd /workspace && \
       python -m pip install -r requirements.txt && \
       pyinstaller --clean --onefile --name intg-denonavr intg-denonavr/driver.py"
 ```
+
 ## Licenses
 
 To generate the license overview file for remote-ui, [pip-licenses](https://pypi.org/project/pip-licenses/) is used

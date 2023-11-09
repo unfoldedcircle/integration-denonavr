@@ -1,6 +1,2 @@
 denonavr~=0.11.4
-asyncio~=3.4.3
-pyee~=9.0.4
-ucapi==0.1.1
-websockets~=11.0.3
-zeroconf~=0.119.0
+ucapi==0.1.3

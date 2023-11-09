@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module implements the Denon AVR receiver communication of the Remote Two integration driver.
 
