@@ -7,195 +7,38 @@ This module implements a Remote Two integration driver for Denon AVR receivers.
 """
 
 import asyncio
-import json
 import logging
 import os
 from typing import Any
 
 import avr
+import config
+import setup_flow
 import ucapi
-from ucapi import (
-    DriverSetupRequest,
-    MediaPlayer,
-    RequestUserInput,
-    SetupAction,
-    SetupComplete,
-    SetupDriver,
-    SetupError,
-    UserDataResponse,
-    media_player,
-)
+from ucapi import MediaPlayer, media_player
 
 _LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
 _LOOP = asyncio.get_event_loop()
 
-_CFG_FILENAME = "config.json"
 # Global variables
-_CFG_FILE_PATH: str | None = None
 api = ucapi.IntegrationAPI(_LOOP)
-_config: list[dict[str, any]] = []
 # Map of avr_id -> DenonAVR instance
 _configured_avrs: dict[str, avr.DenonAVR] = {}
 
 
-async def clear_config() -> None:
-    """Remove the configuration file."""
-    global _config
-    _config = []
-
-    if os.path.exists(_CFG_FILE_PATH):
-        os.remove(_CFG_FILE_PATH)
-
-
-async def store_config() -> bool:
-    """
-    Store the configuration file.
-
-    :return: True if the configuration could be saved.
-    """
-    try:
-        with open(_CFG_FILE_PATH, "w+", encoding="utf-8") as f:
-            json.dump(_config, f, ensure_ascii=False)
-        return True
-    except OSError:
-        _LOG.error("Cannot write the config file")
-
-    return False
-
-
-async def load_config() -> bool:
-    """
-    Load the config into the config global variable.
-
-    :return: True if the configuration could be loaded.
-    """
-    global _config
-
-    try:
-        with open(_CFG_FILE_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        _config = data
-        return True
-    except OSError:
-        _LOG.error("Cannot open the config file")
-    except ValueError:
-        _LOG.error("Empty or invalid config file")
-
-    return False
-
-
-async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
-    """
-    Dispatch driver setup requests to corresponding handlers.
-
-    Either start the setup process or handle the selected AVR device.
-
-    :param msg: the setup driver request object, either DriverSetupRequest or UserDataResponse
-    :return: the setup action on how to continue
-    """
-    if isinstance(msg, DriverSetupRequest):
-        return await handle_driver_setup(msg)
-    if isinstance(msg, UserDataResponse):
-        return await handle_user_data_response(msg)
-
-    # user confirmation not used in setup process
-    # if isinstance(msg, UserConfirmationResponse):
-    #     return handle_user_confirmation(msg)
-
-    return SetupError()
-
-
-async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | SetupError:
-    """
-    Start driver setup.
-
-    Initiated by Remote Two to set up the driver.
-    Start AVR discovery and present the found devices to the user to choose from.
-
-    :param _msg: not used, we don't have any input fields in the first setup screen.
-    :return: the setup action on how to continue
-    """
-    _LOG.debug("Starting driver setup")
-    await clear_config()
-
-    _LOG.debug("Starting discovery")
-    avrs = await avr.discover_denon_avrs()
-    dropdown_items = []
-
-    for a in avrs:
-        avr_data = {"id": a["host"], "label": {"en": f"{a['friendlyName']} ({a['modelName']}) [{a['host']}]"}}
-        dropdown_items.append(avr_data)
-
-    if not dropdown_items:
-        _LOG.warning("No AVRs found")
-        # TODO can't we use a NOT_FOUND error to clearly indicate that nothing was found?
-        #      Otherwise, this looks like an internal error to the user.
-        return SetupError()
-
-    return RequestUserInput(
-        {"en": "Please choose your Denon AVR", "de": "Bitte Denon AVR auswählen"},
-        [
-            {
-                "field": {"dropdown": {"value": dropdown_items[0]["id"], "items": dropdown_items}},
-                "id": "choice",
-                "label": {
-                    "en": "Choose your Denon AVR",
-                    "de": "Wähle deinen Denon AVR",
-                    "fr": "Choisissez votre Denon AVR",
-                },
-            }
-        ],
-    )
-
-
-async def handle_user_data_response(msg: UserDataResponse) -> SetupComplete | SetupError:
-    """
-    Process user data response in a setup process.
-
-    Driver setup callback to provide requested user data during the setup process.
-
-    :param msg: response data from the requested user data
-    :return: the setup action on how to continue: SetupComplete if a valid AVR device was chosen.
-    """
-    if "choice" in msg.input_values:
-        choice = msg.input_values["choice"]
-        _LOG.debug("Chosen Denon AVR: %s", choice)
-
-        obj = avr.DenonAVR(_LOOP, choice)
-        # FIXME handle connect error!
-        await obj.connect()
-        _configured_avrs[obj.id] = obj
-
-        _add_available_entity(obj.id, obj.name)
-
-        _config.append({"id": obj.id, "name": obj.name, "ipaddress": obj.ipaddress})
-        await store_config()
-
-        return SetupComplete()
-
-    _LOG.error("No choice was received")
-    return SetupError()
-
-
 @api.listens_to(ucapi.Events.CONNECT)
 async def on_connect() -> None:
-    """When the remote connects, we just set the device state."""
-    # TODO is this correct? Shouldn't we check if the AVR is connected? --> check integration-API docs!
-    await api.set_device_state(ucapi.DeviceStates.CONNECTED)
+    """When the UCR2 connects, all configured Receiver devices are getting connected."""
+    for receiver in _configured_avrs.values():
+        # start background task
+        _LOOP.create_task(receiver.connect())
 
 
-# TODO There should be no need to disconnect the AVR, most likely the client just reconnects again.
-# When integration is running on the device: disconnect _should_ only happen if service is shut down.
-# @api.listens_to(ucapi.Events.DISCONNECT)
-# async def on_disconnect() -> None:
-#     """UCR2 disconnect notification."""
-#     _LOG.debug("Client disconnected, disconnecting all AVRs")
-#     for configured in _configured_avrs.values():
-#         configured.events.remove_all_listeners()
-#         await configured.disconnect()
-#
-#     await api.set_device_state(ucapi.DeviceStates.DISCONNECTED)
-#     _LOG.debug("Client disconnected")
+@api.listens_to(ucapi.Events.DISCONNECT)
+async def on_disconnect():
+    """When the UCR2 disconnects, all configured Receiver devices are disconnected."""
+    for receiver in _configured_avrs.values():
+        receiver.disconnect()
 
 
 @api.listens_to(ucapi.Events.ENTER_STANDBY)
@@ -205,6 +48,7 @@ async def on_enter_standby() -> None:
 
     Disconnect every Denon AVR instances.
     """
+    _LOG.debug("Enter standby event: disconnecting device(s)")
     for configured in _configured_avrs.values():
         await configured.disconnect()
 
@@ -216,15 +60,15 @@ async def on_exit_standby() -> None:
 
     Connect all Denon AVR instances.
     """
+    _LOG.debug("Exit standby event: connecting device(s)")
     # delay is only a temporary workaround, until the core verifies first that the network is up with an IP address
     await asyncio.sleep(2)
 
     for configured in _configured_avrs.values():
-        await configured.connect()
+        # start background task
+        _LOOP.create_task(configured.connect())
 
 
-# When the core subscribes to entities, we set these to UNAVAILABLE state
-# then we hook up to the signals of the object and then connect
 @api.listens_to(ucapi.Events.SUBSCRIBE_ENTITIES)
 async def on_subscribe_entities(entity_ids: list[str]) -> None:
     """
@@ -232,41 +76,24 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
 
     :param entity_ids: entity identifiers.
     """
+    _LOG.debug("Subscribe entities event: %s", entity_ids)
     for entity_id in entity_ids:
-        if not entity_id.startswith("media_player."):
-            _LOG.warning("Cannot subscribe to unknown entity: %s", entity_id)
+        # TODO #14 add avr_id -> list(entities_id) mapping. Right now the avr_id == entity_id!
+        avr_id = entity_id
+        if avr_id in _configured_avrs:
+            receiver = _configured_avrs[avr_id]
+            state = media_player_state_from_avr(receiver.state)
+            api.configured_entities.update_attributes(entity_id, {media_player.Attributes.STATE: state})
             continue
 
-        avr_id = _avr_from_entity_id(entity_id)
-
-        if avr_id not in _configured_avrs:
-            _LOG.warning("Cannot subscribe entity '%s' to AVR events: AVR not configured", entity_id)
-            continue
-
-        _LOG.debug("Subscribing entity '%s' to AVR events", entity_id)
-        device = _configured_avrs[avr_id]
-
-        device.events.on(avr.Events.CONNECTED, on_avr_connected)
-        device.events.on(avr.Events.DISCONNECTED, on_avr_disconnected)
-        device.events.on(avr.Events.ERROR, on_avr_connection_error)
-        device.events.on(avr.Events.UPDATE, on_avr_update)
-
-        await device.connect()
-
-        api.configured_entities.update_attributes(
-            entity_id,
-            {
-                media_player.Attributes.STATE: media_player_state_from_avr(device.state),
-                media_player.Attributes.SOURCE_LIST: device.input_list,
-                media_player.Attributes.SOURCE: device.input,
-                media_player.Attributes.VOLUME: device.volume,
-                media_player.Attributes.MEDIA_ARTIST: device.artist,
-                media_player.Attributes.MEDIA_TITLE: device.title,
-                media_player.Attributes.MEDIA_IMAGE_URL: device.artwork,
-            },
-        )
+        device = config.devices.get(avr_id)
+        if device:
+            _add_configured_avr(device)
+        else:
+            _LOG.error("Failed to subscribe entity %s: no AVR instance found", entity_id)
 
 
+# dev device_state_from_avr(avr_state: avr.States) ->
 def media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
     """Convert the AVR device state to a media-player entity state."""
     # TODO simplify using a dict
@@ -287,22 +114,20 @@ def media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
 @api.listens_to(ucapi.Events.UNSUBSCRIBE_ENTITIES)
 async def on_unsubscribe_entities(entity_ids: list[str]) -> None:
     """On unsubscribe, we disconnect the objects and remove listeners for events."""
+    _LOG.debug("Unsubscribe entities event: %s", entity_ids)
     for entity_id in entity_ids:
         avr_id = _avr_from_entity_id(entity_id)
         if avr_id is None:
             continue
         if avr_id in _configured_avrs:
-            _LOG.debug("Unsubscribing entity `%s` from events", entity_id)
-            a = _configured_avrs[avr_id]
             # TODO this doesn't work once we have more than one entity per device!
             # --- START HACK ---
             # Since an AVR instance only provides exactly one media-player, it's save to disconnect if the entity is
             # unsubscribed. This should be changed to a more generic logic, also as template for other integrations!
             # Otherwise this sets a bad copy-paste example and leads to more issues in the future.
             # --> correct logic: check configured_entities, if empty: disconnect
-            a.events.remove_all_listeners()
-            await a.disconnect()
-            # --- END HACK ---
+            _configured_avrs[entity_id].disconnect()
+            _configured_avrs[entity_id].events.remove_all_listeners()
 
 
 async def media_player_cmd_handler(
@@ -543,10 +368,50 @@ def _update_attributes(attributes, entity_type: ucapi.EntityTypes):
             # attributes[media_player.Attributes.MEDIA_DURATION] = 0
 
 
-def _add_available_entity(avr_id: str, name: str | dict[str, str]):
+def _create_entity_id(avr_id: str, entity_type: ucapi.EntityTypes) -> str:
+    return f"{entity_type.value}.{avr_id}"
+
+
+def _add_configured_avr(device: config.AvrDevice, connect: bool = True) -> None:
+    # the device should not yet be configured, but better be safe
+    if device.id in _configured_avrs:
+        receiver = _configured_avrs[device.id]
+        receiver.disconnect()
+    else:
+        receiver = avr.DenonAVR(device.address, loop=_LOOP)
+
+        receiver.events.on(avr.Events.CONNECTED, on_avr_connected)
+        receiver.events.on(avr.Events.DISCONNECTED, on_avr_disconnected)
+        receiver.events.on(avr.Events.ERROR, on_avr_connection_error)
+        receiver.events.on(avr.Events.UPDATE, on_avr_update)
+
+        _configured_avrs[device.id] = receiver
+
+    async def start_connection():
+        # res = await receiver.init()
+        # if res is False:
+        #     await api.set_device_state(ucapi.DeviceStates.ERROR)
+        await receiver.connect()
+
+    if connect:
+        # start background task
+        _LOOP.create_task(start_connection())
+
+    _register_available_entities(device.id, device.name)
+
+
+def _register_available_entities(avr_id: str, name: str) -> None:
+    """
+    Create entities for given receiver device and register them as available entities.
+
+    :param avr_id: Receiver identifier
+    :param name: Receiver device name
+    """
+    # TODO #14 map entity IDs from device identifier
+    entity_id = avr_id
     # plain and simple for now: only one media_player per AVR device
     entity = MediaPlayer(
-        _create_entity_id(avr_id, ucapi.EntityTypes.MEDIA_PLAYER),
+        _create_entity_id(entity_id, ucapi.EntityTypes.MEDIA_PLAYER),
         name,
         [
             media_player.Features.ON_OFF,
@@ -581,33 +446,53 @@ def _add_available_entity(avr_id: str, name: str | dict[str, str]):
         cmd_handler=media_player_cmd_handler,
     )
 
+    if api.available_entities.contains(entity.id):
+        api.available_entities.remove(entity.id)
     api.available_entities.add(entity)
 
 
-def _create_entity_id(avr_id: str, entity_type: ucapi.EntityTypes) -> str:
-    return f"{entity_type.value}.{avr_id}"
+def on_device_added(device: config.AvrDevice) -> None:
+    """Handle a newly added device in the configuration."""
+    _LOG.debug("New device added: %s", device)
+    _add_configured_avr(device, connect=False)
+
+
+def on_device_removed(device: config.AvrDevice | None) -> None:
+    """Handle a removed device in the configuration."""
+    if device is None:
+        _LOG.debug("Configuration cleared, disconnecting & removing all configured AVR instances")
+        for configured in _configured_avrs.values():
+            configured.disconnect()
+            configured.events.remove_all_listeners()
+        _configured_avrs.clear()
+        api.configured_entities.clear()
+        api.available_entities.clear()
+    else:
+        if device.id in _configured_avrs:
+            _LOG.debug("Disconnecting from removed AVR %s", device.id)
+            configured = _configured_avrs[device.id]
+            configured.disconnect()
+            configured.events.remove_all_listeners()
+            # TODO #14 map entity IDs from device identifier
+            entity_id = configured.id
+            api.configured_entities.remove(entity_id)
+            api.available_entities.remove(entity_id)
 
 
 async def main():
     """Start the Remote Two integration driver."""
-    global _CFG_FILE_PATH
-
     logging.basicConfig()
 
     level = os.getenv("UC_LOG_LEVEL", "DEBUG").upper()
     logging.getLogger("avr").setLevel(level)
     logging.getLogger("driver").setLevel(level)
+    logging.getLogger("setup_flow").setLevel(level)
 
-    path = api.config_dir_path
-    _CFG_FILE_PATH = os.path.join(path, _CFG_FILENAME)
+    config.devices = config.Devices(api.config_dir_path, on_device_added, on_device_removed)
+    for device in config.devices.all():
+        _add_configured_avr(device, connect=False)
 
-    if await load_config():
-        for item in _config:
-            _configured_avrs[item["id"]] = avr.DenonAVR(_LOOP, item["ipaddress"])
-            await _configured_avrs[item["id"]].connect()
-            _add_available_entity(item["id"], _configured_avrs[item["id"]].name)
-
-    await api.init("driver.json", driver_setup_handler)
+    await api.init("driver.json", setup_flow.driver_setup_handler)
 
 
 if __name__ == "__main__":
