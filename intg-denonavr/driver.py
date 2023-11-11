@@ -20,10 +20,20 @@ from ucapi import MediaPlayer, media_player
 _LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
 _LOOP = asyncio.get_event_loop()
 
+# Mapping of an AVR state to a media-player entity state
+MEDIA_PLAYER_STATE_MAPPING = {
+    avr.States.ON: media_player.States.ON,
+    avr.States.OFF: media_player.States.OFF,
+    avr.States.PAUSED: media_player.States.PAUSED,
+    avr.States.PLAYING: media_player.States.PLAYING,
+    avr.States.UNAVAILABLE: media_player.States.UNAVAILABLE,
+    avr.States.UNKNOWN: media_player.States.UNKNOWN,
+}
+
 # Global variables
 api = ucapi.IntegrationAPI(_LOOP)
 # Map of avr_id -> DenonAVR instance
-_configured_avrs: dict[str, avr.DenonAVR] = {}
+_configured_avrs: dict[str, avr.DenonDevice] = {}
 
 
 @api.listens_to(ucapi.Events.CONNECT)
@@ -96,19 +106,9 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
 # dev device_state_from_avr(avr_state: avr.States) ->
 def media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
     """Convert the AVR device state to a media-player entity state."""
-    # TODO simplify using a dict
-    state = media_player.States.UNKNOWN
-    if avr_state == avr.States.ON:
-        state = media_player.States.ON
-    elif avr_state == avr.States.OFF:
-        state = media_player.States.OFF
-    elif avr_state == avr.States.PLAYING:
-        state = media_player.States.PLAYING
-    elif avr_state == avr.States.PAUSED:
-        state = media_player.States.PAUSED
-    elif avr_state == avr.States.UNAVAILABLE:
-        state = media_player.States.UNAVAILABLE
-    return state
+    if avr_state in MEDIA_PLAYER_STATE_MAPPING:
+        return MEDIA_PLAYER_STATE_MAPPING[avr_state]
+    return media_player.States.UNKNOWN
 
 
 @api.listens_to(ucapi.Events.UNSUBSCRIBE_ENTITIES)
@@ -160,6 +160,8 @@ async def media_player_cmd_handler(
         res = await a.next()
     elif cmd_id == media_player.Commands.PREVIOUS:
         res = await a.previous()
+    elif cmd_id == media_player.Commands.VOLUME:
+        res = await a.set_volume_level(params.get("volume"))
     elif cmd_id == media_player.Commands.VOLUME_UP:
         res = await a.volume_up()
     elif cmd_id == media_player.Commands.VOLUME_DOWN:
@@ -171,7 +173,9 @@ async def media_player_cmd_handler(
     elif cmd_id == media_player.Commands.OFF:
         res = await a.power_off()
     elif cmd_id == media_player.Commands.SELECT_SOURCE:
-        res = await a.set_input(params["source"])
+        res = await a.select_source(params["source"])
+    elif cmd_id == media_player.Commands.SELECT_SOUND_MODE:
+        res = await a.select_sound_mode(params.get("sound_mode"))
     else:
         return ucapi.StatusCodes.NOT_IMPLEMENTED
 
@@ -256,7 +260,7 @@ async def handle_avr_address_change(avr_id: str, address: str) -> None:
     """Update device configuration with changed IP address."""
     device = config.devices.get(avr_id)
     if device and device.address != address:
-        _LOG.info("Updating IP address %s of configured AVR %s", address, avr_id)
+        _LOG.info("Updating IP address of configured AVR %s: %s -> %s", avr_id, device.address, address)
         device.address = address
         config.devices.update(device)
 
@@ -410,7 +414,7 @@ def _add_configured_avr(device: config.AvrDevice, connect: bool = True) -> None:
         receiver = _configured_avrs[device.id]
         receiver.disconnect()
     else:
-        receiver = avr.DenonAVR(device, loop=_LOOP)
+        receiver = avr.DenonDevice(device, loop=_LOOP)
 
         receiver.events.on(avr.Events.CONNECTED, on_avr_connected)
         receiver.events.on(avr.Events.DISCONNECTED, on_avr_disconnected)
@@ -496,7 +500,7 @@ def on_device_added(device: config.AvrDevice) -> None:
     _add_configured_avr(device, connect=False)
 
 
-async def async_disconnect(receiver: avr.DenonAVR) -> None:
+async def async_disconnect(receiver: avr.DenonDevice) -> None:
     """Disconnect from receiver and remove all listeners."""
     await receiver.disconnect()
     receiver.events.remove_all_listeners()

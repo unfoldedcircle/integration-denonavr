@@ -11,9 +11,18 @@ import re
 import time
 from asyncio import AbstractEventLoop
 from enum import IntEnum
+from functools import wraps
+from typing import TypeVar, ParamSpec, Callable, Awaitable, Coroutine, Any, Concatenate
 
 import denonavr
-import denonavr.exceptions
+from denonavr.exceptions import (
+    AvrCommandError,
+    AvrForbiddenError,
+    AvrNetworkError,
+    AvrTimoutError,
+    DenonAvrError,
+)
+
 import discover
 import ucapi
 from config import AvrDevice
@@ -67,8 +76,90 @@ TELNET_EVENTS = {
     "Z3",
 }
 
+_DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
+_R = TypeVar("_R")
+_P = ParamSpec("_P")
 
-class DenonAVR:
+
+# Adapted from Home Assistant `async_log_errors` in
+# https://github.com/home-assistant/core/blob/fd1f0b0efeb5231d3ee23d1cb2a10cdeff7c23f1/homeassistant/components/denonavr/media_player.py
+def async_handle_denonlib_errors(
+    func: Callable[Concatenate[_DenonDeviceT, _P], Awaitable[_R]],
+) -> Callable[Concatenate[_DenonDeviceT, _P], Coroutine[Any, Any, _R | ucapi.StatusCodes]]:
+    """Log errors occurred when calling a Denon AVR receiver.
+
+    Decorates methods of DenonDevice class.
+
+    Taken from Home-Assistant
+    """
+
+    @wraps(func)
+    async def wrapper(self: _DenonDeviceT, *args: _P.args, **kwargs: _P.kwargs) -> ucapi.StatusCodes:
+        # pylint: disable=protected-access
+        available = True
+        result = ucapi.StatusCodes.SERVER_ERROR
+        try:
+            await func(self, *args, **kwargs)
+            return ucapi.StatusCodes.OK
+        except AvrTimoutError:
+            available = False
+            result = ucapi.StatusCodes.SERVICE_UNAVAILABLE
+            if self.available:
+                _LOG.warning(
+                    "Timeout connecting to Denon AVR receiver at host %s. Device is unavailable",
+                    self._receiver.host,
+                )
+                self._attr_available = False
+        except AvrNetworkError:
+            result = ucapi.StatusCodes.SERVER_ERROR
+            available = False
+            if self.available:
+                _LOG.warning(
+                    "Network error connecting to Denon AVR receiver at host %s. Device is unavailable",
+                    self._receiver.host,
+                )
+                self._attr_available = False
+        except AvrForbiddenError:
+            available = False
+            result = ucapi.StatusCodes.UNAUTHORIZED
+            if self.available:
+                _LOG.warning(
+                    (
+                        "Denon AVR receiver at host %s responded with HTTP 403 error. "
+                        "Device is unavailable. Please consider power cycling your "
+                        "receiver"
+                    ),
+                    self._receiver.host,
+                )
+                self._attr_available = False
+        except AvrCommandError as err:
+            available = False
+            result = ucapi.StatusCodes.BAD_REQUEST
+            _LOG.error(
+                "Command %s failed with error: %s",
+                func.__name__,
+                err,
+            )
+        except DenonAvrError as err:
+            available = False
+            _LOG.exception(
+                "Error %s occurred in method %s for Denon AVR receiver",
+                err,
+                func.__name__,
+            )
+        finally:
+            if available and not self.available:
+                _LOG.info(
+                    "Denon AVR receiver at host %s is available again",
+                    self._receiver.host,
+                )
+                self._attr_available = True
+        return result
+
+    return wrapper
+
+
+class DenonDevice:
     """Representing a Denon AVR Device."""
 
     def __init__(
@@ -89,6 +180,8 @@ class DenonAVR:
         )
         self._use_telnet = device.use_telnet
 
+        self._attr_available: bool = True
+
         self._connecting: bool = False
         self._connection_attempts: int = 0
         self._reconnect_delay: float = MIN_RECONNECT_DELAY
@@ -107,49 +200,52 @@ class DenonAVR:
         _LOG.debug("Denon AVR created: %s", self.ipaddress)
 
     @property
-    def support_sound_mode(self) -> bool | None:
-        """Return True if sound mode supported."""
-        return self._avr.support_sound_mode
+    def available(self) -> bool:
+        """Return True if device is available."""
+        return self._attr_available
 
-    @property
-    def media_image_url(self) -> str | None:
-        """Image url of current playing media."""
-        if self._avr.input_func in self._avr.playing_func_list:
-            return self._avr.image_url
-        return None
-
-    @property
-    def media_title(self) -> str | None:
-        """Title of current playing media."""
-        if self._avr.input_func not in self._avr.playing_func_list:
-            return self._avr.input_func
-        if self._avr.title is not None:
-            return self._avr.title
-        return self._avr.frequency
-
-    @property
-    def media_artist(self) -> str | None:
-        """Artist of current playing media, music track only."""
-        if self._avr.artist is not None:
-            return self._avr.artist
-        return self._avr.band
-
-    @property
-    def media_album_name(self) -> str | None:
-        """Album name of current playing media, music track only."""
-        if self._avr.album is not None:
-            return self._avr.album
-        return self._avr.station
+    # @property
+    # def support_sound_mode(self) -> bool | None:
+    #     """Return True if sound mode supported."""
+    #     return self._avr.support_sound_mode
+    #
+    # @property
+    # def media_image_url(self) -> str | None:
+    #     """Image url of current playing media."""
+    #     if self._avr.input_func in self._avr.playing_func_list:
+    #         return self._avr.image_url
+    #     return None
+    #
+    # @property
+    # def media_title(self) -> str | None:
+    #     """Title of current playing media."""
+    #     if self._avr.input_func not in self._avr.playing_func_list:
+    #         return self._avr.input_func
+    #     if self._avr.title is not None:
+    #         return self._avr.title
+    #     return self._avr.frequency
+    #
+    # @property
+    # def media_artist(self) -> str | None:
+    #     """Artist of current playing media, music track only."""
+    #     if self._avr.artist is not None:
+    #         return self._avr.artist
+    #     return self._avr.band
+    #
+    # @property
+    # def media_album_name(self) -> str | None:
+    #     """Album name of current playing media, music track only."""
+    #     if self._avr.album is not None:
+    #         return self._avr.album
+    #     return self._avr.station
 
     @staticmethod
     def _map_range(value, from_min, from_max, to_min, to_max):
         return (value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
 
+    # TODO is this correct? Doesn't volume go up to 18?
     def _convert_volume_to_percent(self, value):
         return self._map_range(value, -80.0, 0.0, 0, 100)
-
-    def _convert_volume_to_db(self, value):
-        return self._map_range(value, 0, 100, -80.0, 0.0)
 
     @staticmethod
     def _extract_values(input_string):
@@ -160,8 +256,6 @@ class DenonAVR:
             return matches[0]
 
         return None
-
-    # TODO ADD METHOD FOR CHANGED IP ADDRESS
 
     async def connect(self, max_timeout: int | None = None) -> bool:
         """
@@ -297,7 +391,8 @@ class DenonAVR:
             state = States.PAUSED
         return state
 
-    async def _get_data(self):
+    @async_handle_denonlib_errors
+    async def _get_data(self) -> None:
         if self._getting_data:
             return
 
@@ -339,9 +434,6 @@ class DenonAVR:
                 self._avr.title,
                 self._avr.image_url,
             )
-        except denonavr.exceptions.DenonAvrError as e:
-            _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
-            return
         finally:
             self._getting_data = False
 
@@ -349,6 +441,7 @@ class DenonAVR:
         """Process a telnet command callback."""
         _LOG.debug("[%s] zone: %s, event: %s, parameter: %s", self.id, zone, event, parameter)
         try:
+            # TODO is this required or already handled in the denon lib?
             await self._avr.async_update()
         except denonavr.exceptions.DenonAvrError as e:
             _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
@@ -463,89 +556,67 @@ class DenonAVR:
             pass
         _LOG.debug("[%s] Unsubscribed to events", self.id)
 
-    # TODO add commands, simplify copy paste logic.
-    #      Python decorator for _avr None check? Or better yet a dynamic method call?
-    # FIXME #8 command execution check
-    # TODO retry handling in case of exception?
-    async def _command_wrapper(self, fn) -> ucapi.StatusCodes:
-        try:
-            # FIXME check if connected
-            if fn is None:
-                return ucapi.StatusCodes.SERVICE_UNAVAILABLE
-
-            await fn()
-            return ucapi.StatusCodes.OK
-        except denonavr.exceptions.AvrTimoutError as e:
-            _LOG.error("[%s] Timeout while sending command: %s", self.id, e)
-            return ucapi.StatusCodes.TIMEOUT
-        except denonavr.exceptions.AvrNetworkError as e:
-            _LOG.error("[%s] Network error while sending command: %s", self.id, e)
-            return ucapi.StatusCodes.SERVICE_UNAVAILABLE
-        except denonavr.exceptions.DenonAvrError as e:
-            _LOG.error("[%s] Failed to execute command: %s", self.id, e)
-            return ucapi.StatusCodes.SERVER_ERROR
-
+    @async_handle_denonlib_errors
     async def power_on(self) -> ucapi.StatusCodes:
         """Send power-on command to AVR."""
-        return await self._command_wrapper(self._avr.async_power_on)
+        await self._avr.async_power_on()
 
+    @async_handle_denonlib_errors
     async def power_off(self) -> ucapi.StatusCodes:
         """Send power-off command to AVR."""
-        return await self._command_wrapper(self._avr.async_power_off)
+        await self._avr.async_power_off()
 
+    @async_handle_denonlib_errors
+    async def set_volume_level(self, volume: float) -> ucapi.StatusCodes:
+        """Set volume level, range 0..100."""
+        # Volume has to be sent in a format like -50.0. Minimum is -80.0,
+        # maximum is 18.0
+        volume_denon = float(volume - 80)
+        if volume_denon > 18:
+            volume_denon = float(18)
+        await self._avr.async_set_volume(volume_denon)
+
+    @async_handle_denonlib_errors
     async def volume_up(self) -> ucapi.StatusCodes:
         """Send volume-up command to AVR."""
-        return await self._command_wrapper(self._avr.async_volume_up)
+        await self._avr.async_volume_up()
 
+    @async_handle_denonlib_errors
     async def volume_down(self) -> ucapi.StatusCodes:
         """Send volume-down command to AVR."""
-        return await self._command_wrapper(self._avr.async_volume_down)
+        await self._avr.async_volume_down()
 
+    @async_handle_denonlib_errors
     async def play_pause(self) -> ucapi.StatusCodes:
         """Send toggle-play-pause command to AVR."""
-        return await self._command_wrapper(self._avr.async_toggle_play_pause)
+        await self._avr.async_toggle_play_pause()
 
+    @async_handle_denonlib_errors
     async def next(self) -> ucapi.StatusCodes:
         """Send next-track command to AVR."""
-        return await self._command_wrapper(self._avr.async_next_track)
+        await self._avr.async_next_track()
 
+    @async_handle_denonlib_errors
     async def previous(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
-        return await self._command_wrapper(self._avr.async_previous_track)
+        await self._avr.async_previous_track()
 
+    @async_handle_denonlib_errors
     async def mute(self, muted: bool) -> ucapi.StatusCodes:
         """Send mute command to AVR."""
         _LOG.debug("Sending mute: %s", muted)
-        # if self._avr is None:
-        #     return ucapi.StatusCodes.SERVICE_UNAVAILABLE
-        try:
-            await self._avr.async_mute(muted)
-            return ucapi.StatusCodes.OK
-        except denonavr.exceptions.AvrTimoutError:
-            _LOG.error("[%s] Timeout executing mute command", self.id)
-            return ucapi.StatusCodes.TIMEOUT
-        except denonavr.exceptions.AvrNetworkError as e:
-            _LOG.error("[%s] Failed to execute mute command: %s", self.id, e)
-            return ucapi.StatusCodes.SERVICE_UNAVAILABLE
-        except denonavr.exceptions.DenonAvrError as e:
-            _LOG.error("[%s] Failed to execute mute command: %s", self.id, e)
-            return ucapi.StatusCodes.SERVER_ERROR
+        await self._avr.async_mute(muted)
 
-    async def set_input(self, input_source) -> ucapi.StatusCodes:
+    @async_handle_denonlib_errors
+    async def select_source(self, source: str) -> ucapi.StatusCodes:
         """Send input_source command to AVR."""
-        try:
-            _LOG.debug("Set input: %s", input_source)
-            await self._avr.async_set_input_func(input_source)
-            return ucapi.StatusCodes.OK
-        except denonavr.exceptions.AvrTimoutError:
-            _LOG.error("[%s] Timeout executing input_source command '%s'", self.id, input_source)
-            return ucapi.StatusCodes.TIMEOUT
-        except denonavr.exceptions.AvrCommandError as e:
-            _LOG.error("[%s] Failed to execute input_source command '%s': %s", self.id, input_source, e)
-            return ucapi.StatusCodes.BAD_REQUEST
-        except denonavr.exceptions.AvrNetworkError as e:
-            _LOG.error("[%s] Failed to execute input_source command '%s': %s", self.id, input_source, e)
-            return ucapi.StatusCodes.SERVICE_UNAVAILABLE
-        except denonavr.exceptions.DenonAvrError as e:
-            _LOG.error("[%s] Failed to execute input_source command '%s': %s", self.id, input_source, e)
-            return ucapi.StatusCodes.SERVER_ERROR
+        _LOG.debug("Set input: %s", source)
+        # Ensure that the AVR is turned on, which is necessary for input
+        # switch to work.
+        await self.power_on()
+        await self._avr.async_set_input_func(source)
+
+    @async_handle_denonlib_errors
+    async def select_sound_mode(self, sound_mode: str) -> ucapi.StatusCodes:
+        """Select sound mode."""
+        await self._avr.async_set_sound_mode(sound_mode)
