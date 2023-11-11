@@ -83,7 +83,7 @@ class Devices:
         return None
 
     def update(self, atv: AvrDevice) -> bool:
-        """Update a configured Denon device."""
+        """Update a configured Denon device and persist configuration."""
         for item in self._config:
             if item.id == atv.id:
                 item.address = atv.address

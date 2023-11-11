@@ -126,7 +126,7 @@ async def on_unsubscribe_entities(entity_ids: list[str]) -> None:
             # unsubscribed. This should be changed to a more generic logic, also as template for other integrations!
             # Otherwise this sets a bad copy-paste example and leads to more issues in the future.
             # --> correct logic: check configured_entities, if empty: disconnect
-            _configured_avrs[entity_id].disconnect()
+            await _configured_avrs[entity_id].disconnect()
             _configured_avrs[entity_id].events.remove_all_listeners()
 
 
@@ -250,6 +250,15 @@ async def on_avr_connection_error(avr_id: str, message):
 
     # TODO #21 when multiple devices are supported, the device state logic isn't that simple anymore!
     await api.set_device_state(ucapi.DeviceStates.ERROR)
+
+
+async def handle_avr_address_change(avr_id: str, address: str) -> None:
+    """Update device configuration with changed IP address."""
+    device = config.devices.get(avr_id)
+    if device and device.address != address:
+        _LOG.info("Updating IP address %s of configured AVR %s", address, avr_id)
+        device.address = address
+        config.devices.update(device)
 
 
 async def on_avr_update(avr_id: str, update: dict[str, Any]) -> None:
@@ -407,6 +416,7 @@ def _add_configured_avr(device: config.AvrDevice, connect: bool = True) -> None:
         receiver.events.on(avr.Events.DISCONNECTED, on_avr_disconnected)
         receiver.events.on(avr.Events.ERROR, on_avr_connection_error)
         receiver.events.on(avr.Events.UPDATE, on_avr_update)
+        receiver.events.on(avr.Events.IP_ADDRESS_CHANGED, handle_avr_address_change)
 
         _configured_avrs[device.id] = receiver
 
@@ -427,8 +437,7 @@ def _register_available_entities(device: config.AvrDevice) -> None:
     """
     Create entities for given receiver device and register them as available entities.
 
-    :param avr_id: Receiver identifier
-    :param name: Receiver device name
+    :param device: Receiver
     """
     # plain and simple for now: only one media_player per AVR device
     entity_id = _create_entity_id(device.id, ucapi.EntityTypes.MEDIA_PLAYER)

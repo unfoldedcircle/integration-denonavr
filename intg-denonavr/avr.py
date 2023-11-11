@@ -174,7 +174,6 @@ class DenonAVR:
             _LOG.debug("Connection task already running for %s", self.id)
             return False
 
-        # TODO implement me
         if self._use_telnet and self._avr.telnet_connected:
             _LOG.debug("[%s] Already connected", self.id)
             _ = asyncio.ensure_future(self._get_data())
@@ -260,7 +259,7 @@ class DenonAVR:
                 if item["friendlyName"] == self.name:
                     if self._avr.host != item["host"]:
                         _LOG.info("IP address of '%s' changed: %s", self.name, item["host"])
-                        self._avr.host = item["host"]
+                        self._avr._host = item["host"]  # pylint: disable=W0212 # seems to be the only way
                         self.events.emit(Events.IP_ADDRESS_CHANGED, self.id, self._avr.host)
         else:
             await asyncio.sleep(backoff)
