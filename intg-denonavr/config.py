@@ -19,6 +19,11 @@ class AvrDevice:
     id: str
     name: str
     address: str
+    support_sound_mode: bool
+    show_all_inputs: bool
+    use_telnet: bool
+    zone2: bool
+    zone3: bool
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):

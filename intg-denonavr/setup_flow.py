@@ -6,7 +6,10 @@ from enum import IntEnum
 
 import avr
 import config
+import discover
 from config import AvrDevice
+from denonavr.exceptions import AvrNetworkError, AvrTimoutError
+from receiver import ConnectDenonAVR
 from ucapi import (
     AbortDriverSetup,
     DriverSetupRequest,
@@ -77,8 +80,7 @@ async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | Se
     _LOG.debug("Starting driver setup")
     config.devices.clear()  # triggers device instance removal
 
-    _LOG.debug("Starting discovery")
-    avrs = await avr.discover_denon_avrs()
+    avrs = await discover.denon_avrs()
     dropdown_items = []
 
     for a in avrs:
@@ -115,23 +117,52 @@ async def handle_user_data_response(msg: UserDataResponse) -> SetupComplete | Se
     :param msg: response data from the requested user data
     :return: the setup action on how to continue: SetupComplete if a valid AVR device was chosen.
     """
-    choice = msg.input_values["choice"]
-    _LOG.debug("Chosen Denon AVR: %s", choice)
+    host = msg.input_values["choice"]
+    _LOG.debug("Chosen Denon AVR: %s. Trying to connect and retrieve device information...", host)
 
-    avr_device = avr.DenonAVR(choice)
-    # FIXME handle connect error!
-    # TODO add timeout or a dedicated method to fetch device information and disconnect (as Android TV)
-    await avr_device.connect()
-    # _configured_avrs[avr_device.id] = avr_device
-    #
-    # _add_available_entity(avr_device.id, avr_device.name)
+    # TODO #19 add configuration options
+    use_telnet = True
+    show_all_inputs = False
+    zone2 = False
+    zone3 = False
 
-    # _config.append({"id": avr_device.id, "name": avr_device.name, "ipaddress": avr_device.ipaddress})
-    # await store_config()
+    # Telnet connection not required for connection check and retrieving model information
+    connect_denonavr = ConnectDenonAVR(
+        host,
+        avr.DEFAULT_TIMEOUT,
+        show_all_inputs,
+        zone2,
+        zone3,
+        use_telnet=False,
+        update_audyssey=False,
+    )
 
-    avr_device.disconnect()
+    try:
+        await connect_denonavr.async_connect_receiver()
+    except AvrNetworkError as ex:
+        _LOG.error("Cannot connect to %s: %s", host, ex)
+        return SetupError(error_type=IntegrationSetupError.CONNECTION_REFUSED)
+    except AvrTimoutError:
+        _LOG.error("Timeout connecting to %s", host)
+        return SetupError(error_type=IntegrationSetupError.TIMEOUT)
 
-    device = AvrDevice(avr_device.id, avr_device.name, avr_device.ipaddress)
+    receiver = connect_denonavr.receiver
+    assert receiver
+
+    if receiver.serial_number is None:
+        _LOG.error("Could not get serial number of host %s: required to create a unique device", host)
+        return SetupError
+
+    device = AvrDevice(
+        receiver.serial_number,
+        receiver.name,
+        host,
+        receiver.support_sound_mode,
+        show_all_inputs,
+        use_telnet=use_telnet,
+        zone2=zone2,
+        zone3=zone3,
+    )
     config.devices.add(device)  # triggers DenonAVR instance creation
     config.devices.store()
 
