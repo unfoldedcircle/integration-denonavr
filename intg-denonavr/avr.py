@@ -7,14 +7,24 @@ This module implements the Denon AVR receiver communication of the Remote Two in
 
 import asyncio
 import logging
-import re
 import time
 from asyncio import AbstractEventLoop
 from enum import IntEnum
 from functools import wraps
-from typing import TypeVar, ParamSpec, Callable, Awaitable, Coroutine, Any, Concatenate
+from typing import Any, Awaitable, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
 
 import denonavr
+import discover
+import ucapi
+from config import AvrDevice
+from denonavr.const import (
+    ALL_TELNET_EVENTS,
+    ALL_ZONES,
+    STATE_OFF,
+    STATE_ON,
+    STATE_PAUSED,
+    STATE_PLAYING,
+)
 from denonavr.exceptions import (
     AvrCommandError,
     AvrForbiddenError,
@@ -22,10 +32,6 @@ from denonavr.exceptions import (
     AvrTimoutError,
     DenonAvrError,
 )
-
-import discover
-import ucapi
-from config import AvrDevice
 from pyee import AsyncIOEventEmitter
 
 _LOG = logging.getLogger(__name__)
@@ -60,32 +66,39 @@ class States(IntEnum):
     PAUSED = 5
 
 
+DENON_STATE_MAPPING = {
+    STATE_ON: States.ON,
+    STATE_OFF: States.OFF,
+    STATE_PLAYING: States.PLAYING,
+    STATE_PAUSED: States.PAUSED,
+}
+
 TELNET_EVENTS = {
-    "HD",
-    "MS",
-    "MU",
-    "MV",
-    "NS",
-    "NSE",
-    "PS",
-    "SI",
-    "SS",
-    "TF",
-    "ZM",
-    "Z2",
-    "Z3",
+    "PW",  # Power
+    "HD",  # HD radio station
+    "MS",  # surround Mode Setting
+    "MU",  # Muted
+    "MV",  # Master Volume
+    "NS",  # Preset
+    "NSE",  # Onscreen display information (mServer/iRadio)
+    "PS",  # Parameter Setting
+    "SI",  # Select Input source
+    "SS",  # ??
+    "TF",  # Tuner Frequency (?)
+    "ZM",  # Zone Main
+    "Z2",  # Zone 2
+    "Z3",  # Zone 3
 }
 
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
-_R = TypeVar("_R")
 _P = ParamSpec("_P")
 
 
 # Adapted from Home Assistant `async_log_errors` in
 # https://github.com/home-assistant/core/blob/fd1f0b0efeb5231d3ee23d1cb2a10cdeff7c23f1/homeassistant/components/denonavr/media_player.py
 def async_handle_denonlib_errors(
-    func: Callable[Concatenate[_DenonDeviceT, _P], Awaitable[_R]],
-) -> Callable[Concatenate[_DenonDeviceT, _P], Coroutine[Any, Any, _R | ucapi.StatusCodes]]:
+    func: Callable[Concatenate[_DenonDeviceT, _P], Awaitable[ucapi.StatusCodes | None]],
+) -> Callable[Concatenate[_DenonDeviceT, _P], Coroutine[Any, Any, ucapi.StatusCodes | None]]:
     """Log errors occurred when calling a Denon AVR receiver.
 
     Decorates methods of DenonDevice class.
@@ -99,6 +112,7 @@ def async_handle_denonlib_errors(
         available = True
         result = ucapi.StatusCodes.SERVER_ERROR
         try:
+            _LOG.debug("Calling AVR: %s %s", func.__name__, args)
             await func(self, *args, **kwargs)
             return ucapi.StatusCodes.OK
         except AvrTimoutError:
@@ -109,7 +123,7 @@ def async_handle_denonlib_errors(
                     "Timeout connecting to Denon AVR receiver at host %s. Device is unavailable",
                     self._receiver.host,
                 )
-                self._attr_available = False
+                self.available = False
         except AvrNetworkError:
             result = ucapi.StatusCodes.SERVER_ERROR
             available = False
@@ -118,7 +132,7 @@ def async_handle_denonlib_errors(
                     "Network error connecting to Denon AVR receiver at host %s. Device is unavailable",
                     self._receiver.host,
                 )
-                self._attr_available = False
+                self.available = False
         except AvrForbiddenError:
             available = False
             result = ucapi.StatusCodes.UNAUTHORIZED
@@ -131,7 +145,7 @@ def async_handle_denonlib_errors(
                     ),
                     self._receiver.host,
                 )
-                self._attr_available = False
+                self.available = False
         except AvrCommandError as err:
             available = False
             result = ucapi.StatusCodes.BAD_REQUEST
@@ -153,7 +167,7 @@ def async_handle_denonlib_errors(
                     "Denon AVR receiver at host %s is available again",
                     self._receiver.host,
                 )
-                self._attr_available = True
+                self.available = True
         return result
 
     return wrapper
@@ -178,7 +192,9 @@ class DenonDevice:
         self._avr: denonavr.DenonAVR = denonavr.DenonAVR(
             host=device.address, show_all_inputs=device.show_all_inputs, timeout=timeout, add_zones=self._zones
         )
+        self._update_audyssey = False  # not yet supported
         self._use_telnet = device.use_telnet
+        self._telnet_was_healthy: bool | None = None
 
         self._attr_available: bool = True
 
@@ -186,23 +202,49 @@ class DenonDevice:
         self._connection_attempts: int = 0
         self._reconnect_delay: float = MIN_RECONNECT_DELAY
 
-        self.name: str = device.name
-        self.model: str | None = None
-        self.manufacturer: str | None = None
         self.id: str = device.id
-        self.ipaddress: str = device.address
         self._getting_data: bool = False
 
         self.state: States = States.UNKNOWN
-        self._position: int = 0
-        self._duration: int = 0
 
-        _LOG.debug("Denon AVR created: %s", self.ipaddress)
+        _LOG.debug("Denon AVR created: %s", device.address)
 
     @property
     def available(self) -> bool:
         """Return True if device is available."""
         return self._attr_available
+
+    @available.setter
+    def available(self, value: bool):
+        """Set device availability and emit CONNECTED / DISCONNECTED event on change."""
+        if self._attr_available != value:
+            self._attr_available = value
+            self.events.emit(Events.CONNECTED if value else Events.DISCONNECTED, self.id)
+
+    @property
+    def name(self) -> str | None:
+        """Return the name of the device as string."""
+        return self._avr.name
+
+    @property
+    def host(self) -> str:
+        """Return the host of the device as string."""
+        return self._avr.host
+
+    @property
+    def manufacturer(self) -> str | None:
+        """Return the manufacturer of the device as string."""
+        return self._avr.manufacturer
+
+    @property
+    def model_name(self) -> str | None:
+        """Return the model name of the device as string."""
+        return self._avr.model_name
+
+    @property
+    def serial_number(self) -> str | None:
+        """Return the serial number of the device as string."""
+        return self._avr.serial_number
 
     # @property
     # def support_sound_mode(self) -> bool | None:
@@ -243,93 +285,77 @@ class DenonDevice:
     def _map_range(value, from_min, from_max, to_min, to_max):
         return (value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
 
-    # TODO is this correct? Doesn't volume go up to 18?
+    # TODO isn't volume an int and not a float?
     def _convert_volume_to_percent(self, value):
-        return self._map_range(value, -80.0, 0.0, 0, 100)
+        value = min(value, 18)
+        return self._map_range(value, -80.0, 18.0, 0, 100)
 
-    @staticmethod
-    def _extract_values(input_string):
-        pattern = r"(\d+:\d+)\s+(\d+%)"
-        matches = re.findall(pattern, input_string)
-
-        if matches:
-            return matches[0]
-
-        return None
-
-    async def connect(self, max_timeout: int | None = None) -> bool:
+    async def connect(self):
         """
         Connect to AVR.
 
-        :param max_timeout: optional maximum timeout in seconds to try connecting to the device.
+        Automatically retry if connection fails. This method will not return
+        until the connection could be established, or disconnect() has been
+        called.
+
+        The call is ignored if a connection is already being established.
         """
-        # TODO use asyncio.Lock?
         if self._connecting:
             _LOG.debug("Connection task already running for %s", self.id)
-            return False
+            return
 
         if self._use_telnet and self._avr.telnet_connected:
             _LOG.debug("[%s] Already connected", self.id)
-            _ = asyncio.ensure_future(self._get_data())
-            return True
+            # TODO async_update() required?
+            _ = asyncio.ensure_future(self.async_update())
+            return
 
         self._connecting = True
-        start = time.time()
+        try:
+            request_start = None
+            success = False
 
-        request_start = None
-        success = False
+            while not success:
+                try:
+                    if not self._connecting:
+                        return
+                    _LOG.debug("Connecting AVR %s on %s", self.id, self._avr.host)
+                    self.events.emit(Events.CONNECTING, self.id)
+                    request_start = time.time()
+                    await self._avr.async_setup()
+                    await self._avr.async_update()
+                    # Do an initial update if telnet is used.
+                    if self._use_telnet:
+                        await self._avr.async_update()
+                        if self._update_audyssey:
+                            await self._avr.async_update_audyssey()
+                        await self._avr.async_telnet_connect()
+                        self._avr.register_callback(ALL_TELNET_EVENTS, self._telnet_callback)
 
-        while not success:
-            try:
-                _LOG.debug("Connecting AVR %s on %s", self.id, self._avr.host)
-                self.events.emit(Events.CONNECTING, self.id)
-                request_start = time.time()
-                await self._avr.async_setup()
-                await self._avr.async_update()
-                success = True
-                self._connection_attempts = 0
-                self._reconnect_delay = MIN_RECONNECT_DELAY
-            except denonavr.exceptions.DenonAvrError as ex:
-                if max_timeout and time.time() - start > max_timeout:
-                    _LOG.error(
-                        "Abort connecting after %ss: device '%s' not reachable on %s. %s",
-                        max_timeout,
-                        self.name,
-                        self._avr.host,
-                        ex,
-                    )
-                    self.state = States.UNAVAILABLE
-                    self._connecting = False
-                    return False
+                    success = True
+                    self._connection_attempts = 0
+                    self._reconnect_delay = MIN_RECONNECT_DELAY
+                except denonavr.exceptions.DenonAvrError as ex:
+                    await self._handle_connection_failure(time.time() - request_start, ex)
 
-                await self._handle_connection_failure(time.time() - request_start, ex)
+            if self.id != self._avr.serial_number:
+                _LOG.warning(
+                    "Different device serial number! Expected=%s, received=%s", self.id, self._avr.serial_number
+                )
 
-        self.manufacturer = self._avr.manufacturer
-        self.model = self._avr.model_name
-        self.name = self._avr.name
-        if self.id != self._avr.serial_number:
-            _LOG.warning("Different device serial number! Expected=%s, received=%s", self.id, self._avr.serial_number)
+            _LOG.debug(
+                "Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
+                self.manufacturer,
+                self.model_name,
+                self.name,
+                self.id,
+                self._avr.state,
+            )
 
-        _LOG.debug(
-            "Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
-            self.manufacturer,
-            self.model,
-            self.name,
-            self.id,
-            self._avr.state,
-        )
-
-        await self._subscribe_events()
-
-        self.state = self._map_denonavr_state(self._avr.state)
-
-        self._position = 0
-        self._duration = 0
-
-        self.events.emit(Events.CONNECTED, self.id)
-
-        self._connecting = False
-        return True
+            self.state = self._map_denonavr_state(self._avr.state)
+            self.events.emit(Events.CONNECTED, self.id)
+        finally:
+            self._connecting = False
 
     async def _handle_connection_failure(self, connect_duration: float, ex):
         self._connection_attempts += 1
@@ -368,85 +394,118 @@ class DenonDevice:
 
     async def disconnect(self):
         """Disconnect from AVR."""
-        await self._unsubscribe_events()
+        self._connecting = False
         try:
-            await self._avr.async_telnet_disconnect()
+            if self._use_telnet:
+                try:
+                    self._avr.unregister_callback(ALL_TELNET_EVENTS, self._telnet_callback)
+                except ValueError:
+                    pass
+                await self._avr.async_telnet_disconnect()
         except denonavr.exceptions.DenonAvrError:
             pass
-        self._connecting = False
         if self.id:
             self.events.emit(Events.DISCONNECTED, self.id)
 
     @staticmethod
     def _map_denonavr_state(avr_state: str | None) -> States:
         """Map the DenonAVR library state to our state."""
-        state = States.UNKNOWN
-        if avr_state == "on":
-            state = States.ON
-        elif avr_state == "off":
-            state = States.OFF
-        elif avr_state == "playing":
-            state = States.PLAYING
-        elif avr_state == "paused":
-            state = States.PAUSED
-        return state
+        if avr_state in DENON_STATE_MAPPING:
+            return DENON_STATE_MAPPING[avr_state]
+        return States.UNKNOWN
 
     @async_handle_denonlib_errors
-    async def _get_data(self) -> None:
+    async def async_update(self):
+        """Get the latest status information from device."""
         if self._getting_data:
             return
 
-        # TODO use asyncio.Lock?
         self._getting_data = True
-        _LOG.debug("[%s] Getting track data.", self.id)
+        _LOG.debug("[%s] Getting latest status information.", self.id)
 
         try:
-            await self._avr.async_update()
+            receiver = self._avr
 
-            if self._avr.power == "OFF":
-                self.state = States.OFF
-            else:
-                self.state = self._map_denonavr_state(self._avr.state)
+            # We can only skip the update if telnet was healthy after
+            # the last update and is still healthy now to ensure that
+            # we don't miss any state changes while telnet is down
+            # or reconnecting.
+            if (
+                telnet_is_healthy := receiver.telnet_connected and receiver.telnet_healthy
+            ) and self._telnet_was_healthy:
+                self._check_for_updated_data()
+                return
 
-            volume = self._convert_volume_to_percent(self._avr.volume)
+            # if async_update raises an exception, we don't want to skip the next update
+            # so we set _telnet_was_healthy to None here and only set it to the value
+            # before the update if the update was successful
+            self._telnet_was_healthy = None
 
-            self.events.emit(
-                Events.UPDATE,
-                self.id,
-                {
-                    "state": self.state,
-                    "artist": self._avr.artist,
-                    "album": self._avr.album,
-                    "artwork": self._avr.image_url,
-                    "title": self._avr.title,
-                    "muted": self._avr.muted,
-                    "source": self._avr.input_func,
-                    "source_list": self._avr.input_func_list,
-                    "sound_mode": self._avr.sound_mode,
-                    "sound_mode_list": self._avr.sound_mode_list,
-                    "volume": volume,
-                },
-            )
-            _LOG.debug(
-                "[%s] Track data: artist: %s title: %s artwork: %s",
-                self.id,
-                self._avr.artist,
-                self._avr.title,
-                self._avr.image_url,
-            )
+            await receiver.async_update()
+
+            self._telnet_was_healthy = telnet_is_healthy
+
+            if self._update_audyssey:
+                await receiver.async_update_audyssey()
+
+            self._check_for_updated_data()
         finally:
             self._getting_data = False
+
+    def _check_for_updated_data(self):
+        # TODO implement me!
+        if self._avr.power == "OFF":
+            self.state = States.OFF
+        else:
+            self.state = self._map_denonavr_state(self._avr.state)
+
+        volume = self._convert_volume_to_percent(self._avr.volume)
+
+        self.events.emit(
+            Events.UPDATE,
+            self.id,
+            {
+                "state": self.state,
+                "artist": self._avr.artist,
+                "album": self._avr.album,
+                "artwork": self._avr.image_url,
+                "title": self._avr.title,
+                "muted": self._avr.muted,
+                "source": self._avr.input_func,
+                "source_list": self._avr.input_func_list,
+                "sound_mode": self._avr.sound_mode,
+                "sound_mode_list": self._avr.sound_mode_list,
+                "volume": volume,
+            },
+        )
+        # _LOG.debug(
+        #     "[%s] Track data: artist: %s title: %s artwork: %s",
+        #     self.id,
+        #     self._avr.artist,
+        #     self._avr.title,
+        #     self._avr.image_url,
+        # )
 
     async def _telnet_callback(self, zone, event, parameter):
         """Process a telnet command callback."""
         _LOG.debug("[%s] zone: %s, event: %s, parameter: %s", self.id, zone, event, parameter)
-        try:
-            # TODO is this required or already handled in the denon lib?
-            await self._avr.async_update()
-        except denonavr.exceptions.DenonAvrError as e:
-            _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
 
-        # TODO can't we subscribe to only the events we are interested in?
+        # *** Start logic from HA
+        # There are multiple checks implemented which reduce unnecessary updates of the ha state machine
+        if zone not in (self._avr.zone, ALL_ZONES):
+            return
+        if event not in TELNET_EVENTS:
+            return
+        # Some updates trigger multiple events like one for artist and one for title for one change
+        # We skip every event except the last one
+        if event == "NSE" and not parameter.startswith("4"):
+            return
+        if event == "TA" and not parameter.startwith("ANNAME"):
+            return
+        if event == "HD" and not parameter.startswith("ALBUM"):
+            return
+        # *** End logic from HA
+
         if event == "PW":  # Power
             if parameter == "ON":
                 self.state = States.ON
@@ -455,53 +514,18 @@ class DenonDevice:
             self.events.emit(Events.UPDATE, self.id, {"state": self.state})
         elif event == "MV":  # Master Volume
             volume = self._convert_volume_to_percent(self._avr.volume)
-            self.events.emit(Events.UPDATE, self.id, {"volume": volume})
-        elif event == "CV":  # Channel Volume
-            pass
+            self.events.emit(Events.UPDATE, self.id, {"volume": int(volume)})
         elif event == "MU":  # Muted
             muted = parameter == "ON"
             self.events.emit(Events.UPDATE, self.id, {"muted": muted})
         elif event == "SI":  # Select Input source
             self.events.emit(Events.UPDATE, self.id, {"source": self._avr.input_func})
-        elif event in ("ZM", "Z2", "Z2MU", "Z2CV", "Z3"):  # Zone Main, Zone 2 and 3: not yet supported
-            pass  # reduce number of _get_data() calls
-        elif event in ("SD", "DC"):  # Input mode change / Digital input mode change
-            pass  # TODO should not be required to handle. SI should be sent as well?
-        elif event == "SV":  # Select Video
-            pass  # TODO should not be required to handle. SI should be sent as well?
-        elif event == "SLP":  # Sleep mode change
-            pass
         elif event == "MS":  # surround Mode Setting
             self.events.emit(Events.UPDATE, self.id, {"sound_mode": self._avr.sound_mode})
         elif event == "PS":  # Parameter Setting
-            pass  # reduce number of _get_data() calls
-        elif event in ("TF", "TP", "TM"):  # Tuner
-            pass  # reduce number of _get_data() calls
-        else:
-            # TODO still required?
-            _ = asyncio.ensure_future(self._get_data())
-            # if self.state == STATES.OFF:
-            #     self.state = STATES.ON
+            return  # reduce number of updates. TODO check if we need to handle certain parameters, likely Audyssey
 
-            # if parameter == "OFF":
-            #     self.state = STATES.OFF
-        # elif event == "NSE":  # Onscreen display information
-        #     _ = asyncio.ensure_future(self.getData())
-        # TODO: the duration and position needs more digging
-        # if parameter.startswith("5"):
-        #     result = self._extract_values(parameter)
-        #     if result:
-        #         time, percentage = result
-        #         hours, minutes = map(int, time.split(":"))
-        #         self.duration = hours * 3600 + minutes * 60
-        #         self.position = (int(percentage.strip("%")) / 100) * self.duration
-        #         self.events.emit(EVENTS.UPDATE, self.id, {
-        #             "position": self.position,
-        #             "total_time": self.duration
-        #         })
-
-        #         LOG.debug(f"Time: {self.position}, Percentage: {self.duration}")
-
+        self._check_for_updated_data()
         # Switching inputs generates the following events with an AVR-X2700:
         # DEBUG:avr:[DBBZ012118361] zone: Main, event: PS, parameter: CLV 455
         # DEBUG:avr:[DBBZ012118361] zone: Main, event: SS, parameter: LEVC 455
@@ -532,29 +556,6 @@ class DenonDevice:
         # DEBUG:avr:[DBBZ012118361] zone: Main, event: PS, parameter: HEQ OFF
         # DEBUG:avr:[DBBZ012118361] zone: Main, event: SS, parameter: HOSSHP OFF
         # DEBUG:avr:[DBBZ012118361] zone: All, event: PW, parameter: ON
-
-    async def _subscribe_events(self):
-        try:
-            if self._use_telnet:
-                await self._avr.async_telnet_connect()
-            await self._avr.async_update()
-        except denonavr.exceptions.DenonAvrError as e:
-            _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
-        self._avr.register_callback("ALL", self._telnet_callback)
-        _LOG.debug("[%s] Subscribed to events", self.id)
-
-    async def _unsubscribe_events(self):
-        try:
-            self._avr.unregister_callback("ALL", self._telnet_callback)
-            # TODO is async_update() required?
-            await self._avr.async_update()
-        except denonavr.exceptions.DenonAvrError as e:
-            _LOG.error("[%s] Failed to get latest status information: %s", self.id, e)
-        try:
-            await self._avr.async_telnet_disconnect()
-        except denonavr.exceptions.DenonAvrError:
-            pass
-        _LOG.debug("[%s] Unsubscribed to events", self.id)
 
     @async_handle_denonlib_errors
     async def power_on(self) -> ucapi.StatusCodes:

@@ -103,9 +103,13 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
             _LOG.error("Failed to subscribe entity %s: no AVR instance found", avr_id)
 
 
-# dev device_state_from_avr(avr_state: avr.States) ->
 def media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
-    """Convert the AVR device state to a media-player entity state."""
+    """
+    Convert AVR state to UC API media-player state.
+
+    :param avr_state: Denon AVR state
+    :return: UC API media_player state
+    """
     if avr_state in MEDIA_PLAYER_STATE_MAPPING:
         return MEDIA_PLAYER_STATE_MAPPING[avr_state]
     return media_player.States.UNKNOWN
@@ -293,7 +297,7 @@ def _update_media_player(configured_entity: ucapi.Entity, update) -> dict[str, a
     attributes = {}
 
     if "state" in update:
-        state = _get_media_player_state(update["state"])
+        state = media_player_state_from_avr(update["state"])
         attributes = _key_update_helper(media_player.Attributes.STATE, state, attributes, configured_entity)
 
     if "artist" in update:
@@ -305,25 +309,21 @@ def _update_media_player(configured_entity: ucapi.Entity, update) -> dict[str, a
             media_player.Attributes.MEDIA_ALBUM, update["album"], attributes, configured_entity
         )
     if "artwork" in update:
-        attributes[media_player.Attributes.MEDIA_IMAGE_URL] = update["artwork"]
+        attributes = _key_update_helper(
+            media_player.Attributes.MEDIA_IMAGE_URL, update["artwork"], attributes, configured_entity
+        )
     if "title" in update:
         attributes = _key_update_helper(
             media_player.Attributes.MEDIA_TITLE, update["title"], attributes, configured_entity
         )
-    # if "position" in update:
-    #     attributes = keyUpdateHelper(media_player.Attributes.MEDIA_POSITION, update["position"], attributes,
-    #                                  configuredEntity)
-    # if "total_time" in update:
-    #     attributes = keyUpdateHelper(media_player.Attributes.MEDIA_DURATION, update["total_time"],
-    #                                  attributes, configuredEntity)
     if "muted" in update:
-        attributes[media_player.Attributes.MUTED] = update["muted"]
+        attributes = _key_update_helper(media_player.Attributes.MUTED, update["muted"], attributes, configured_entity)
     if "source" in update:
         attributes = _key_update_helper(media_player.Attributes.SOURCE, update["source"], attributes, configured_entity)
     if "source_list" in update:
         if media_player.Attributes.SOURCE_LIST in configured_entity.attributes:
-            # TODO optimize: only set if changed
-            attributes[media_player.Attributes.SOURCE_LIST] = update["source_list"]
+            if update["source_list"] != configured_entity.attributes[media_player.Attributes.SOURCE_LIST]:
+                attributes[media_player.Attributes.SOURCE_LIST] = update["source_list"]
 
     if media_player.Features.SELECT_SOUND_MODE in configured_entity.features:
         if "sound_mode" in update:
@@ -332,8 +332,8 @@ def _update_media_player(configured_entity: ucapi.Entity, update) -> dict[str, a
             )
         if "sound_mode_list" in update:
             if media_player.Attributes.SOUND_MODE_LIST in configured_entity.attributes:
-                # TODO optimize: only set if changed
-                attributes[media_player.Attributes.SOUND_MODE_LIST] = update["sound_mode_list"]
+                if update["sound_mode_list"] != configured_entity.attributes[media_player.Attributes.SOUND_MODE_LIST]:
+                    attributes[media_player.Attributes.SOUND_MODE_LIST] = update["sound_mode_list"]
     if "volume" in update:
         attributes = _key_update_helper(media_player.Attributes.VOLUME, update["volume"], attributes, configured_entity)
 
@@ -365,27 +365,6 @@ def _entities_from_avr(avr_id: str) -> list[str]:
     return [f"media_player.{avr_id}"]
 
 
-def _get_media_player_state(avr_state) -> media_player.States:
-    """
-    Convert AVR state to UC API media-player state.
-
-    :param avr_state: Denon AVR state
-    :return: UC API media_player state
-    """
-    state = media_player.States.UNKNOWN
-
-    if avr_state == avr.States.ON:
-        state = media_player.States.ON
-    elif avr_state == avr.States.PLAYING:
-        state = media_player.States.PLAYING
-    elif avr_state == avr.States.PAUSED:
-        state = media_player.States.PAUSED
-    elif avr_state == avr.States.OFF:
-        state = media_player.States.OFF
-
-    return state
-
-
 def _update_attributes(attributes, entity_type: ucapi.EntityTypes):
     """
     Update the entity attributes based on entity type and the state attribute.
@@ -401,7 +380,6 @@ def _update_attributes(attributes, entity_type: ucapi.EntityTypes):
             attributes[media_player.Attributes.MEDIA_TITLE] = ""
             attributes[media_player.Attributes.MEDIA_TYPE] = ""
             attributes[media_player.Attributes.SOURCE] = ""
-            # attributes[media_player.Attributes.MEDIA_DURATION] = 0
 
 
 def _create_entity_id(avr_id: str, entity_type: ucapi.EntityTypes) -> str:
@@ -453,8 +431,6 @@ def _register_available_entities(device: config.AvrDevice) -> None:
         media_player.Features.PLAY_PAUSE,
         media_player.Features.NEXT,
         media_player.Features.PREVIOUS,
-        # media_player.Features.MEDIA_DURATION,
-        # media_player.Features.MEDIA_POSITION,
         media_player.Features.MEDIA_TITLE,
         media_player.Features.MEDIA_ARTIST,
         media_player.Features.MEDIA_ALBUM,
@@ -466,8 +442,6 @@ def _register_available_entities(device: config.AvrDevice) -> None:
         media_player.Attributes.STATE: media_player.States.UNAVAILABLE,
         media_player.Attributes.VOLUME: 0,
         media_player.Attributes.MUTED: False,
-        # media_player.Attributes.MEDIA_DURATION: 0,
-        # media_player.Attributes.MEDIA_POSITION: 0,
         media_player.Attributes.MEDIA_IMAGE_URL: "",
         media_player.Attributes.MEDIA_TITLE: "",
         media_player.Attributes.MEDIA_ARTIST: "",
