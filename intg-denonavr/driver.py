@@ -13,64 +13,79 @@ from typing import Any
 
 import avr
 import config
+import media_player
 import setup_flow
 import ucapi
-from ucapi import MediaPlayer, media_player
+from config import avr_from_entity_id
 
 _LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
 _LOOP = asyncio.get_event_loop()
-
-# Mapping of an AVR state to a media-player entity state
-MEDIA_PLAYER_STATE_MAPPING = {
-    avr.States.ON: media_player.States.ON,
-    avr.States.OFF: media_player.States.OFF,
-    avr.States.PAUSED: media_player.States.PAUSED,
-    avr.States.PLAYING: media_player.States.PLAYING,
-    avr.States.UNAVAILABLE: media_player.States.UNAVAILABLE,
-    avr.States.UNKNOWN: media_player.States.UNKNOWN,
-}
 
 # Global variables
 api = ucapi.IntegrationAPI(_LOOP)
 # Map of avr_id -> DenonAVR instance
 _configured_avrs: dict[str, avr.DenonDevice] = {}
+_R2_IN_STANDBY = False
+
+
+async def receiver_status_poller(interval: float = 10.0) -> None:
+    """Receiver data poller."""
+    while True:
+        await asyncio.sleep(interval)
+        if _R2_IN_STANDBY:
+            continue
+        try:
+            for receiver in _configured_avrs.values():
+                if not receiver.active:
+                    continue
+                # TODO #20  run in parallel, join, adjust interval duration based on execution time for next update
+                await receiver.async_update_receiver_data()
+        except (KeyError, ValueError):  # TODO check parallel access / modification while iterating a dict
+            pass
 
 
 @api.listens_to(ucapi.Events.CONNECT)
-async def on_connect() -> None:
-    """When the UCR2 connects, all configured Receiver devices are getting connected."""
+async def on_r2_connect_cmd() -> None:
+    """Connect all configured receivers when the Remote Two sends the connect command."""
+    # TODO check if we were in standby and ignore the call? We'll also get an EXIT_STANDBY
     for receiver in _configured_avrs.values():
         # start background task
         _LOOP.create_task(receiver.connect())
 
 
 @api.listens_to(ucapi.Events.DISCONNECT)
-async def on_disconnect():
-    """When the UCR2 disconnects, all configured Receiver devices are disconnected."""
+async def on_r2_disconnect_cmd():
+    """Disconnect all configured receivers when the Remote Two sends the disconnect command."""
     for receiver in _configured_avrs.values():
         # start background task
         _LOOP.create_task(receiver.disconnect())
 
 
 @api.listens_to(ucapi.Events.ENTER_STANDBY)
-async def on_enter_standby() -> None:
+async def on_r2_enter_standby() -> None:
     """
-    Enter standby notification.
+    Enter standby notification from Remote Two.
 
     Disconnect every Denon AVR instances.
     """
+    global _R2_IN_STANDBY
+
+    _R2_IN_STANDBY = True
     _LOG.debug("Enter standby event: disconnecting device(s)")
     for configured in _configured_avrs.values():
         await configured.disconnect()
 
 
 @api.listens_to(ucapi.Events.EXIT_STANDBY)
-async def on_exit_standby() -> None:
+async def on_r2_exit_standby() -> None:
     """
-    Exit standby notification.
+    Exit standby notification from Remote Two.
 
     Connect all Denon AVR instances.
     """
+    global _R2_IN_STANDBY
+
+    _R2_IN_STANDBY = False
     _LOG.debug("Exit standby event: connecting device(s)")
     # delay is only a temporary workaround, until the core verifies first that the network is up with an IP address
     await asyncio.sleep(2)
@@ -87,32 +102,23 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
 
     :param entity_ids: entity identifiers.
     """
+    global _R2_IN_STANDBY
+
+    _R2_IN_STANDBY = False
     _LOG.debug("Subscribe entities event: %s", entity_ids)
     for entity_id in entity_ids:
-        avr_id = _avr_from_entity_id(entity_id)
+        avr_id = avr_from_entity_id(entity_id)
         if avr_id in _configured_avrs:
             receiver = _configured_avrs[avr_id]
-            state = media_player_state_from_avr(receiver.state)
-            api.configured_entities.update_attributes(entity_id, {media_player.Attributes.STATE: state})
+            state = media_player.state_from_avr(receiver.state)
+            api.configured_entities.update_attributes(entity_id, {ucapi.media_player.Attributes.STATE: state})
             continue
 
         device = config.devices.get(avr_id)
         if device:
-            _add_configured_avr(device)
+            _configure_new_avr(device, connect=True)
         else:
-            _LOG.error("Failed to subscribe entity %s: no AVR instance found", avr_id)
-
-
-def media_player_state_from_avr(avr_state: avr.States) -> media_player.States:
-    """
-    Convert AVR state to UC API media-player state.
-
-    :param avr_state: Denon AVR state
-    :return: UC API media_player state
-    """
-    if avr_state in MEDIA_PLAYER_STATE_MAPPING:
-        return MEDIA_PLAYER_STATE_MAPPING[avr_state]
-    return media_player.States.UNKNOWN
+            _LOG.error("Failed to subscribe entity %s: no AVR configuration found", entity_id)
 
 
 @api.listens_to(ucapi.Events.UNSUBSCRIBE_ENTITIES)
@@ -120,7 +126,7 @@ async def on_unsubscribe_entities(entity_ids: list[str]) -> None:
     """On unsubscribe, we disconnect the objects and remove listeners for events."""
     _LOG.debug("Unsubscribe entities event: %s", entity_ids)
     for entity_id in entity_ids:
-        avr_id = _avr_from_entity_id(entity_id)
+        avr_id = avr_from_entity_id(entity_id)
         if avr_id is None:
             continue
         if avr_id in _configured_avrs:
@@ -134,71 +140,6 @@ async def on_unsubscribe_entities(entity_ids: list[str]) -> None:
             _configured_avrs[entity_id].events.remove_all_listeners()
 
 
-async def media_player_cmd_handler(
-    entity: MediaPlayer, cmd_id: str, params: dict[str, Any] | None
-) -> ucapi.StatusCodes:
-    """
-    Media-player entity command handler.
-
-    Called by the integration-API if a command is sent to a configured media-player entity.
-
-    :param entity: media-player entity
-    :param cmd_id: command
-    :param params: optional command parameters
-    :return:
-    """
-    _LOG.info("Got %s command request: %s %s", entity.id, cmd_id, params)
-
-    avr_id = _avr_from_entity_id(entity.id)
-    if avr_id is None:
-        return ucapi.StatusCodes.NOT_FOUND
-
-    a = _configured_avrs[avr_id]
-    if a is None:
-        _LOG.warning("No AVR device found for entity: %s", entity.id)
-        return ucapi.StatusCodes.SERVICE_UNAVAILABLE
-
-    if cmd_id == media_player.Commands.PLAY_PAUSE:
-        res = await a.play_pause()
-    elif cmd_id == media_player.Commands.NEXT:
-        res = await a.next()
-    elif cmd_id == media_player.Commands.PREVIOUS:
-        res = await a.previous()
-    elif cmd_id == media_player.Commands.VOLUME:
-        res = await a.set_volume_level(params.get("volume"))
-    elif cmd_id == media_player.Commands.VOLUME_UP:
-        res = await a.volume_up()
-    elif cmd_id == media_player.Commands.VOLUME_DOWN:
-        res = await a.volume_down()
-    elif cmd_id == media_player.Commands.MUTE_TOGGLE:
-        res = await a.mute(not entity.attributes[media_player.Attributes.MUTED])
-    elif cmd_id == media_player.Commands.ON:
-        res = await a.power_on()
-    elif cmd_id == media_player.Commands.OFF:
-        res = await a.power_off()
-    elif cmd_id == media_player.Commands.SELECT_SOURCE:
-        res = await a.select_source(params["source"])
-    elif cmd_id == media_player.Commands.SELECT_SOUND_MODE:
-        res = await a.select_sound_mode(params.get("sound_mode"))
-    else:
-        return ucapi.StatusCodes.NOT_IMPLEMENTED
-
-    return res
-
-
-def _key_update_helper(key: str, value: str | None, attributes, configured_entity):
-    if value is None:
-        return attributes
-
-    if key in configured_entity.attributes:
-        if configured_entity.attributes[key] != value:
-            attributes[key] = value
-    else:
-        attributes[key] = value
-
-    return attributes
-
-
 async def on_avr_connected(avr_id: str):
     """Handle AVR connection."""
     _LOG.debug("AVR connected: %s", avr_id)
@@ -207,7 +148,7 @@ async def on_avr_connected(avr_id: str):
         _LOG.warning("Configured AVR %s is not configured", avr_id)
         return
 
-    # TODO #21 when multiple devices are supported, the device state logic isn't that simple anymore!
+    # TODO #20 when multiple devices are supported, the device state logic isn't that simple anymore!
     await api.set_device_state(ucapi.DeviceStates.CONNECTED)
 
     for entity_id in _entities_from_avr(avr_id):
@@ -216,10 +157,13 @@ async def on_avr_connected(avr_id: str):
             continue
 
         if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
-            if configured_entity.attributes[media_player.Attributes.STATE] == media_player.States.UNAVAILABLE:
+            if (
+                configured_entity.attributes[ucapi.media_player.Attributes.STATE]
+                == ucapi.media_player.States.UNAVAILABLE
+            ):
                 # TODO why STANDBY?
                 api.configured_entities.update_attributes(
-                    entity_id, {media_player.Attributes.STATE: media_player.States.STANDBY}
+                    entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.STANDBY}
                 )
 
 
@@ -235,10 +179,10 @@ async def on_avr_disconnected(avr_id: str):
         if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
             # TODO why STANDBY?
             api.configured_entities.update_attributes(
-                entity_id, {media_player.Attributes.STATE: media_player.States.STANDBY}
+                entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.STANDBY}
             )
 
-    # TODO #21 when multiple devices are supported, the device state logic isn't that simple anymore!
+    # TODO #20 when multiple devices are supported, the device state logic isn't that simple anymore!
     await api.set_device_state(ucapi.DeviceStates.DISCONNECTED)
 
 
@@ -253,10 +197,10 @@ async def on_avr_connection_error(avr_id: str, message):
 
         if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
             api.configured_entities.update_attributes(
-                entity_id, {media_player.Attributes.STATE: media_player.States.UNAVAILABLE}
+                entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
             )
 
-    # TODO #21 when multiple devices are supported, the device state logic isn't that simple anymore!
+    # TODO #20 when multiple devices are supported, the device state logic isn't that simple anymore!
     await api.set_device_state(ucapi.DeviceStates.ERROR)
 
 
@@ -280,78 +224,18 @@ async def on_avr_update(avr_id: str, update: dict[str, Any]) -> None:
 
     attributes = None
 
+    # TODO awkward logic: this needs better support from the integration library
     for entity_id in _entities_from_avr(avr_id):
         # TODO why not also update available entities?
         configured_entity = api.configured_entities.get(entity_id)
         if configured_entity is None:
             return
 
-        if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
-            attributes = _update_media_player(configured_entity, update)
+        if isinstance(configured_entity, media_player.DenonMediaPlayer):
+            attributes = configured_entity.filter_changed_attributes(update)
 
         if attributes:
             api.configured_entities.update_attributes(entity_id, attributes)
-
-
-def _update_media_player(configured_entity: ucapi.Entity, update) -> dict[str, any]:
-    attributes = {}
-
-    if "state" in update:
-        state = media_player_state_from_avr(update["state"])
-        attributes = _key_update_helper(media_player.Attributes.STATE, state, attributes, configured_entity)
-
-    if "artist" in update:
-        attributes = _key_update_helper(
-            media_player.Attributes.MEDIA_ARTIST, update["artist"], attributes, configured_entity
-        )
-    if "album" in update:
-        attributes = _key_update_helper(
-            media_player.Attributes.MEDIA_ALBUM, update["album"], attributes, configured_entity
-        )
-    if "artwork" in update:
-        attributes = _key_update_helper(
-            media_player.Attributes.MEDIA_IMAGE_URL, update["artwork"], attributes, configured_entity
-        )
-    if "title" in update:
-        attributes = _key_update_helper(
-            media_player.Attributes.MEDIA_TITLE, update["title"], attributes, configured_entity
-        )
-    if "muted" in update:
-        attributes = _key_update_helper(media_player.Attributes.MUTED, update["muted"], attributes, configured_entity)
-    if "source" in update:
-        attributes = _key_update_helper(media_player.Attributes.SOURCE, update["source"], attributes, configured_entity)
-    if "source_list" in update:
-        if media_player.Attributes.SOURCE_LIST in configured_entity.attributes:
-            if update["source_list"] != configured_entity.attributes[media_player.Attributes.SOURCE_LIST]:
-                attributes[media_player.Attributes.SOURCE_LIST] = update["source_list"]
-
-    if media_player.Features.SELECT_SOUND_MODE in configured_entity.features:
-        if "sound_mode" in update:
-            attributes = _key_update_helper(
-                media_player.Attributes.SOUND_MODE, update["sound_mode"], attributes, configured_entity
-            )
-        if "sound_mode_list" in update:
-            if media_player.Attributes.SOUND_MODE_LIST in configured_entity.attributes:
-                if update["sound_mode_list"] != configured_entity.attributes[media_player.Attributes.SOUND_MODE_LIST]:
-                    attributes[media_player.Attributes.SOUND_MODE_LIST] = update["sound_mode_list"]
-    if "volume" in update:
-        attributes = _key_update_helper(media_player.Attributes.VOLUME, update["volume"], attributes, configured_entity)
-
-    _update_attributes(attributes, ucapi.EntityTypes.MEDIA_PLAYER)
-
-    return attributes
-
-
-def _avr_from_entity_id(entity_id: str) -> str | None:
-    """
-    Return the avr_id prefix of an entity_id.
-
-    The prefix is the part before the first dot in the name and refers to the AVR device identifier.
-
-    :param entity_id: the entity identifier
-    :return: the device prefix, or None if entity_id doesn't contain a dot
-    """
-    return entity_id.split(".", 1)[1]
 
 
 def _entities_from_avr(avr_id: str) -> list[str]:
@@ -362,31 +246,19 @@ def _entities_from_avr(avr_id: str) -> list[str]:
     :return: list of entity identifiers
     """
     # dead simple for now: one media_player entity per device!
+    # TODO #21 support multiple zones: one media-player per zone
     return [f"media_player.{avr_id}"]
 
 
-def _update_attributes(attributes, entity_type: ucapi.EntityTypes):
+def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> None:
     """
-    Update the entity attributes based on entity type and the state attribute.
+    Create and configure a new AVR device.
 
-    :param attributes: entity attributes dictionary
-    :param entity_type: the entity type
+    Supported entities of the device are created and registered in the integration library as available entities.
+
+    :param device: the receiver configuration.
+    :param connect: True: start connection to receiver.
     """
-    if entity_type == ucapi.EntityTypes.MEDIA_PLAYER and media_player.Attributes.STATE in attributes:
-        if attributes[media_player.Attributes.STATE] == media_player.States.OFF:
-            attributes[media_player.Attributes.MEDIA_IMAGE_URL] = ""
-            attributes[media_player.Attributes.MEDIA_ALBUM] = ""
-            attributes[media_player.Attributes.MEDIA_ARTIST] = ""
-            attributes[media_player.Attributes.MEDIA_TITLE] = ""
-            attributes[media_player.Attributes.MEDIA_TYPE] = ""
-            attributes[media_player.Attributes.SOURCE] = ""
-
-
-def _create_entity_id(avr_id: str, entity_type: ucapi.EntityTypes) -> str:
-    return f"{entity_type.value}.{avr_id}"
-
-
-def _add_configured_avr(device: config.AvrDevice, connect: bool = True) -> None:
     # the device should not yet be configured, but better be safe
     if device.id in _configured_avrs:
         receiver = _configured_avrs[device.id]
@@ -402,66 +274,22 @@ def _add_configured_avr(device: config.AvrDevice, connect: bool = True) -> None:
 
         _configured_avrs[device.id] = receiver
 
-    async def start_connection():
-        # res = await receiver.init()
-        # if res is False:
-        #     await api.set_device_state(ucapi.DeviceStates.ERROR)
-        await receiver.connect()
-
     if connect:
-        # start background task
-        _LOOP.create_task(start_connection())
+        # start background connection task
+        _LOOP.create_task(receiver.connect())
 
-    _register_available_entities(device)
+    _register_available_entities(device, receiver)
 
 
-def _register_available_entities(device: config.AvrDevice) -> None:
+def _register_available_entities(device: config.AvrDevice, receiver: avr.DenonDevice) -> None:
     """
     Create entities for given receiver device and register them as available entities.
 
     :param device: Receiver
     """
     # plain and simple for now: only one media_player per AVR device
-    entity_id = _create_entity_id(device.id, ucapi.EntityTypes.MEDIA_PLAYER)
-    features = [
-        media_player.Features.ON_OFF,
-        media_player.Features.VOLUME,
-        media_player.Features.VOLUME_UP_DOWN,
-        media_player.Features.MUTE_TOGGLE,
-        media_player.Features.PLAY_PAUSE,
-        media_player.Features.NEXT,
-        media_player.Features.PREVIOUS,
-        media_player.Features.MEDIA_TITLE,
-        media_player.Features.MEDIA_ARTIST,
-        media_player.Features.MEDIA_ALBUM,
-        media_player.Features.MEDIA_IMAGE_URL,
-        media_player.Features.MEDIA_TYPE,
-        media_player.Features.SELECT_SOURCE,
-    ]
-    attributes = {
-        media_player.Attributes.STATE: media_player.States.UNAVAILABLE,
-        media_player.Attributes.VOLUME: 0,
-        media_player.Attributes.MUTED: False,
-        media_player.Attributes.MEDIA_IMAGE_URL: "",
-        media_player.Attributes.MEDIA_TITLE: "",
-        media_player.Attributes.MEDIA_ARTIST: "",
-        media_player.Attributes.MEDIA_ALBUM: "",
-        media_player.Attributes.SOURCE: "",
-        media_player.Attributes.SOURCE_LIST: [],
-    }
-    if device.support_sound_mode:
-        features.append(media_player.Features.SELECT_SOUND_MODE)
-        attributes[media_player.Attributes.SOUND_MODE] = ""
-        attributes[media_player.Attributes.SOUND_MODE_LIST] = []
-
-    entity = MediaPlayer(
-        entity_id,
-        device.name,
-        features,
-        attributes,
-        device_class=media_player.DeviceClasses.RECEIVER,
-        cmd_handler=media_player_cmd_handler,
-    )
+    # entity = media_player.create_entity(device)
+    entity = media_player.DenonMediaPlayer(device, receiver)
 
     if api.available_entities.contains(entity.id):
         api.available_entities.remove(entity.id)
@@ -471,13 +299,7 @@ def _register_available_entities(device: config.AvrDevice) -> None:
 def on_device_added(device: config.AvrDevice) -> None:
     """Handle a newly added device in the configuration."""
     _LOG.debug("New device added: %s", device)
-    _add_configured_avr(device, connect=False)
-
-
-async def async_disconnect(receiver: avr.DenonDevice) -> None:
-    """Disconnect from receiver and remove all listeners."""
-    await receiver.disconnect()
-    receiver.events.remove_all_listeners()
+    _configure_new_avr(device, connect=False)
 
 
 def on_device_removed(device: config.AvrDevice | None) -> None:
@@ -485,7 +307,7 @@ def on_device_removed(device: config.AvrDevice | None) -> None:
     if device is None:
         _LOG.debug("Configuration cleared, disconnecting & removing all configured AVR instances")
         for configured in _configured_avrs.values():
-            _LOOP.create_task(async_disconnect(configured))
+            _LOOP.create_task(_async_remove(configured))
         _configured_avrs.clear()
         api.configured_entities.clear()
         api.available_entities.clear()
@@ -493,10 +315,16 @@ def on_device_removed(device: config.AvrDevice | None) -> None:
         if device.id in _configured_avrs:
             _LOG.debug("Disconnecting from removed AVR %s", device.id)
             configured = _configured_avrs.pop(device.id)
-            _LOOP.create_task(async_disconnect(configured))
+            _LOOP.create_task(_async_remove(configured))
             for entity_id in _entities_from_avr(configured.id):
                 api.configured_entities.remove(entity_id)
                 api.available_entities.remove(entity_id)
+
+
+async def _async_remove(receiver: avr.DenonDevice) -> None:
+    """Disconnect from receiver and remove all listeners."""
+    await receiver.disconnect()
+    receiver.events.remove_all_listeners()
 
 
 async def main():
@@ -505,14 +333,20 @@ async def main():
 
     level = os.getenv("UC_LOG_LEVEL", "DEBUG").upper()
     logging.getLogger("denonavr.ssdp").setLevel(level)
+    # TODO there must be a simpler way to set the same log level of all modules in the same parent module
+    #      (or how is that called in Python?)
     logging.getLogger("avr").setLevel(level)
     logging.getLogger("discover").setLevel(level)
     logging.getLogger("driver").setLevel(level)
+    logging.getLogger("media_player").setLevel(level)
+    logging.getLogger("receiver").setLevel(level)
     logging.getLogger("setup_flow").setLevel(level)
 
     config.devices = config.Devices(api.config_dir_path, on_device_added, on_device_removed)
     for device in config.devices.all():
-        _add_configured_avr(device, connect=False)
+        _configure_new_avr(device, connect=False)
+
+    _LOOP.create_task(receiver_status_poller())
 
     await api.init("driver.json", setup_flow.driver_setup_handler)
 

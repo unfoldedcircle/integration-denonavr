@@ -122,6 +122,7 @@ async def handle_user_data_response(msg: UserDataResponse) -> SetupComplete | Se
 
     # TODO #19 add configuration options
     use_telnet = True
+    update_audyssey = False
     show_all_inputs = False
     zone2 = False
     zone3 = False
@@ -160,6 +161,7 @@ async def handle_user_data_response(msg: UserDataResponse) -> SetupComplete | Se
         receiver.support_sound_mode,
         show_all_inputs,
         use_telnet=use_telnet,
+        update_audyssey=update_audyssey,
         zone2=zone2,
         zone3=zone3,
     )

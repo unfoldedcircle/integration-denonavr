@@ -7,9 +7,28 @@ import os
 from dataclasses import dataclass
 from typing import Iterator
 
+from ucapi import EntityTypes
+
 _LOG = logging.getLogger(__name__)
 
 _CFG_FILENAME = "config.json"
+
+
+def create_entity_id(avr_id: str, entity_type: EntityTypes) -> str:
+    """Create a unique entity identifier for the given receiver and entity type."""
+    return f"{entity_type.value}.{avr_id}"
+
+
+def avr_from_entity_id(entity_id: str) -> str | None:
+    """
+    Return the avr_id prefix of an entity_id.
+
+    The prefix is the part before the first dot in the name and refers to the AVR device identifier.
+
+    :param entity_id: the entity identifier
+    :return: the device prefix, or None if entity_id doesn't contain a dot
+    """
+    return entity_id.split(".", 1)[1]
 
 
 @dataclass
@@ -22,6 +41,7 @@ class AvrDevice:
     support_sound_mode: bool
     show_all_inputs: bool
     use_telnet: bool
+    update_audyssey: bool
     zone2: bool
     zone3: bool
 
@@ -49,6 +69,7 @@ class Devices:
         self._config: list[AvrDevice] = []
         self._add_handler = add_handler
         self._remove_handler = remove_handler
+
         self.load()
 
     @property
