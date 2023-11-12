@@ -145,7 +145,7 @@ async def on_avr_connected(avr_id: str):
     _LOG.debug("AVR connected: %s", avr_id)
 
     if avr_id not in _configured_avrs:
-        _LOG.warning("Configured AVR %s is not configured", avr_id)
+        _LOG.warning("AVR %s is not configured", avr_id)
         return
 
     # TODO #20 when multiple devices are supported, the device state logic isn't that simple anymore!
@@ -177,9 +177,8 @@ async def on_avr_disconnected(avr_id: str):
             continue
 
         if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
-            # TODO why STANDBY?
             api.configured_entities.update_attributes(
-                entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.STANDBY}
+                entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
             )
 
     # TODO #20 when multiple devices are supported, the device state logic isn't that simple anymore!
@@ -213,20 +212,37 @@ async def handle_avr_address_change(avr_id: str, address: str) -> None:
         config.devices.update(device)
 
 
-async def on_avr_update(avr_id: str, update: dict[str, Any]) -> None:
+async def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
     """
     Update attributes of configured media-player entity if AVR properties changed.
 
     :param avr_id: AVR identifier
-    :param update: dictionary containing the updated properties
+    :param update: dictionary containing the updated properties or None if
     """
-    _LOG.debug("[%s] AVR update: %s", avr_id, update)
+    if update is None:
+        if avr_id not in _configured_avrs:
+            return
+        receiver = _configured_avrs[avr_id]
+        update = {
+            "state": receiver.state,
+            "artist": receiver.media_artist,
+            "album": receiver.media_album_name,
+            "artwork": receiver.media_image_url,
+            "title": receiver.media_title,
+            "muted": receiver.is_volume_muted,
+            "source": receiver.source,
+            "source_list": receiver.source_list,
+            "sound_mode": receiver.sound_mode,
+            "sound_mode_list": receiver.sound_mode_list,
+            "volume": receiver.volume_level,
+        }
+    else:
+        _LOG.debug("[%s] AVR update: %s", avr_id, update)
 
     attributes = None
 
     # TODO awkward logic: this needs better support from the integration library
     for entity_id in _entities_from_avr(avr_id):
-        # TODO why not also update available entities?
         configured_entity = api.configured_entities.get(entity_id)
         if configured_entity is None:
             return

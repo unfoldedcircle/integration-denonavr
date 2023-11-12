@@ -68,14 +68,6 @@ class DenonMediaPlayer(MediaPlayer):
             device_class=DeviceClasses.RECEIVER,
         )
 
-    # @property
-    # def receiver(self) -> avr.DenonDevice | None:
-    #     return self._receiver
-    #
-    # @receiver.setter
-    # def receiver(self, receiver: avr.DenonDevice):
-    #     self._receiver = receiver
-
     async def command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
         """
         Media-player entity command handler.
