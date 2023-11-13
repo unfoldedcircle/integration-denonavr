@@ -7,9 +7,9 @@ build-backend = "setuptools.build_meta"
 name = "intg-denonavr"
 version = "0.1.0"
 authors = [
-    {name = "Unfolded Circle ApS", email = "hello@unfoldedcircle.com"}
+    { name = "Unfolded Circle ApS", email = "hello@unfoldedcircle.com" }
 ]
-license = {text = "MPL-2.0"}
+license = { text = "MPL-2.0" }
 description = "Remote Two integration for Denon AVRs"
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -21,6 +21,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "pyee>=9.0",
     "denonavr~=0.11.4",
     "ucapi==0.1.3",
 ]

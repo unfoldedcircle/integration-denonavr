@@ -31,7 +31,10 @@ max-line-length=120
 # --disable=W"
 
 disable=
+    too-many-arguments,
+    too-many-branches,
     too-many-instance-attributes,
+    too-many-public-methods,
     global-statement,
     fixme
 

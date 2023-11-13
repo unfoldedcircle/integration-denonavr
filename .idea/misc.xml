@@ -4,7 +4,7 @@
     <option name="cmdArguments" value="--line-length 120" />
     <option name="enabledOnReformat" value="true" />
     <option name="enabledOnSave" value="true" />
-    <option name="sdkName" value="Python 3.11 (venv)" />
+    <option name="sdkName" value="Python 3.11 (integration-denonavr)" />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_21" project-jdk-name="Python 3.11 (integration-denonavr)" project-jdk-type="Python SDK">
     <output url="file://$PROJECT_DIR$/out" />
