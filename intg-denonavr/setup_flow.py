@@ -103,7 +103,44 @@ async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | Se
                     "de": "Wähle deinen Denon AVR",
                     "fr": "Choisissez votre Denon AVR",
                 },
-            }
+            },
+            {
+                "id": "show_all_inputs",
+                "label": {
+                    "en": "Show all sources",
+                    "de": "Alle Quellen anzeigen",
+                    "fr": "Afficher tous les sources",
+                },
+                "field": {"checkbox": {"value": False}},
+            },
+            # TODO #21 support multiple zones
+            # {
+            #     "id": "zone2",
+            #     "label": {
+            #         "en": "Set up Zone 2",
+            #         "de": "Zone 2 einrichten",
+            #         "fr": "Configurer Zone 2",
+            #     },
+            #     "field": {"checkbox": {"value": False}},
+            # },
+            # {
+            #     "id": "zone3",
+            #     "label": {
+            #         "en": "Set up Zone 3",
+            #         "de": "Zone 3 einrichten",
+            #         "fr": "Configurer Zone 3",
+            #     },
+            #     "field": {"checkbox": {"value": False}},
+            # },
+            {
+                "id": "use_telnet",
+                "label": {
+                    "en": "Use Telnet connection",
+                    "de": "Telnet-Verbindung verwenden",
+                    "fr": "Utilise une connexion Telnet",
+                },
+                "field": {"checkbox": {"value": True}},
+            },
         ],
     )
 
@@ -120,12 +157,11 @@ async def handle_user_data_response(msg: UserDataResponse) -> SetupComplete | Se
     host = msg.input_values["choice"]
     _LOG.debug("Chosen Denon AVR: %s. Trying to connect and retrieve device information...", host)
 
-    # TODO #19 add configuration options
-    use_telnet = True
-    update_audyssey = False
-    show_all_inputs = False
-    zone2 = False
-    zone3 = False
+    show_all_inputs = msg.input_values.get("show_all_inputs") == "true"
+    update_audyssey = False  # not yet supported
+    zone2 = msg.input_values.get("zone2") == "true"
+    zone3 = msg.input_values.get("zone3") == "true"
+    use_telnet = msg.input_values.get("use_telnet") == "true"
 
     # Telnet connection not required for connection check and retrieving model information
     connect_denonavr = ConnectDenonAVR(
@@ -134,8 +170,8 @@ async def handle_user_data_response(msg: UserDataResponse) -> SetupComplete | Se
         show_all_inputs,
         zone2,
         zone3,
-        use_telnet=False,
-        update_audyssey=False,
+        use_telnet=False,  # always False, connection only used to retrieve model information
+        update_audyssey=False,  # always False, connection only used to retrieve model information
     )
 
     try:
