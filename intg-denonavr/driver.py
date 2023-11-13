@@ -17,6 +17,7 @@ import media_player
 import setup_flow
 import ucapi
 from config import avr_from_entity_id
+from ucapi.media_player import Attributes as MediaAttr
 
 _LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
 _LOOP = asyncio.get_event_loop()
@@ -224,20 +225,20 @@ async def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             return
         receiver = _configured_avrs[avr_id]
         update = {
-            "state": receiver.state,
-            "artist": receiver.media_artist,
-            "album": receiver.media_album_name,
-            "artwork": receiver.media_image_url,
-            "title": receiver.media_title,
-            "muted": receiver.is_volume_muted,
-            "source": receiver.source,
-            "source_list": receiver.source_list,
-            "sound_mode": receiver.sound_mode,
-            "sound_mode_list": receiver.sound_mode_list,
-            "volume": receiver.volume_level,
+            MediaAttr.STATE: receiver.state,
+            MediaAttr.MEDIA_ARTIST: receiver.media_artist,
+            MediaAttr.MEDIA_ALBUM: receiver.media_album_name,
+            MediaAttr.MEDIA_IMAGE_URL: receiver.media_image_url,
+            MediaAttr.MEDIA_TITLE: receiver.media_title,
+            MediaAttr.MUTED: receiver.is_volume_muted,
+            MediaAttr.SOURCE: receiver.source,
+            MediaAttr.SOURCE_LIST: receiver.source_list,
+            MediaAttr.SOUND_MODE: receiver.sound_mode,
+            MediaAttr.SOUND_MODE_LIST: receiver.sound_mode_list,
+            MediaAttr.VOLUME: receiver.volume_level,
         }
     else:
-        _LOG.debug("[%s] AVR update: %s", avr_id, update)
+        _LOG.info("[%s] AVR update: %s", avr_id, update)
 
     attributes = None
 

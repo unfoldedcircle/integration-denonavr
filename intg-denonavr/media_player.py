@@ -120,36 +120,34 @@ class DenonMediaPlayer(MediaPlayer):
         """
         attributes = {}
 
-        if "state" in update:
-            state = state_from_avr(update["state"])
+        if Attributes.STATE in update:
+            state = state_from_avr(update[Attributes.STATE])
             attributes = self._key_update_helper(Attributes.STATE, state, attributes)
 
-        if "artist" in update:
-            attributes = self._key_update_helper(Attributes.MEDIA_ARTIST, update["artist"], attributes)
-        if "album" in update:
-            attributes = self._key_update_helper(Attributes.MEDIA_ALBUM, update["album"], attributes)
-        if "artwork" in update:
-            attributes = self._key_update_helper(Attributes.MEDIA_IMAGE_URL, update["artwork"], attributes)
-        if "title" in update:
-            attributes = self._key_update_helper(Attributes.MEDIA_TITLE, update["title"], attributes)
-        if "muted" in update:
-            attributes = self._key_update_helper(Attributes.MUTED, update["muted"], attributes)
-        if "source" in update:
-            attributes = self._key_update_helper(Attributes.SOURCE, update["source"], attributes)
-        if "source_list" in update:
+        for attr in [
+            Attributes.MEDIA_ARTIST,
+            Attributes.MEDIA_ALBUM,
+            Attributes.MEDIA_IMAGE_URL,
+            Attributes.MEDIA_TITLE,
+            Attributes.MUTED,
+            Attributes.SOURCE,
+            Attributes.VOLUME,
+        ]:
+            if attr in update:
+                attributes = self._key_update_helper(attr, update[attr], attributes)
+
+        if Attributes.SOURCE_LIST in update:
             if Attributes.SOURCE_LIST in self.attributes:
-                if update["source_list"] != self.attributes[Attributes.SOURCE_LIST]:
-                    attributes[Attributes.SOURCE_LIST] = update["source_list"]
+                if update[Attributes.SOURCE_LIST] != self.attributes[Attributes.SOURCE_LIST]:
+                    attributes[Attributes.SOURCE_LIST] = update[Attributes.SOURCE_LIST]
 
         if Features.SELECT_SOUND_MODE in self.features:
-            if "sound_mode" in update:
-                attributes = self._key_update_helper(Attributes.SOUND_MODE, update["sound_mode"], attributes)
-            if "sound_mode_list" in update:
+            if Attributes.SOUND_MODE in update:
+                attributes = self._key_update_helper(Attributes.SOUND_MODE, update[Attributes.SOUND_MODE], attributes)
+            if Attributes.SOUND_MODE_LIST in update:
                 if Attributes.SOUND_MODE_LIST in self.attributes:
-                    if update["sound_mode_list"] != self.attributes[Attributes.SOUND_MODE_LIST]:
-                        attributes[Attributes.SOUND_MODE_LIST] = update["sound_mode_list"]
-        if "volume" in update:
-            attributes = self._key_update_helper(Attributes.VOLUME, update["volume"], attributes)
+                    if update[Attributes.SOUND_MODE_LIST] != self.attributes[Attributes.SOUND_MODE_LIST]:
+                        attributes[Attributes.SOUND_MODE_LIST] = update[Attributes.SOUND_MODE_LIST]
 
         if Attributes.STATE in attributes:
             if attributes[Attributes.STATE] == States.OFF:
