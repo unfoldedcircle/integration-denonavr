@@ -1,46 +1,48 @@
 {
-	"driver_id": "uc_denon",
-	"version": "0.1.0",
-	"min_core_api": "0.20.0",
-	"name": { "en": "Denon AVR" },
-	"icon": "uc:integration",
-	"description": {
-		"en": "Control your Denon or Marantz AVRs with Remote Two.",
-		"de": "Steuere Denon oder Marantz AVRs mit Remote Two.",
-		"fr": "Contrôler Denon ou Marantz AVRs avec Remote Two."
-	},
-	"port": 8092,
-	"developer": {
-		"name": "Unfolded Circle ApS",
-		"email": "hello@unfoldedcircle.com",
-		"url": "https://www.unfoldedcircle.com"
-	},
-	"home_page": "https://www.unfoldedcircle.com",
-	"setup_data_schema": {
-		"title": {
-			"en": "Integration setup",
-			"de": "Integrationssetup",
-			"fr": "Configuration de l'intégration"
-		},
-		"settings": [
-			{
-				"id": "info",
-				"label": {
-					"en": "Setup process",
-					"de": "Setup Fortschritt",
-					"fr": "Progrès de la configuration"
-				},
-				"field": {
-					"label": {
-						"value": {
-							"en": "The integration will discover your Denon or Marantz AVRs on your network.",
-							"de": "Diese Integration wird Denon und Marantz AVRs im Netzwerk finden.",
-							"fr": "Cette intégration trouvera des AVR Denon et Marantz dans le réseau."
-						}
-					}
-				}
-			}
-		]
-	},
-	"release_date": "2023-10-04"
+  "driver_id": "uc_denon",
+  "version": "0.2.0",
+  "min_core_api": "0.20.0",
+  "name": {
+    "en": "Denon AVR Network Receivers"
+  },
+  "icon": "uc:integration",
+  "description": {
+    "en": "Control your Denon or Marantz AVRs with Remote Two.",
+    "de": "Steuere Denon oder Marantz AVRs mit Remote Two.",
+    "fr": "Contrôler Denon ou Marantz AVRs avec Remote Two."
+  },
+  "port": 8092,
+  "developer": {
+    "name": "Unfolded Circle ApS",
+    "email": "hello@unfoldedcircle.com",
+    "url": "https://www.unfoldedcircle.com"
+  },
+  "home_page": "https://www.unfoldedcircle.com",
+  "setup_data_schema": {
+    "title": {
+      "en": "Integration setup",
+      "de": "Integrationssetup",
+      "fr": "Configuration de l'intégration"
+    },
+    "settings": [
+      {
+        "id": "info",
+        "label": {
+          "en": "Setup process",
+          "de": "Setup Fortschritt",
+          "fr": "Progrès de la configuration"
+        },
+        "field": {
+          "label": {
+            "value": {
+              "en": "The integration will discover your Denon or Marantz AVRs on your network.",
+              "de": "Diese Integration wird Denon und Marantz AVRs im Netzwerk finden.",
+              "fr": "Cette intégration trouvera des AVR Denon et Marantz dans le réseau."
+            }
+          }
+        }
+      }
+    ]
+  },
+  "release_date": "2023-11-13"
 }
