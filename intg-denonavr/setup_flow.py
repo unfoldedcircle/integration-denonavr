@@ -141,6 +141,27 @@ async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | Se
                 },
                 "field": {"checkbox": {"value": True}},
             },
+            {
+                "id": "info",
+                "label": {"en": "Please note:", "de": "Bitte beachten:", "fr": "Veuillez noter:"},
+                "field": {
+                    "label": {
+                        "value": {
+                            "en": "Using telnet provides realtime updates for many values but "
+                            "certain receivers allow a single connection only! If you enable this "
+                            "setting, other apps or systems may no longer work.",
+                            "de": "Die Verwendung von telnet bietet Echtzeit-Updates für viele "
+                            "Werte, aber bestimmte Verstärker erlauben nur eine einzige "
+                            "Verbindung! Mit dieser Einstellung können andere Apps oder Systeme "
+                            "nicht mehr funktionieren.",
+                            "fr": "L'utilisation de telnet fournit des mises à jour en temps réel "
+                            "pour de nombreuses valeurs, mais certains amplificateurs ne "
+                            "permettent qu'une seule connexion! Avec ce paramètre, d'autres "
+                            "applications ou systèmes ne peuvent plus fonctionner.",
+                        }
+                    }
+                },
+            },
         ],
     )
 
