@@ -278,7 +278,7 @@ class DenonDevice:
         """Return the cached state of the device."""
         reported_state = self._map_denonavr_state(self._receiver.state)
         # Dirty workaround for state reporting issue. Couldn't be reproduced yet.
-        if self._use_telnet and reported_state == States.OFF and self._expected_state != STATE_OFF:
+        if self._use_telnet and reported_state == States.OFF and self._expected_state != States.OFF:
             _LOG.warning("State mismatch! Reported: %s. Using expected: %s", reported_state, self._expected_state)
             return self._expected_state
         return reported_state
