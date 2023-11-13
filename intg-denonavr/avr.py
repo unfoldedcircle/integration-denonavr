@@ -20,7 +20,6 @@ from config import AvrDevice
 from denonavr.const import (
     ALL_TELNET_EVENTS,
     ALL_ZONES,
-    POWER_OFF,
     STATE_OFF,
     STATE_ON,
     STATE_PAUSED,
@@ -34,6 +33,7 @@ from denonavr.exceptions import (
     DenonAvrError,
 )
 from pyee import AsyncIOEventEmitter
+from ucapi.media_player import Attributes as MediaAttr
 
 _LOG = logging.getLogger(__name__)
 
@@ -221,7 +221,8 @@ class DenonDevice:
         self._reconnect_delay: float = MIN_RECONNECT_DELAY
         self._getting_data: bool = False
 
-        self._state: States = States.UNKNOWN
+        # Workaround for weird state behaviour. Sometimes "off" is always returned from the denonlib!
+        self._expected_state: States = States.UNKNOWN
 
         _LOG.debug("Denon AVR created: %s", device.address)
 
@@ -274,8 +275,26 @@ class DenonDevice:
 
     @property
     def state(self) -> States:
-        """Return the state of the device."""
-        return self._state
+        """Return the cached state of the device."""
+        reported_state = self._map_denonavr_state(self._receiver.state)
+        # Dirty workaround for state reporting issue. Couldn't be reproduced yet.
+        if self._use_telnet and reported_state == States.OFF and self._expected_state != STATE_OFF:
+            _LOG.warning("State mismatch! Reported: %s. Using expected: %s", reported_state, self._expected_state)
+            return self._expected_state
+        return reported_state
+
+    def _set_expected_state(self, state: States):
+        """Set expected receiver state and emit update event if changed."""
+        old = self._expected_state
+        if state == States.ON:
+            # only override ON state if it's not in on-related state already
+            if self._expected_state in (States.UNKNOWN, States.UNAVAILABLE, States.OFF):
+                self._expected_state = state
+        else:
+            self._expected_state = state
+
+        if old != self._expected_state:
+            self.events.emit(Events.UPDATE, self.id, {MediaAttr.STATE: self._expected_state})
 
     @property
     def source_list(self) -> list[str]:
@@ -299,9 +318,11 @@ class DenonDevice:
         return volume
 
     @property
-    def source(self) -> str | None:
+    def source(self) -> str:
         """Return the current input source."""
-        return self._receiver.input_func
+        if self._receiver.input_func is not None:
+            return self._receiver.input_func
+        return ""
 
     @property
     def sound_mode_list(self) -> list[str]:
@@ -309,47 +330,48 @@ class DenonDevice:
         return self._receiver.sound_mode_list
 
     @property
-    def sound_mode(self) -> str | None:
+    def sound_mode(self) -> str:
         """Return the current matched sound mode."""
-        return self._receiver.sound_mode
+        if self._receiver.sound_mode is not None:
+            return self._receiver.sound_mode
+        return ""
 
     @property
-    def media_image_url(self) -> str | None:
+    def media_image_url(self) -> str:
         """Image url of current playing media."""
         if self._receiver.input_func in self._receiver.playing_func_list:
-            return self._receiver.image_url
-        return None
+            if self._receiver.image_url is not None:
+                return self._receiver.image_url
+        return ""
 
     @property
-    def media_title(self) -> str | None:
+    def media_title(self) -> str:
         """Title of current playing media."""
         if self._receiver.input_func not in self._receiver.playing_func_list:
             return self._receiver.input_func
         if self._receiver.title is not None:
             return self._receiver.title
-        return self._receiver.frequency
+        if self._receiver.frequency is not None:
+            return self._receiver.frequency
+        return ""
 
     @property
-    def media_artist(self) -> str | None:
+    def media_artist(self) -> str:
         """Artist of current playing media, music track only."""
         if self._receiver.artist is not None:
             return self._receiver.artist
-        return self._receiver.band
+        if self._receiver.band is not None:
+            return self._receiver.band
+        return ""
 
     @property
-    def media_album_name(self) -> str | None:
+    def media_album_name(self) -> str:
         """Album name of current playing media, music track only."""
         if self._receiver.album is not None:
             return self._receiver.album
-        return self._receiver.station
-
-    @staticmethod
-    def _map_range(value, from_min, from_max, to_min, to_max):
-        return (value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
-
-    # def _convert_volume_to_percent(self, value: float) -> int:
-    #     value = min(value, 18)
-    #     return round(self._map_range(value, -80.0, 18.0, 0, 100))
+        if self._receiver.station is not None:
+            return self._receiver.station
+        return ""
 
     async def connect(self):
         """
@@ -378,7 +400,7 @@ class DenonDevice:
                 try:
                     if not self._connecting:
                         return
-                    _LOG.debug("Connecting AVR %s on %s", self.id, self._receiver.host)
+                    _LOG.info("Connecting AVR %s on %s", self.id, self._receiver.host)
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
                     await self._receiver.async_setup()
@@ -400,7 +422,7 @@ class DenonDevice:
                     "Different device serial number! Expected=%s, received=%s", self.id, self._receiver.serial_number
                 )
 
-            _LOG.debug(
+            _LOG.info(
                 "Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
                 self.manufacturer,
                 self.model_name,
@@ -410,7 +432,7 @@ class DenonDevice:
             )
 
             self._active = True
-            self._state = self._map_denonavr_state(self._receiver.state)
+            self._expected_state = self._map_denonavr_state(self._receiver.state)
             self.events.emit(Events.CONNECTED, self.id)
         finally:
             self._connecting = False
@@ -470,7 +492,7 @@ class DenonDevice:
     @staticmethod
     def _map_denonavr_state(avr_state: str | None) -> States:
         """Map the DenonAVR library state to our state."""
-        if avr_state in DENON_STATE_MAPPING:
+        if avr_state and avr_state in DENON_STATE_MAPPING:
             return DENON_STATE_MAPPING[avr_state]
         return States.UNKNOWN
 
@@ -499,7 +521,7 @@ class DenonDevice:
             if (
                 telnet_is_healthy := receiver.telnet_connected and receiver.telnet_healthy
             ) and self._telnet_was_healthy:
-                self._check_for_updated_data()
+                self._notify_updated_data()
                 return
 
             _LOG.debug("[%s] Fetching status", self.id)
@@ -516,17 +538,12 @@ class DenonDevice:
             if self._update_audyssey:
                 await receiver.async_update_audyssey()
 
-            self._check_for_updated_data()
+            self._notify_updated_data()
         finally:
             self._getting_data = False
 
-    def _check_for_updated_data(self):
+    def _notify_updated_data(self):
         """Notify listeners that the AVR data has been updated."""
-        if self._receiver.power == POWER_OFF:
-            self._state = States.OFF
-        else:
-            self._state = self._map_denonavr_state(self._receiver.state)
-
         # adjust to the real volume level
         self._expected_volume = self.volume_level
 
@@ -538,7 +555,7 @@ class DenonDevice:
         _LOG.debug("[%s] zone: %s, event: %s, parameter: %s", self.id, zone, event, parameter)
 
         # *** Start logic from HA
-        # There are multiple checks implemented which reduce unnecessary updates of the ha state machine
+        # There are multiple checks implemented which reduce unnecessary updates
         if zone not in (self._receiver.zone, ALL_ZONES):
             return
         if event not in TELNET_EVENTS:
@@ -555,23 +572,30 @@ class DenonDevice:
 
         if event == "PW":  # Power
             if parameter == "ON":
-                self._state = States.ON
+                self._set_expected_state(States.ON)
             elif parameter in ("STANDBY", "OFF"):
-                self._state = States.OFF
-            self.events.emit(Events.UPDATE, self.id, {"state": self._state})
+                self._set_expected_state(States.OFF)
         elif event == "MV":  # Master Volume
-            self.events.emit(Events.UPDATE, self.id, {"volume": self.volume_level})
+            self._set_expected_state(States.ON)
+            level = self.volume_level
+            if level is None:
+                level = int(parameter)
+            self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: level})
         elif event == "MU":  # Muted
+            self._set_expected_state(States.ON)
             muted = parameter == "ON"
-            self.events.emit(Events.UPDATE, self.id, {"muted": muted})
+            self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
         elif event == "SI":  # Select Input source
-            self.events.emit(Events.UPDATE, self.id, {"source": self._receiver.input_func})
+            self._set_expected_state(States.ON)
+            self.events.emit(Events.UPDATE, self.id, {MediaAttr.SOURCE: self._receiver.input_func})
         elif event == "MS":  # surround Mode Setting
-            self.events.emit(Events.UPDATE, self.id, {"sound_mode": self._receiver.sound_mode})
+            self._set_expected_state(States.ON)
+            self.events.emit(Events.UPDATE, self.id, {MediaAttr.SOUND_MODE: self._receiver.sound_mode})
         elif event == "PS":  # Parameter Setting
             return  # reduce number of updates. TODO check if we need to handle certain parameters, likely Audyssey
 
-        self._check_for_updated_data()
+        self._notify_updated_data()
+
         # Switching inputs generates the following events with an AVR-X2700:
         # DEBUG:avr:[DBBZ012118361] zone: Main, event: PS, parameter: CLV 455
         # DEBUG:avr:[DBBZ012118361] zone: Main, event: SS, parameter: LEVC 455
@@ -608,16 +632,14 @@ class DenonDevice:
         """Send power-on command to AVR."""
         await self._receiver.async_power_on()
         if not self._use_telnet:
-            self._state = States.ON
-            self.events.emit(Events.UPDATE, self.id, {"state": self._state})
+            self._set_expected_state(States.ON)
 
     @async_handle_denonlib_errors
     async def power_off(self) -> ucapi.StatusCodes:
         """Send power-off command to AVR."""
         await self._receiver.async_power_off()
         if not self._use_telnet:
-            self._state = States.OFF
-            self.events.emit(Events.UPDATE, self.id, {"state": self._state})
+            self._set_expected_state(States.OFF)
 
     @async_handle_denonlib_errors
     async def set_volume_level(self, volume: float) -> ucapi.StatusCodes:
@@ -630,7 +652,7 @@ class DenonDevice:
         await self._receiver.async_set_volume(volume_denon)
         if not self._use_telnet:
             self._expected_volume = volume
-            self.events.emit(Events.UPDATE, self.id, {"volume": volume})
+            self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
 
     @async_handle_denonlib_errors
     async def volume_up(self) -> ucapi.StatusCodes:
@@ -665,7 +687,7 @@ class DenonDevice:
         _LOG.debug("Sending mute: %s", muted)
         await self._receiver.async_mute(muted)
         if not self._use_telnet:
-            self.events.emit(Events.UPDATE, self.id, {"muted": muted})
+            self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
 
     @async_handle_denonlib_errors
     async def select_source(self, source: str) -> ucapi.StatusCodes:
@@ -686,11 +708,11 @@ class DenonDevice:
         if not self._use_telnet or self._expected_volume is None:
             return
         self._expected_volume = min(self._expected_volume + VOLUME_STEP, 100)
-        self.events.emit(Events.UPDATE, self.id, {"volume": self._expected_volume})
+        self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: self._expected_volume})
 
     def _decrease_expected_volume(self):
         """Without telnet, decrease expected volume and send update event."""
         if not self._use_telnet or self._expected_volume is None:
             return
         self._expected_volume = max(self._expected_volume - VOLUME_STEP, 0)
-        self.events.emit(Events.UPDATE, self.id, {"volume": self._expected_volume})
+        self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: self._expected_volume})
