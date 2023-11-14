@@ -642,8 +642,10 @@ class DenonDevice:
             self._set_expected_state(States.OFF)
 
     @async_handle_denonlib_errors
-    async def set_volume_level(self, volume: float) -> ucapi.StatusCodes:
+    async def set_volume_level(self, volume: float | None) -> ucapi.StatusCodes:
         """Set volume level, range 0..100."""
+        if volume is None:
+            return ucapi.StatusCodes.BAD_REQUEST
         # Volume has to be sent in a format like -50.0. Minimum is -80.0,
         # maximum is 18.0
         volume_denon = float(volume - 80)
@@ -690,8 +692,10 @@ class DenonDevice:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
 
     @async_handle_denonlib_errors
-    async def select_source(self, source: str) -> ucapi.StatusCodes:
+    async def select_source(self, source: str | None) -> ucapi.StatusCodes:
         """Send input_source command to AVR."""
+        if not source:
+            return ucapi.StatusCodes.BAD_REQUEST
         _LOG.debug("Set input: %s", source)
         # Ensure that the AVR is turned on, which is necessary for input
         # switch to work.
@@ -699,8 +703,10 @@ class DenonDevice:
         await self._receiver.async_set_input_func(source)
 
     @async_handle_denonlib_errors
-    async def select_sound_mode(self, sound_mode: str) -> ucapi.StatusCodes:
+    async def select_sound_mode(self, sound_mode: str | None) -> ucapi.StatusCodes:
         """Select sound mode."""
+        if not sound_mode:
+            return ucapi.StatusCodes.BAD_REQUEST
         await self._receiver.async_set_sound_mode(sound_mode)
 
     def _increase_expected_volume(self):

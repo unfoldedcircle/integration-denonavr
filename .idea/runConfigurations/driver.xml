@@ -7,6 +7,7 @@
       <env name="PYTHONUNBUFFERED" value="1" />
       <env name="UC_CONFIG_HOME" value="./" />
       <env name="UC_INTEGRATION_HTTP_PORT" value="8092" />
+      <env name="UC_INTEGRATION_INTERFACE" value="0.0.0.0" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />

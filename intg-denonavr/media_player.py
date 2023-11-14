@@ -103,9 +103,9 @@ class DenonMediaPlayer(MediaPlayer):
         elif cmd_id == Commands.OFF:
             res = await self._receiver.power_off()
         elif cmd_id == Commands.SELECT_SOURCE:
-            res = await self._receiver.select_source(params["source"])
+            res = await self._receiver.select_source(params.get("source"))
         elif cmd_id == Commands.SELECT_SOUND_MODE:
-            res = await self._receiver.select_sound_mode(params.get("sound_mode"))
+            res = await self._receiver.select_sound_mode(params.get("mode"))
         else:
             return StatusCodes.NOT_IMPLEMENTED
 
