@@ -564,7 +564,7 @@ class DenonDevice:
         # We skip every event except the last one
         if event == "NSE" and not parameter.startswith("4"):
             return
-        if event == "TA" and not parameter.startwith("ANNAME"):
+        if event == "TA" and not parameter.startswith("ANNAME"):
             return
         if event == "HD" and not parameter.startswith("ALBUM"):
             return
