@@ -40,7 +40,7 @@ _LOG = logging.getLogger(__name__)
 DEFAULT_TIMEOUT = 5
 VOLUME_STEP = 0.5
 
-BACKOFF_MAX = 30
+BACKOFF_MAX: float = 30
 MIN_RECONNECT_DELAY: float = 0.5
 BACKOFF_FACTOR: float = 1.5
 
@@ -387,7 +387,7 @@ class DenonDevice:
             _LOG.debug("Connection task already running for %s", self.id)
             return
 
-        if self._use_telnet and self._receiver.telnet_connected:
+        if self._active:
             _LOG.debug("[%s] Already connected", self.id)
             return
 
@@ -395,11 +395,10 @@ class DenonDevice:
         try:
             request_start = None
             success = False
+            _LOG.debug("Starting connection task for %s", self.id)
 
             while not success:
                 try:
-                    if not self._connecting:
-                        return
                     _LOG.info("Connecting AVR %s on %s", self.id, self._receiver.host)
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
@@ -444,10 +443,11 @@ class DenonDevice:
         if backoff <= 0:
             backoff = 0.1
         _LOG.error(
-            "Cannot connect to '%s' on %s, trying again in %.1fs. %s",
+            "Cannot connect to '%s' on %s, trying again in %.1fs (connect: %.1fs). %s",
             self.id if self.id else self._name,
             self._receiver.host,
             backoff,
+            connect_duration,
             ex,
         )
 
@@ -475,7 +475,12 @@ class DenonDevice:
 
     async def disconnect(self):
         """Disconnect from AVR."""
-        self._connecting = False
+        _LOG.debug("Disconnect %s", self.id)
+        # Note: disconnecting during a connection task is currently not supported!
+        # Simply setting self._connecting = False doesn't work, and will start even more connection tasks after wakeup!
+        # This requires a state machine, or at least a separate connection task which can be cancelled.
+        if self._connecting:
+            return
         self._active = False
 
         try:
