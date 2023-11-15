@@ -461,6 +461,7 @@ class DenonDevice:
                         _LOG.info("IP address of '%s' changed: %s", self._name, item["host"])
                         self._receiver._host = item["host"]  # pylint: disable=W0212 # seems to be the only way
                         self.events.emit(Events.IP_ADDRESS_CHANGED, self.id, self._receiver.host)
+                        break
         else:
             await asyncio.sleep(backoff)
 
