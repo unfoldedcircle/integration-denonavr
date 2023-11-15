@@ -476,6 +476,7 @@ class DenonDevice:
     async def disconnect(self):
         """Disconnect from AVR."""
         _LOG.debug("Disconnect %s", self.id)
+        self._reconnect_delay = MIN_RECONNECT_DELAY
         # Note: disconnecting during a connection task is currently not supported!
         # Simply setting self._connecting = False doesn't work, and will start even more connection tasks after wakeup!
         # This requires a state machine, or at least a separate connection task which can be cancelled.
