@@ -19,11 +19,16 @@ async def denon_avrs() -> list[dict]:
     """
     _LOG.debug("Starting discovery")
 
-    avrs = await denonavr.async_discover()
-    if not avrs:
-        _LOG.info("No AVRs discovered")
+    # extra safety, if anything goes wrong here the reconnection logic is dead
+    try:
+        avrs = await denonavr.async_discover()
+        if not avrs:
+            _LOG.info("No AVRs discovered")
+            return []
+
+        _LOG.info("Found AVR(s): %s", avrs)
+
+        return avrs
+    except Exception as ex:  # pylint: disable=broad-exception-caught
+        _LOG.error("Failed to start discovery: %s", ex)
         return []
-
-    _LOG.info("Found AVR(s): %s", avrs)
-
-    return avrs
