@@ -49,6 +49,7 @@ async def receiver_status_poller(interval: float = 10.0) -> None:
 async def on_r2_connect_cmd() -> None:
     """Connect all configured receivers when the Remote Two sends the connect command."""
     # TODO check if we were in standby and ignore the call? We'll also get an EXIT_STANDBY
+    _LOG.debug("R2 connect command: connecting device(s)")
     for receiver in _configured_avrs.values():
         # start background task
         _LOOP.create_task(receiver.connect())
