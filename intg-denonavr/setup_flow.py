@@ -29,7 +29,8 @@ class SetupSteps(IntEnum):
     """Enumeration of setup steps to keep track of user data responses."""
 
     INIT = 0
-    DEVICE_CHOICE = 1
+    CONFIGURATION_MODE = 1
+    DEVICE_CHOICE = 2
 
 
 _setup_step = SetupSteps.INIT
@@ -51,8 +52,10 @@ async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
         return await handle_driver_setup(msg)
     if isinstance(msg, UserDataResponse):
         _LOG.debug(msg)
+        if _setup_step == SetupSteps.CONFIGURATION_MODE and "address" in msg.input_values:
+            return await handle_configuration_mode(msg)
         if _setup_step == SetupSteps.DEVICE_CHOICE and "choice" in msg.input_values:
-            return await handle_user_data_response(msg)
+            return await handle_device_choice(msg)
         _LOG.error("No or invalid user response was received: %s", msg)
     elif isinstance(msg, AbortDriverSetup):
         _LOG.info("Setup was aborted with code: %s", msg.error)
@@ -70,7 +73,7 @@ async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | Se
     Start driver setup.
 
     Initiated by Remote Two to set up the driver.
-    Start AVR discovery and present the found devices to the user to choose from.
+    Ask user to enter ip-address for manual configuration, otherwise auto-discovery is used.
 
     :param _msg: not used, we don't have any input fields in the first setup screen.
     :return: the setup action on how to continue
@@ -78,14 +81,77 @@ async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | Se
     global _setup_step
 
     _LOG.debug("Starting driver setup")
+    _setup_step = SetupSteps.CONFIGURATION_MODE
+    return RequestUserInput(
+        {"en": "Setup mode", "de": "Setup Modus"},
+        [
+            {"field": {"text": {"value": ""}}, "id": "address", "label": {"en": "IP address", "de": "IP-Adresse"}},
+            {
+                "id": "info",
+                "label": {"en": ""},
+                "field": {
+                    "label": {
+                        "value": {
+                            "en": "Leave blank to use auto-discovery.",
+                            "de": "Leer lassen, um automatische Erkennung zu verwenden.",
+                            "fr": "Laissez le champ vide pour utiliser la découverte automatique.",
+                        }
+                    }
+                },
+            },
+        ],
+    )
+
+
+async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput | SetupError:
+    """
+    Process user data response in a setup process.
+
+    If ``address`` field is set by the user: try connecting to device and retrieve model information.
+    Otherwise, start AVR discovery and present the found devices to the user to choose from.
+
+    :param msg: response data from the requested user data
+    :return: the setup action on how to continue
+    """
+    global _setup_step
+
     config.devices.clear()  # triggers device instance removal
 
-    avrs = await discover.denon_avrs()
     dropdown_items = []
+    address = msg.input_values["address"]
 
-    for a in avrs:
-        avr_data = {"id": a["host"], "label": {"en": f"{a['friendlyName']} ({a['modelName']}) [{a['host']}]"}}
-        dropdown_items.append(avr_data)
+    if address:
+        _LOG.debug("Starting manual driver setup for %s", address)
+        # simple connection check
+        connect_denonavr = ConnectDenonAVR(
+            address,
+            avr.DEFAULT_TIMEOUT,
+            show_all_inputs=False,
+            zone2=False,
+            zone3=False,
+            use_telnet=False,
+            update_audyssey=False,
+        )
+
+        try:
+            await connect_denonavr.async_connect_receiver()
+            receiver = connect_denonavr.receiver
+            dropdown_items.append(
+                {"id": address, "label": {"en": f"{receiver.name} ({receiver.model_name}) [{address}]"}}
+            )
+        except AvrNetworkError as ex:
+            _LOG.error("Cannot connect to manually entered address %s: %s", address, ex)
+            return SetupError(error_type=IntegrationSetupError.CONNECTION_REFUSED)
+        except AvrTimoutError:
+            _LOG.error("Timeout connecting to manually entered address %s", address)
+            return SetupError(error_type=IntegrationSetupError.TIMEOUT)
+    else:
+        _LOG.debug("Starting auto-discovery driver setup")
+        avrs = await discover.denon_avrs()
+
+        for a in avrs:
+            avr_data = {"id": a["host"], "label": {"en": f"{a['friendlyName']} ({a['modelName']}) [{a['host']}]"}}
+            dropdown_items.append(avr_data)
 
     if not dropdown_items:
         _LOG.warning("No AVRs found")
@@ -166,7 +232,7 @@ async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | Se
     )
 
 
-async def handle_user_data_response(msg: UserDataResponse) -> SetupComplete | SetupError:
+async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupError:
     """
     Process user data response in a setup process.
 
