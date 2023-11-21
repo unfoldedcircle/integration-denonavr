@@ -25,60 +25,37 @@ Supported commands:
 - Play/pause
 - Source select
 
-## Setup
+## Usage
+
+### Setup
+
+- Requires Python 3.11
+- Install required libraries:  
+  (using a [virtual environment](https://docs.python.org/3/library/venv.html) is highly recommended)
 
 ```shell
 pip3 install -r requirements.txt
 ```
 
-## Code Style
+For running a separate integration driver on your network for Remote Two, the configuration in file
+[driver.json](driver.json) needs to be changed:
 
-- Code line length: 120
-- Use double quotes as default (don't mix and match for simple quoting, checked with pylint).
+- Set `driver_id` to a unique value, `uc_denon_driver` is already used for the embedded driver in the firmware.
+- Change `name` to easily identify the driver for discovery & setup with Remote Two or the web-configurator.
+- Optionally add a `"port": 8090` field for the WebSocket server listening port.
+    - Default port: `9090`
+    - Also overrideable with environment variable `UC_INTEGRATION_HTTP_PORT`
 
-Install tooling:
-
-```shell
-pip3 install -r test-requirements.txt
-```
-
-### Verify
-
-The following tests are run as GitHub action for each push on the main branch and for pull requests.
-They can also be run anytime on a local developer machine:
+### Run
 
 ```shell
-python -m pylint intg-denonavr
-python -m flake8 intg-denonavr --count --show-source --statistics
-python -m isort intg-denonavr/. --check --verbose 
-python -m black intg-denonavr --check --verbose --line-length 120
+python3 intg-denonavr/driver.py
 ```
 
-Linting integration in PyCharm/IntelliJ IDEA:
-
-1. Install plugin [Pylint](https://plugins.jetbrains.com/plugin/11084-pylint)
-2. Open Pylint window and run a scan: `Check Module` or `Check Current File`
-
-### Format Code
-
-```shell
-python -m black intg-denonavr --line-length 120
-```
-
-PyCharm/IntelliJ IDEA integration:
-
-1. Go to `Preferences or Settings -> Tools -> Black`
-2. Configure:
-
-- Python interpreter
-- Use Black formatter: `On code reformat` & optionally `On save`
-- Arguments: `--line-length 120`
-
-### Sort Imports
-
-```shell
-python -m isort intg-denonavr/.
-```
+See
+available [environment variables](https://github.com/unfoldedcircle/integration-python-library#environment-variables)
+in the Python integration library to control certain runtime features like listening interface and configuration
+directory.
 
 ## Build self-contained binary for Remote Two
 
@@ -123,35 +100,21 @@ docker run --rm --name builder \
       pyinstaller --clean --onefile --name intg-denonavr intg-denonavr/driver.py"
 ```
 
-## Licenses
+## Versioning
 
-To generate the license overview file for remote-ui, [pip-licenses](https://pypi.org/project/pip-licenses/) is used
-to extract the license information in JSON format. The output JSON is then transformed in a Markdown file with a
-custom script.
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the
+[tags and releases in this repository](https://github.com/unfoldedcircle/integration-denonavr/releases).
 
-Create a virtual environment for pip-licenses, since it operates on the packages installed with pip:
+## Changelog
 
-```shell
-python3 -m venv env
-source env/bin/activate
-pip3 install -r requirements.txt
-```
+The major changes found in each new release are listed in the [changelog](CHANGELOG.md)
+and under the GitHub [releases](https://github.com/unfoldedcircle/integration-denonavr/releases).
 
-Exit `venv` with `deactivate`.
+## Contributions
 
-Gather licenses:
+Please read our [contribution guidelines](CONTRIBUTING.md) before opening a pull request.
 
-```shell
-pip-licenses --python ./env/bin/python \
-  --with-description --with-urls \
-  --with-license-file --no-license-path \
-  --with-notice-file \
-  --format=json > licenses.json
-```
+## License
 
-Transform:
-
-```shell
-cd tools
-node transform-pip-licenses.js ../licenses.json licenses.md
-```
+This project is licensed under the [**Mozilla Public License 2.0**](https://choosealicense.com/licenses/mpl-2.0/).
+See the [LICENSE](LICENSE) file for details.
