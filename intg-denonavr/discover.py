@@ -1,4 +1,9 @@
-"""Denon AVR device discovery with SSDP."""
+"""
+Denon AVR device discovery with SSDP.
+
+:copyright: (c) 2023 by Unfolded Circle ApS.
+:license: Mozilla Public License Version 2.0, see LICENSE for more details.
+"""
 
 import logging
 

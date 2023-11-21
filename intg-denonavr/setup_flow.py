@@ -1,4 +1,9 @@
-"""Setup flow for Denon AVR integration."""
+"""
+Setup flow for Denon AVR integration.
+
+:copyright: (c) 2023 by Unfolded Circle ApS.
+:license: Mozilla Public License Version 2.0, see LICENSE for more details.
+"""
 
 import asyncio
 import logging

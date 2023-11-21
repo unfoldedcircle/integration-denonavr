@@ -40,7 +40,6 @@ testing = [
 ]
 
 [tool.setuptools]
-zip-safe = false
 platforms = ["any"]
 license-files = ["LICENSE"]
 include-package-data = false

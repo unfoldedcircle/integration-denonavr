@@ -1,4 +1,10 @@
-"""Media-player entity functions."""
+"""
+Media-player entity functions.
+
+:copyright: (c) 2023 by Unfolded Circle ApS.
+:license: Mozilla Public License Version 2.0, see LICENSE for more details.
+"""
+
 import logging
 from typing import Any
 
