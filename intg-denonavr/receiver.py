@@ -6,6 +6,7 @@ https://github.com/home-assistant/core/blob/dev/homeassistant/components/denonav
 
 License: Apache 2.0
 """
+
 from __future__ import annotations
 
 import logging
