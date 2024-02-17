@@ -89,8 +89,6 @@ async def on_r2_exit_standby() -> None:
 
     _R2_IN_STANDBY = False
     _LOG.debug("Exit standby event: connecting device(s)")
-    # delay is only a temporary workaround, until the core verifies first that the network is up with an IP address
-    await asyncio.sleep(2)
 
     for configured in _configured_avrs.values():
         # start background task
