@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Changed
+- Update denonavr client library to 0.11.6
+
 ---
 
 ## v0.2.4 - 2024-02-17
