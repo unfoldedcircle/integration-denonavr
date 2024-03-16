@@ -774,7 +774,8 @@ class DenonDevice:
         res = await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNMEN?")
         if res is not None and res == "MNMEN ON":
             await self.setup_close()
-        await self.setup_open()
+        else:
+            await self.setup_open()
 
     def _increase_expected_volume(self):
         """Without telnet, increase expected volume and send update event."""
