@@ -35,11 +35,31 @@ class SetupSteps(IntEnum):
 
     INIT = 0
     CONFIGURATION_MODE = 1
-    DEVICE_CHOICE = 2
+    DISCOVER = 2
+    DEVICE_CHOICE = 3
 
 
 _setup_step = SetupSteps.INIT
-
+_cfg_add_device: bool = False
+_user_input_discovery = RequestUserInput(
+        {"en": "Setup mode", "de": "Setup Modus"},
+        [
+            {"field": {"text": {"value": ""}}, "id": "address", "label": {"en": "IP address", "de": "IP-Adresse"}},
+            {
+                "id": "info",
+                "label": {"en": ""},
+                "field": {
+                    "label": {
+                        "value": {
+                            "en": "Leave blank to use auto-discovery.",
+                            "de": "Leer lassen, um automatische Erkennung zu verwenden.",
+                            "fr": "Laissez le champ vide pour utiliser la découverte automatique.",
+                        }
+                    }
+                },
+            },
+        ],
+    )
 
 async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
     """
@@ -51,14 +71,18 @@ async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
     :return: the setup action on how to continue
     """
     global _setup_step
+    global _cfg_add_device
 
     if isinstance(msg, DriverSetupRequest):
         _setup_step = SetupSteps.INIT
+        _cfg_add_device = False
         return await handle_driver_setup(msg)
     if isinstance(msg, UserDataResponse):
         _LOG.debug(msg)
-        if _setup_step == SetupSteps.CONFIGURATION_MODE and "address" in msg.input_values:
+        if _setup_step == SetupSteps.CONFIGURATION_MODE and "action" in msg.input_values:
             return await handle_configuration_mode(msg)
+        if _setup_step == SetupSteps.DISCOVER and "address" in msg.input_values:
+            return await _handle_discovery(msg)
         if _setup_step == SetupSteps.DEVICE_CHOICE and "choice" in msg.input_values:
             return await handle_device_choice(msg)
         _LOG.error("No or invalid user response was received: %s", msg)
@@ -85,30 +109,123 @@ async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | Se
     """
     global _setup_step
 
-    _LOG.debug("Starting driver setup")
-    _setup_step = SetupSteps.CONFIGURATION_MODE
-    return RequestUserInput(
-        {"en": "Setup mode", "de": "Setup Modus"},
-        [
-            {"field": {"text": {"value": ""}}, "id": "address", "label": {"en": "IP address", "de": "IP-Adresse"}},
+    reconfigure = _msg.reconfigure
+    _LOG.debug("Starting driver setup, reconfigure=%s", reconfigure)
+    if reconfigure:
+        _setup_step = SetupSteps.CONFIGURATION_MODE
+
+        # get all configured devices for the user to choose from
+        dropdown_devices = []
+        for device in config.devices.all():
+            dropdown_devices.append({"id": device.id, "label": {"en": f"{device.name} ({device.id})"}})
+
+        # TODO #12 externalize language texts
+        # build user actions, based on available devices
+        dropdown_actions = [
             {
-                "id": "info",
-                "label": {"en": ""},
-                "field": {
-                    "label": {
-                        "value": {
-                            "en": "Leave blank to use auto-discovery.",
-                            "de": "Leer lassen, um automatische Erkennung zu verwenden.",
-                            "fr": "Laissez le champ vide pour utiliser la découverte automatique.",
-                        }
-                    }
+                "id": "add",
+                "label": {
+                    "en": "Add a new device",
+                    "de": "Neues Gerät hinzufügen",
+                    "fr": "Ajouter un nouvel appareil",
                 },
             },
-        ],
-    )
+        ]
+
+        # add remove & reset actions if there's at least one configured device
+        if dropdown_devices:
+            dropdown_actions.append(
+                {
+                    "id": "remove",
+                    "label": {
+                        "en": "Delete selected device",
+                        "de": "Selektiertes Gerät löschen",
+                        "fr": "Supprimer l'appareil sélectionné",
+                    },
+                },
+            )
+            dropdown_actions.append(
+                {
+                    "id": "reset",
+                    "label": {
+                        "en": "Reset configuration and reconfigure",
+                        "de": "Konfiguration zurücksetzen und neu konfigurieren",
+                        "fr": "Réinitialiser la configuration et reconfigurer",
+                    },
+                },
+            )
+        else:
+            # dummy entry if no devices are available
+            dropdown_devices.append({"id": "", "label": {"en": "---"}})
+
+        return RequestUserInput(
+            {"en": "Configuration mode", "de": "Konfigurations-Modus"},
+            [
+                {
+                    "field": {"dropdown": {"value": dropdown_devices[0]["id"], "items": dropdown_devices}},
+                    "id": "choice",
+                    "label": {
+                        "en": "Configured devices",
+                        "de": "Konfigurierte Geräte",
+                        "fr": "Appareils configurés",
+                    },
+                },
+                {
+                    "field": {"dropdown": {"value": dropdown_actions[0]["id"], "items": dropdown_actions}},
+                    "id": "action",
+                    "label": {
+                        "en": "Action",
+                        "de": "Aktion",
+                        "fr": "Appareils configurés",
+                    },
+                },
+            ],
+        )
+
+    # Initial setup, make sure we have a clean configuration
+    config.devices.clear()  # triggers device instance removal
+    _setup_step = SetupSteps.DISCOVER
+    return _user_input_discovery
 
 
-async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput | SetupError:
+async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput | SetupComplete | SetupError:
+    """
+    Process user data response in a setup process.
+
+    If ``address`` field is set by the user: try connecting to device and retrieve model information.
+    Otherwise, start Android TV discovery and present the found devices to the user to choose from.
+
+    :param msg: response data from the requested user data
+    :return: the setup action on how to continue
+    """
+    global _setup_step
+    global _cfg_add_device
+
+    action = msg.input_values["action"]
+
+    # workaround for web-configurator not picking up first response
+    await asyncio.sleep(1)
+
+    match action:
+        case "add":
+            _cfg_add_device = True
+        case "remove":
+            choice = msg.input_values["choice"]
+            if not config.devices.remove(choice):
+                _LOG.warning("Could not remove device from configuration: %s", choice)
+                return SetupError(error_type=IntegrationSetupError.OTHER)
+            config.devices.store()
+            return SetupComplete()
+        case "reset":
+            config.devices.clear()  # triggers device instance removal
+        case _:
+            _LOG.error("Invalid configuration action: %s", action)
+            return SetupError(error_type=IntegrationSetupError.OTHER)
+
+    _setup_step = SetupSteps.DISCOVER
+    return _user_input_discovery
+
+async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupError:
     """
     Process user data response in a setup process.
 
