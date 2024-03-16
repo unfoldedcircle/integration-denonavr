@@ -87,22 +87,36 @@ async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | Se
 
     _LOG.debug("Starting driver setup")
     _setup_step = SetupSteps.CONFIGURATION_MODE
+    # pylint: disable=line-too-long
     return RequestUserInput(
         {"en": "Setup mode", "de": "Setup Modus"},
         [
-            {"field": {"text": {"value": ""}}, "id": "address", "label": {"en": "IP address", "de": "IP-Adresse"}},
             {
                 "id": "info",
                 "label": {"en": ""},
                 "field": {
                     "label": {
                         "value": {
-                            "en": "Leave blank to use auto-discovery.",
-                            "de": "Leer lassen, um automatische Erkennung zu verwenden.",
-                            "fr": "Laissez le champ vide pour utiliser la découverte automatique.",
+                            "en": (
+                                "Leave blank to use auto-discovery and click _Next_."
+                                "The device must be on the same network as the remote."
+                            ),
+                            "de": (
+                                "Leer lassen, um automatische Erkennung zu verwenden und auf _Weiter_ klicken."
+                                "Das Gerät muss sich im gleichen Netzwerk wie die Fernbedienung befinden."
+                            ),
+                            "fr": (
+                                "Laissez le champ vide pour utiliser la découverte automatique et cliquez sur _Suivant_."  # noqa: E501
+                                "L'appareil doit être sur le même réseau que la télécommande"
+                            ),
                         }
                     }
                 },
+            },
+            {
+                "field": {"text": {"value": ""}},
+                "id": "address",
+                "label": {"en": "IP address", "de": "IP-Adresse", "fr": "Adresse IP"},
             },
         ],
     )
