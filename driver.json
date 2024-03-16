@@ -35,9 +35,9 @@
         "field": {
           "label": {
             "value": {
-              "en": "The integration will discover your Denon or Marantz AVRs on your network.",
-              "de": "Diese Integration wird Denon und Marantz AVRs im Netzwerk finden.",
-              "fr": "Cette intégration trouvera des AVR Denon et Marantz dans le réseau."
+              "en": "The integration will discover your Denon or Marantz AVRs on your network. The device must be on the same network as the remote.",
+              "de": "Diese Integration wird Denon und Marantz AVRs im Netzwerk finden. Das Gerät muss sich im gleichen Netzwerk wie die Fernbedienung befinden.",
+              "fr": "Cette intégration trouvera des AVR Denon et Marantz dans le réseau. L'appareil doit être sur le même réseau que la télécommande."
             }
           }
         }
