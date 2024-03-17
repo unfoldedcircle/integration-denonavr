@@ -48,12 +48,6 @@ class DenonMediaPlayer(MediaPlayer):
             Features.MEDIA_IMAGE_URL,
             Features.MEDIA_TYPE,
             Features.SELECT_SOURCE,
-            Features.DPAD,
-            Features.SETTINGS,
-            Features.MENU,
-            Features.CONTEXT_MENU,
-            Features.INFO
-
         ]
         attributes = {
             Attributes.STATE: States.UNAVAILABLE,
@@ -118,26 +112,6 @@ class DenonMediaPlayer(MediaPlayer):
             res = await self._receiver.select_source(params.get("source"))
         elif cmd_id == Commands.SELECT_SOUND_MODE:
             res = await self._receiver.select_sound_mode(params.get("mode"))
-        elif cmd_id == Commands.CURSOR_UP:
-            res = await self._receiver.cursor_up()
-        elif cmd_id == Commands.CURSOR_DOWN:
-            res = await self._receiver.cursor_down()
-        elif cmd_id == Commands.CURSOR_LEFT:
-            res = await self._receiver.cursor_left()
-        elif cmd_id == Commands.CURSOR_RIGHT:
-            res = await self._receiver.cursor_right()
-        elif cmd_id == Commands.CURSOR_ENTER:
-            res = await self._receiver.cursor_enter()
-        elif cmd_id == Commands.BACK:
-            res = await self._receiver.back()
-        elif cmd_id == Commands.SETTINGS:
-            res = await self._receiver.setup()
-        elif cmd_id == Commands.MENU:
-            res = await self._receiver.setup()
-        elif cmd_id == Commands.CONTEXT_MENU:
-            res = await self._receiver.options()
-        elif cmd_id == Commands.INFO:
-            res = await self._receiver.info()
         else:
             return StatusCodes.NOT_IMPLEMENTED
 

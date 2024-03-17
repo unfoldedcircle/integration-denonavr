@@ -46,8 +46,6 @@ BACKOFF_FACTOR: float = 1.5
 
 DISCOVERY_AFTER_CONNECTION_ERRORS = 10
 
-AVR_COMMAND_URL="/goform/formiPhoneAppDirect.xml"
-
 
 class Events(IntEnum):
     """Internal driver events."""
@@ -717,65 +715,6 @@ class DenonDevice:
         if not sound_mode:
             return ucapi.StatusCodes.BAD_REQUEST
         await self._receiver.async_set_sound_mode(sound_mode)
-
-    @async_handle_denonlib_errors
-    async def cursor_up(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNCUP")
-
-    @async_handle_denonlib_errors
-    async def cursor_down(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNCDN")
-
-    @async_handle_denonlib_errors
-    async def cursor_left(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNCLT")
-
-    @async_handle_denonlib_errors
-    async def cursor_right(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNCRT")
-
-    @async_handle_denonlib_errors
-    async def cursor_enter(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNENT")
-
-    @async_handle_denonlib_errors
-    async def info(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNINF")
-
-    @async_handle_denonlib_errors
-    async def options(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNOPT")
-
-    @async_handle_denonlib_errors
-    async def back(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNRTN")
-
-    @async_handle_denonlib_errors
-    async def setup_open(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNMEN%20ON")
-
-    @async_handle_denonlib_errors
-    async def setup_close(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNMEN%20OFF")
-
-    @async_handle_denonlib_errors
-    async def setup(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
-        res = await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNMEN?")
-        if res is not None and res == "MNMEN ON":
-            await self.setup_close()
-        else:
-            await self.setup_open()
 
     def _increase_expected_volume(self):
         """Without telnet, increase expected volume and send update event."""
