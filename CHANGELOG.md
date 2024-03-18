@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## v0.3.0 - 2024-03-18
+### Added
+- New commands: dpad, menu, context_menu and info. Contributed by @albaintor, thanks! ([#33](https://github.com/unfoldedcircle/integration-denonavr/issues/33)).
+
 ## v0.2.4 - 2024-02-17
 ### Fixed
 - Remove reconnect delay after standby. Requires new Remote Two firmware ([unfoldedcircle/feature-and-bug-tracker#320](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/320)).
