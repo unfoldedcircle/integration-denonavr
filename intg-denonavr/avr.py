@@ -723,7 +723,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNCUP")
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCUP")
         else:
             await self._receiver.async_send_telnet_commands("MNCUP")
 
@@ -732,7 +732,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNCDN")
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCDN")
         else:
             await self._receiver.async_send_telnet_commands("MNCDN")
 
@@ -741,7 +741,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNCLT")
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCLT")
         else:
             await self._receiver.async_send_telnet_commands("MNCLT")
 
@@ -750,7 +750,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNCRT")
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCRT")
         else:
             await self._receiver.async_send_telnet_commands("MNCRT")
 
@@ -759,7 +759,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNENT")
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNENT")
         else:
             await self._receiver.async_send_telnet_commands("MNENT")
 
@@ -768,7 +768,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNINF")
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNINF")
         else:
             await self._receiver.async_send_telnet_commands("MNINF")
 
@@ -777,7 +777,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNOPT")
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNOPT")
         else:
             await self._receiver.async_send_telnet_commands("MNOPT")
 
@@ -786,7 +786,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNRTN")
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNRTN")
         else:
             await self._receiver.async_send_telnet_commands("MNRTN")
 
@@ -795,7 +795,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNMEN%20ON")
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN%20ON")
         else:
             await self._receiver.async_send_telnet_commands("MNMEN ON")
 
@@ -804,7 +804,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNMEN%20OFF")
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN%20OFF")
         else:
             await self._receiver.async_send_telnet_commands("MNMEN OFF")
 
@@ -813,7 +813,7 @@ class DenonDevice:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if not self._use_telnet:
-            res = await self._receiver.async_get_command(AVR_COMMAND_URL+"?MNMEN?")
+            res = await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN?")
             if res is not None and res == "MNMEN ON":
                 await self.setup_close()
             else:

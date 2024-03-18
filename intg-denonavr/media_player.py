@@ -52,8 +52,7 @@ class DenonMediaPlayer(MediaPlayer):
             Features.SETTINGS,
             Features.MENU,
             Features.CONTEXT_MENU,
-            Features.INFO
-
+            Features.INFO,
         ]
         attributes = {
             Attributes.STATE: States.UNAVAILABLE,
