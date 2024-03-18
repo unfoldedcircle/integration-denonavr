@@ -49,7 +49,6 @@ class DenonMediaPlayer(MediaPlayer):
             Features.MEDIA_TYPE,
             Features.SELECT_SOURCE,
             Features.DPAD,
-            Features.SETTINGS,
             Features.MENU,
             Features.CONTEXT_MENU,
             Features.INFO,
@@ -129,8 +128,6 @@ class DenonMediaPlayer(MediaPlayer):
             res = await self._receiver.cursor_enter()
         elif cmd_id == Commands.BACK:
             res = await self._receiver.back()
-        elif cmd_id == Commands.SETTINGS:
-            res = await self._receiver.setup()
         elif cmd_id == Commands.MENU:
             res = await self._receiver.setup()
         elif cmd_id == Commands.CONTEXT_MENU:

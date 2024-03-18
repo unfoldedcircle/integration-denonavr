@@ -720,7 +720,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def cursor_up(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send cursor up command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNCUP")
@@ -729,7 +729,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def cursor_down(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send cursor down command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNCDN")
@@ -738,7 +738,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def cursor_left(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send cursor left command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNCLT")
@@ -748,7 +748,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def cursor_right(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send cursor right command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNCRT")
@@ -757,7 +757,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def cursor_enter(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send cursor enter command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNENT")
@@ -766,7 +766,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def info(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send info OSD command command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNINF")
@@ -775,7 +775,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def options(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send options menu command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNOPT")
@@ -784,7 +784,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def back(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send back command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNRTN")
@@ -793,7 +793,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def setup_open(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send open setup menu command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNMEN ON")
@@ -802,7 +802,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def setup_close(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send close menu command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNMEN OFF")
@@ -811,20 +811,14 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def setup(self) -> ucapi.StatusCodes:
-        """Send previous-track command to AVR."""
+        """Send toggle open/close menu command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            res = await self._receiver.async_send_telnet_commands("MNMEN?")
-            if res is not None and res == "MNMEN ON":
-                await self.setup_close()
-            else:
-                await self.setup_open()
+        # Using http get as the telnet commands won't return any values
+        res = await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN?")
+        if res is not None and res == "MNMEN ON":
+            await self.setup_close()
         else:
-            res = await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN?")
-            if res is not None and res == "MNMEN ON":
-                await self.setup_close()
-            else:
-                await self.setup_open()
+            await self.setup_open()
 
     def _increase_expected_volume(self):
         """Without telnet, increase expected volume and send update event."""
