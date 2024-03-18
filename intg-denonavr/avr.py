@@ -745,7 +745,6 @@ class DenonDevice:
         else:
             await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCLT")
 
-
     @async_handle_denonlib_errors
     async def cursor_right(self) -> ucapi.StatusCodes:
         """Send cursor right command to AVR."""
