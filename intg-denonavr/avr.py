@@ -46,7 +46,7 @@ BACKOFF_FACTOR: float = 1.5
 
 DISCOVERY_AFTER_CONNECTION_ERRORS = 10
 
-AVR_COMMAND_URL="/goform/formiPhoneAppDirect.xml"
+AVR_COMMAND_URL = "/goform/formiPhoneAppDirect.xml"
 
 
 class Events(IntEnum):
