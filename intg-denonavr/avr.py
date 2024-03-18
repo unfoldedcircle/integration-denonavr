@@ -722,104 +722,105 @@ class DenonDevice:
     async def cursor_up(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCUP")
-        else:
+        if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNCUP")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCUP")
 
     @async_handle_denonlib_errors
     async def cursor_down(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCDN")
-        else:
+        if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNCDN")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCDN")
 
     @async_handle_denonlib_errors
     async def cursor_left(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCLT")
-        else:
+        if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNCLT")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCLT")
+
 
     @async_handle_denonlib_errors
     async def cursor_right(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCRT")
-        else:
+        if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNCRT")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCRT")
 
     @async_handle_denonlib_errors
     async def cursor_enter(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNENT")
-        else:
+        if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNENT")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNENT")
 
     @async_handle_denonlib_errors
     async def info(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNINF")
-        else:
+        if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNINF")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNINF")
 
     @async_handle_denonlib_errors
     async def options(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNOPT")
-        else:
+        if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNOPT")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNOPT")
 
     @async_handle_denonlib_errors
     async def back(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNRTN")
-        else:
+        if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNRTN")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNRTN")
 
     @async_handle_denonlib_errors
     async def setup_open(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN%20ON")
-        else:
+        if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNMEN ON")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN%20ON")
 
     @async_handle_denonlib_errors
     async def setup_close(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN%20OFF")
-        else:
+        if self._use_telnet:
             await self._receiver.async_send_telnet_commands("MNMEN OFF")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN%20OFF")
 
     @async_handle_denonlib_errors
     async def setup(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if not self._use_telnet:
-            res = await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN?")
+        if self._use_telnet:
+            res = await self._receiver.async_send_telnet_commands("MNMEN?")
             if res is not None and res == "MNMEN ON":
                 await self.setup_close()
             else:
                 await self.setup_open()
         else:
-            res = await self._receiver.async_send_telnet_commands("MNMEN?")
+            res = await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN?")
             if res is not None and res == "MNMEN ON":
                 await self.setup_close()
             else:
