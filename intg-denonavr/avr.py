@@ -46,6 +46,8 @@ BACKOFF_FACTOR: float = 1.5
 
 DISCOVERY_AFTER_CONNECTION_ERRORS = 10
 
+AVR_COMMAND_URL = "/goform/formiPhoneAppDirect.xml"
+
 
 class Events(IntEnum):
     """Internal driver events."""
@@ -715,6 +717,107 @@ class DenonDevice:
         if not sound_mode:
             return ucapi.StatusCodes.BAD_REQUEST
         await self._receiver.async_set_sound_mode(sound_mode)
+
+    @async_handle_denonlib_errors
+    async def cursor_up(self) -> ucapi.StatusCodes:
+        """Send cursor up command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("MNCUP")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCUP")
+
+    @async_handle_denonlib_errors
+    async def cursor_down(self) -> ucapi.StatusCodes:
+        """Send cursor down command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("MNCDN")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCDN")
+
+    @async_handle_denonlib_errors
+    async def cursor_left(self) -> ucapi.StatusCodes:
+        """Send cursor left command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("MNCLT")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCLT")
+
+    @async_handle_denonlib_errors
+    async def cursor_right(self) -> ucapi.StatusCodes:
+        """Send cursor right command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("MNCRT")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCRT")
+
+    @async_handle_denonlib_errors
+    async def cursor_enter(self) -> ucapi.StatusCodes:
+        """Send cursor enter command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("MNENT")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNENT")
+
+    @async_handle_denonlib_errors
+    async def info(self) -> ucapi.StatusCodes:
+        """Send info OSD command command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("MNINF")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNINF")
+
+    @async_handle_denonlib_errors
+    async def options(self) -> ucapi.StatusCodes:
+        """Send options menu command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("MNOPT")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNOPT")
+
+    @async_handle_denonlib_errors
+    async def back(self) -> ucapi.StatusCodes:
+        """Send back command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("MNRTN")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNRTN")
+
+    @async_handle_denonlib_errors
+    async def setup_open(self) -> ucapi.StatusCodes:
+        """Send open setup menu command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("MNMEN ON")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN%20ON")
+
+    @async_handle_denonlib_errors
+    async def setup_close(self) -> ucapi.StatusCodes:
+        """Send close menu command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("MNMEN OFF")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN%20OFF")
+
+    @async_handle_denonlib_errors
+    async def setup(self) -> ucapi.StatusCodes:
+        """Send toggle open/close menu command to AVR."""
+        # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
+        # Using http get as the telnet commands won't return any values
+        res = await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN?")
+        if res is not None and res == "MNMEN ON":
+            await self.setup_close()
+        else:
+            await self.setup_open()
 
     def _increase_expected_volume(self):
         """Without telnet, increase expected volume and send update event."""
