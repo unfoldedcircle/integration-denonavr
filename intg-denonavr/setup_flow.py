@@ -42,24 +42,25 @@ class SetupSteps(IntEnum):
 _setup_step = SetupSteps.INIT
 _cfg_add_device: bool = False
 _user_input_discovery = RequestUserInput(
-        {"en": "Setup mode", "de": "Setup Modus"},
-        [
-            {"field": {"text": {"value": ""}}, "id": "address", "label": {"en": "IP address", "de": "IP-Adresse"}},
-            {
-                "id": "info",
-                "label": {"en": ""},
-                "field": {
-                    "label": {
-                        "value": {
-                            "en": "Leave blank to use auto-discovery.",
-                            "de": "Leer lassen, um automatische Erkennung zu verwenden.",
-                            "fr": "Laissez le champ vide pour utiliser la découverte automatique.",
-                        }
+    {"en": "Setup mode", "de": "Setup Modus"},
+    [
+        {"field": {"text": {"value": ""}}, "id": "address", "label": {"en": "IP address", "de": "IP-Adresse"}},
+        {
+            "id": "info",
+            "label": {"en": ""},
+            "field": {
+                "label": {
+                    "value": {
+                        "en": "Leave blank to use auto-discovery.",
+                        "de": "Leer lassen, um automatische Erkennung zu verwenden.",
+                        "fr": "Laissez le champ vide pour utiliser la découverte automatique.",
                     }
-                },
+                }
             },
-        ],
-    )
+        },
+    ],
+)
+
 
 async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
     """
@@ -224,6 +225,7 @@ async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput |
 
     _setup_step = SetupSteps.DISCOVER
     return _user_input_discovery
+
 
 async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupError:
     """
