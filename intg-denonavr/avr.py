@@ -841,7 +841,6 @@ class DenonDevice:
         # Send updated volume if no update task in progress
         if not self._update_lock.locked():
             self._event_loop.create_task(self._receiver.async_update())
-            # self.events.emit(Events.UPDATE,self.id, {MediaAttr.VOLUME: self._expected_volume})
 
     def _decrease_expected_volume(self):
         """Without telnet, decrease expected volume and send update event."""
@@ -851,4 +850,3 @@ class DenonDevice:
         # Send updated volume if no update task in progress
         if not self._update_lock.locked():
             self._event_loop.create_task(self._receiver.async_update())
-            # self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: self._expected_volume})
