@@ -227,6 +227,14 @@ async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput |
                 "field": {"checkbox": {"value": True}},
             },
             {
+                "id": "volume_step",
+                "label": {
+                    "en": "Volume step",
+                    "fr": "Pallier de volume",
+                },
+                "field": {"text": {"value": "0.5"}},
+            },
+            {
                 "id": "info",
                 "label": {"en": "Please note:", "de": "Bitte beachten:", "fr": "Veuillez noter:"},
                 "field": {
@@ -268,6 +276,13 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     zone2 = msg.input_values.get("zone2") == "true"
     zone3 = msg.input_values.get("zone3") == "true"
     use_telnet = msg.input_values.get("use_telnet") == "true"
+    volume_step = 0.5
+    try:
+        volume_step = float(msg.input_values.get("volume_step", 0.5))
+        if volume_step < 0.1 or volume_step > 99:
+            return SetupError(error_type=IntegrationSetupError.OTHER)
+    except ValueError:
+        return SetupError(error_type=IntegrationSetupError.OTHER)
 
     # Telnet connection not required for connection check and retrieving model information
     connect_denonavr = ConnectDenonAVR(
@@ -306,6 +321,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         update_audyssey=update_audyssey,
         zone2=zone2,
         zone3=zone3,
+        volume_step=volume_step,
     )
     config.devices.add(device)  # triggers DenonAVR instance creation
     config.devices.store()
