@@ -663,11 +663,11 @@ class DenonDevice:
         if volume_denon > 18:
             volume_denon = float(18)
         await self._receiver.async_set_volume(volume_denon)
-        self._expected_volume = volume
-        if not self._use_telnet:
-            self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
+        self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
+        if self._use_telnet and not self._update_lock.locked():
+            await self._event_loop.create_task(self.async_update_receiver_data())
         else:
-            await self.async_update_receiver_data()
+            self._expected_volume = volume
 
     @async_handle_denonlib_errors
     async def volume_up(self) -> ucapi.StatusCodes:
