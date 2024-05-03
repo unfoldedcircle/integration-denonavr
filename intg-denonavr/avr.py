@@ -225,7 +225,7 @@ class DenonDevice:
 
         # Workaround for weird state behaviour. Sometimes "off" is always returned from the denonlib!
         self._expected_state: States = States.UNKNOWN
-        self._volume_step = VOLUME_STEP
+        self._volume_step = device.volume_step
         self._update_lock = Lock()
 
         _LOG.debug("Denon AVR created: %s", device.address)
