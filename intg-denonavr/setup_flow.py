@@ -232,7 +232,16 @@ async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput |
                     "en": "Volume step",
                     "fr": "Pallier de volume",
                 },
-                "field": {"text": {"value": "0.5"}},
+                "field": {
+                   "number": {
+                       "value": 0.5,
+                       "min": 0.1,
+                       "max": 10,
+                       "steps": 0.1,
+                       "decimals": 1,
+                       "unit": {"en": "dB"}
+                   }
+                }
             },
             {
                 "id": "info",
@@ -279,7 +288,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     volume_step = 0.5
     try:
         volume_step = float(msg.input_values.get("volume_step", 0.5))
-        if volume_step < 0.1 or volume_step > 99:
+        if volume_step < 0.1 or volume_step > 10:
             return SetupError(error_type=IntegrationSetupError.OTHER)
     except ValueError:
         return SetupError(error_type=IntegrationSetupError.OTHER)
