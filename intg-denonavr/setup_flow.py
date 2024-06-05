@@ -233,15 +233,8 @@ async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput |
                     "fr": "Pallier de volume",
                 },
                 "field": {
-                   "number": {
-                       "value": 0.5,
-                       "min": 0.1,
-                       "max": 10,
-                       "steps": 0.1,
-                       "decimals": 1,
-                       "unit": {"en": "dB"}
-                   }
-                }
+                    "number": {"value": 0.5, "min": 0.1, "max": 10, "steps": 0.1, "decimals": 1, "unit": {"en": "dB"}}
+                },
             },
             {
                 "id": "info",
