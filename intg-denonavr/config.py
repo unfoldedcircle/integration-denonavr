@@ -49,6 +49,7 @@ class AvrDevice:
     update_audyssey: bool
     zone2: bool
     zone3: bool
+    volume_step: float
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
@@ -114,6 +115,13 @@ class Devices:
             if item.id == atv.id:
                 item.address = atv.address
                 item.name = atv.name
+                item.support_sound_mode = atv.support_sound_mode
+                item.show_all_inputs = atv.show_all_inputs
+                item.use_telnet = atv.use_telnet
+                item.update_audyssey = atv.update_audyssey
+                item.zone2 = atv.zone2
+                item.zone3 = atv.zone3
+                item.volume_step = atv.volume_step
                 return self.store()
         return False
 
@@ -166,10 +174,20 @@ class Devices:
             with open(self._cfg_file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             for item in data:
-                try:
-                    self._config.append(AvrDevice(**item))
-                except TypeError as ex:
-                    _LOG.warning("Invalid configuration entry will be ignored: %s", ex)
+                # not using AvrDevice(**item) to be able to migrate old configuration files with missing attributes
+                atv = AvrDevice(
+                    item.get("id"),
+                    item.get("name"),
+                    item.get("address"),
+                    item.get("support_sound_mode", True),
+                    item.get("show_all_inputs", False),
+                    item.get("use_telnet", True),
+                    item.get("update_audyssey", False),
+                    item.get("zone2", False),
+                    item.get("zone3", False),
+                    item.get("volume_step", 0.5),
+                )
+                self._config.append(atv)
             return True
         except OSError:
             _LOG.error("Cannot open the config file")
