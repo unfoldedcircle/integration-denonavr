@@ -796,6 +796,30 @@ class DenonDevice:
             await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNOPT")
 
     @async_handle_denonlib_errors
+    async def output_monitor_1(self) -> ucapi.StatusCodes:
+        """Send cursor down command to AVR."""
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("VSMONI1")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?VSMONI1")
+
+    @async_handle_denonlib_errors
+    async def output_monitor_2(self) -> ucapi.StatusCodes:
+        """Send cursor down command to AVR."""
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("VSMONI2")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?VSMONI2")
+
+    @async_handle_denonlib_errors
+    async def output_monitor_auto(self) -> ucapi.StatusCodes:
+        """Send cursor down command to AVR."""
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands("VSMONIAUTO")
+        else:
+            await self._receiver.async_get_command(AVR_COMMAND_URL + "?VSMONIAUTO")
+
+    @async_handle_denonlib_errors
     async def back(self) -> ucapi.StatusCodes:
         """Send back command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
