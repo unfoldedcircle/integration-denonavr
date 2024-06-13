@@ -11,7 +11,14 @@ from typing import Any
 import avr
 from config import AvrDevice, create_entity_id
 from ucapi import EntityTypes, MediaPlayer, StatusCodes
-from ucapi.media_player import Attributes, Commands, DeviceClasses, Features, States
+from ucapi.media_player import (
+    Attributes,
+    Commands,
+    DeviceClasses,
+    Features,
+    Options,
+    States,
+)
 
 _LOG = logging.getLogger(__name__)
 
@@ -70,15 +77,20 @@ class DenonMediaPlayer(MediaPlayer):
             attributes[Attributes.SOUND_MODE] = ""
             attributes[Attributes.SOUND_MODE_LIST] = []
 
+        self.simple_commands = ["OUTPUT_1", "OUTPUT_2", "OUTPUT_AUTO"]
+
+        options = {Options.SIMPLE_COMMANDS: self.simple_commands}
+
         super().__init__(
             entity_id,
             device.name,
             features,
             attributes,
             device_class=DeviceClasses.RECEIVER,
+            options=options,
         )
 
-    async def command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
+    async def command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:  # pylint: disable=R0915
         """
         Media-player entity command handler.
 
@@ -134,6 +146,12 @@ class DenonMediaPlayer(MediaPlayer):
             res = await self._receiver.options()
         elif cmd_id == Commands.INFO:
             res = await self._receiver.info()
+        elif cmd_id == "OUTPUT_1":
+            res = await self._receiver.output_monitor_1()
+        elif cmd_id == "OUTPUT_2":
+            res = await self._receiver.output_monitor_2()
+        elif cmd_id == "OUTPUT_AUTO":
+            res = await self._receiver.output_monitor_auto()
         else:
             return StatusCodes.NOT_IMPLEMENTED
 
