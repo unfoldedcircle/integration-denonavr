@@ -48,8 +48,8 @@ async def receiver_status_poller(interval: float = 10.0) -> None:
 @api.listens_to(ucapi.Events.CONNECT)
 async def on_r2_connect_cmd() -> None:
     """Connect all configured receivers when the Remote Two sends the connect command."""
-    # TODO check if we were in standby and ignore the call? We'll also get an EXIT_STANDBY
     _LOG.debug("R2 connect command: connecting device(s)")
+    await api.set_device_state(ucapi.DeviceStates.CONNECTED)  # just to make sure the device state is set
     for receiver in _configured_avrs.values():
         # start background task
         _LOOP.create_task(receiver.connect())
@@ -345,7 +345,11 @@ async def _async_remove(receiver: avr.DenonDevice) -> None:
 
 async def main():
     """Start the Remote Two integration driver."""
-    logging.basicConfig()
+    # logging.basicConfig()  # when running on the device: timestamps are added by the journal
+    logging.basicConfig(
+        format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
     level = os.getenv("UC_LOG_LEVEL", "DEBUG").upper()
     logging.getLogger("denonavr.ssdp").setLevel(level)
