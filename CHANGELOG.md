@@ -11,6 +11,14 @@ _Changes in the next release_
 
 ---
 
+## v0.4.0 - 2024-06-14
+### Added
+- Configurable volume step (in setup flow) and improved refresh of volume. Contributed by @albaintor, thanks! ([#38](https://github.com/unfoldedcircle/integration-denonavr/issues/38))
+- New commands for Output Monitor 1, Monitor 2, Monitor Auto. Contributed by @splattner, thanks! ([#37](https://github.com/unfoldedcircle/integration-denonavr/issues/37))
+- New commands: dim display, power toggle, trigger 1 & 2 ([#37](https://github.com/unfoldedcircle/integration-denonavr/issues/37)).
+### Fixed
+- Prevent disconnect state deadlock after setup or when aborting setup.
+
 ## v0.3.0 - 2024-03-18
 ### Added
 - New commands: dpad, menu, context_menu and info. Contributed by @albaintor, thanks! ([#33](https://github.com/unfoldedcircle/integration-denonavr/issues/33)).
