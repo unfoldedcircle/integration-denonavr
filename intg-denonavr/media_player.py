@@ -6,7 +6,6 @@ Media-player entity functions.
 """
 
 import logging
-from enum import Enum
 from typing import Any
 
 import avr
@@ -34,15 +33,20 @@ MEDIA_PLAYER_STATE_MAPPING = {
 }
 
 
-class SimpleCommands(str, Enum):
-    """Additional simple commands of the Denon AVR not covered by media-player features."""
-
-    OUTPUT_1 = "OUTPUT_1"
-    """Set HDMI monitor out 1."""
-    OUTPUT_2 = "OUTPUT_2"
-    """Set HDMI monitor out 2."""
-    OUTPUT_AUTO = "OUTPUT_AUTO"
-    """Set HDMI monitor automatic detection."""
+SimpleCommandMappings = {
+    "OUTPUT_1": "VSMONI1",
+    "OUTPUT_2": "VSMONI2",
+    "OUTPUT_AUTO": "VSMONIAUTO",
+    "DIMMER_TOGGLE": "DIM SEL",
+    "DIMMER_BRIGHT": "DIM BRI",
+    "DIMMER_DIM": "DIM DIM",
+    "DIMMER_DARK": "DIM DAR",
+    "DIMMER_OFF": "DIM OFF",
+    "TRIGGER1_ON": "TR1 ON",
+    "TRIGGER1_OFF": "TR1 OFF",
+    "TRIGGER2_ON": "TR2 ON",
+    "TRIGGER2_OFF": "TR2 OFF",
+}
 
 
 class DenonMediaPlayer(MediaPlayer):
@@ -55,6 +59,7 @@ class DenonMediaPlayer(MediaPlayer):
         entity_id = create_entity_id(receiver.id, EntityTypes.MEDIA_PLAYER)
         features = [
             Features.ON_OFF,
+            Features.TOGGLE,
             Features.VOLUME,
             Features.VOLUME_UP_DOWN,
             Features.MUTE_TOGGLE,
@@ -89,11 +94,7 @@ class DenonMediaPlayer(MediaPlayer):
             attributes[Attributes.SOUND_MODE] = ""
             attributes[Attributes.SOUND_MODE_LIST] = []
 
-        self.simple_commands = [
-            SimpleCommands.OUTPUT_1.value,
-            SimpleCommands.OUTPUT_2.value,
-            SimpleCommands.OUTPUT_AUTO.value,
-        ]
+        self.simple_commands = [*SimpleCommandMappings]
 
         options = {Options.SIMPLE_COMMANDS: self.simple_commands}
 
@@ -141,6 +142,8 @@ class DenonMediaPlayer(MediaPlayer):
                 res = await self._receiver.power_on()
             case Commands.OFF:
                 res = await self._receiver.power_off()
+            case Commands.TOGGLE:
+                res = await self._receiver.power_toggle()
             case Commands.SELECT_SOURCE:
                 res = await self._receiver.select_source(params.get("source"))
             case Commands.SELECT_SOUND_MODE:
@@ -163,12 +166,8 @@ class DenonMediaPlayer(MediaPlayer):
                 res = await self._receiver.options()
             case Commands.INFO:
                 res = await self._receiver.info()
-            case SimpleCommands.OUTPUT_1:
-                res = await self._receiver.output_monitor_1()
-            case SimpleCommands.OUTPUT_2:
-                res = await self._receiver.output_monitor_2()
-            case SimpleCommands.OUTPUT_AUTO:
-                res = await self._receiver.output_monitor_auto()
+            case cmd if cmd in SimpleCommandMappings:
+                res = await self._receiver.send_command(SimpleCommandMappings[cmd])
             case _:
                 return StatusCodes.NOT_IMPLEMENTED
 
