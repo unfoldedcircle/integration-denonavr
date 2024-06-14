@@ -797,7 +797,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def output_monitor_1(self) -> ucapi.StatusCodes:
-        """Send cursor down command to AVR."""
+        """Send set HDMI monitor out 1 command to AVR."""
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("VSMONI1")
         else:
@@ -805,7 +805,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def output_monitor_2(self) -> ucapi.StatusCodes:
-        """Send cursor down command to AVR."""
+        """Send set HDMI monitor out 2 command to AVR."""
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("VSMONI2")
         else:
@@ -813,7 +813,7 @@ class DenonDevice:
 
     @async_handle_denonlib_errors
     async def output_monitor_auto(self) -> ucapi.StatusCodes:
-        """Send cursor down command to AVR."""
+        """Send set HDMI monitor automatic detection command to AVR."""
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands("VSMONIAUTO")
         else:

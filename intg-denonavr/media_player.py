@@ -6,6 +6,7 @@ Media-player entity functions.
 """
 
 import logging
+from enum import Enum
 from typing import Any
 
 import avr
@@ -31,6 +32,17 @@ MEDIA_PLAYER_STATE_MAPPING = {
     avr.States.UNAVAILABLE: States.UNAVAILABLE,
     avr.States.UNKNOWN: States.UNKNOWN,
 }
+
+
+class SimpleCommands(str, Enum):
+    """Additional simple commands of the Denon AVR not covered by media-player features."""
+
+    OUTPUT_1 = "OUTPUT_1"
+    """Set HDMI monitor out 1."""
+    OUTPUT_2 = "OUTPUT_2"
+    """Set HDMI monitor out 2."""
+    OUTPUT_AUTO = "OUTPUT_AUTO"
+    """Set HDMI monitor automatic detection."""
 
 
 class DenonMediaPlayer(MediaPlayer):
@@ -77,7 +89,11 @@ class DenonMediaPlayer(MediaPlayer):
             attributes[Attributes.SOUND_MODE] = ""
             attributes[Attributes.SOUND_MODE_LIST] = []
 
-        self.simple_commands = ["OUTPUT_1", "OUTPUT_2", "OUTPUT_AUTO"]
+        self.simple_commands = [
+            SimpleCommands.OUTPUT_1.value,
+            SimpleCommands.OUTPUT_2.value,
+            SimpleCommands.OUTPUT_AUTO.value,
+        ]
 
         options = {Options.SIMPLE_COMMANDS: self.simple_commands}
 
@@ -90,7 +106,7 @@ class DenonMediaPlayer(MediaPlayer):
             options=options,
         )
 
-    async def command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:  # pylint: disable=R0915
+    async def command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
         """
         Media-player entity command handler.
 
@@ -106,54 +122,55 @@ class DenonMediaPlayer(MediaPlayer):
             _LOG.warning("No AVR instance for entity: %s", self.id)
             return StatusCodes.SERVICE_UNAVAILABLE
 
-        if cmd_id == Commands.PLAY_PAUSE:
-            res = await self._receiver.play_pause()
-        elif cmd_id == Commands.NEXT:
-            res = await self._receiver.next()
-        elif cmd_id == Commands.PREVIOUS:
-            res = await self._receiver.previous()
-        elif cmd_id == Commands.VOLUME:
-            res = await self._receiver.set_volume_level(params.get("volume"))
-        elif cmd_id == Commands.VOLUME_UP:
-            res = await self._receiver.volume_up()
-        elif cmd_id == Commands.VOLUME_DOWN:
-            res = await self._receiver.volume_down()
-        elif cmd_id == Commands.MUTE_TOGGLE:
-            res = await self._receiver.mute(not self.attributes[Attributes.MUTED])
-        elif cmd_id == Commands.ON:
-            res = await self._receiver.power_on()
-        elif cmd_id == Commands.OFF:
-            res = await self._receiver.power_off()
-        elif cmd_id == Commands.SELECT_SOURCE:
-            res = await self._receiver.select_source(params.get("source"))
-        elif cmd_id == Commands.SELECT_SOUND_MODE:
-            res = await self._receiver.select_sound_mode(params.get("mode"))
-        elif cmd_id == Commands.CURSOR_UP:
-            res = await self._receiver.cursor_up()
-        elif cmd_id == Commands.CURSOR_DOWN:
-            res = await self._receiver.cursor_down()
-        elif cmd_id == Commands.CURSOR_LEFT:
-            res = await self._receiver.cursor_left()
-        elif cmd_id == Commands.CURSOR_RIGHT:
-            res = await self._receiver.cursor_right()
-        elif cmd_id == Commands.CURSOR_ENTER:
-            res = await self._receiver.cursor_enter()
-        elif cmd_id == Commands.BACK:
-            res = await self._receiver.back()
-        elif cmd_id == Commands.MENU:
-            res = await self._receiver.setup()
-        elif cmd_id == Commands.CONTEXT_MENU:
-            res = await self._receiver.options()
-        elif cmd_id == Commands.INFO:
-            res = await self._receiver.info()
-        elif cmd_id == "OUTPUT_1":
-            res = await self._receiver.output_monitor_1()
-        elif cmd_id == "OUTPUT_2":
-            res = await self._receiver.output_monitor_2()
-        elif cmd_id == "OUTPUT_AUTO":
-            res = await self._receiver.output_monitor_auto()
-        else:
-            return StatusCodes.NOT_IMPLEMENTED
+        match cmd_id:
+            case Commands.PLAY_PAUSE:
+                res = await self._receiver.play_pause()
+            case Commands.NEXT:
+                res = await self._receiver.next()
+            case Commands.PREVIOUS:
+                res = await self._receiver.previous()
+            case Commands.VOLUME:
+                res = await self._receiver.set_volume_level(params.get("volume"))
+            case Commands.VOLUME_UP:
+                res = await self._receiver.volume_up()
+            case Commands.VOLUME_DOWN:
+                res = await self._receiver.volume_down()
+            case Commands.MUTE_TOGGLE:
+                res = await self._receiver.mute(not self.attributes[Attributes.MUTED])
+            case Commands.ON:
+                res = await self._receiver.power_on()
+            case Commands.OFF:
+                res = await self._receiver.power_off()
+            case Commands.SELECT_SOURCE:
+                res = await self._receiver.select_source(params.get("source"))
+            case Commands.SELECT_SOUND_MODE:
+                res = await self._receiver.select_sound_mode(params.get("mode"))
+            case Commands.CURSOR_UP:
+                res = await self._receiver.cursor_up()
+            case Commands.CURSOR_DOWN:
+                res = await self._receiver.cursor_down()
+            case Commands.CURSOR_LEFT:
+                res = await self._receiver.cursor_left()
+            case Commands.CURSOR_RIGHT:
+                res = await self._receiver.cursor_right()
+            case Commands.CURSOR_ENTER:
+                res = await self._receiver.cursor_enter()
+            case Commands.BACK:
+                res = await self._receiver.back()
+            case Commands.MENU:
+                res = await self._receiver.setup()
+            case Commands.CONTEXT_MENU:
+                res = await self._receiver.options()
+            case Commands.INFO:
+                res = await self._receiver.info()
+            case SimpleCommands.OUTPUT_1:
+                res = await self._receiver.output_monitor_1()
+            case SimpleCommands.OUTPUT_2:
+                res = await self._receiver.output_monitor_2()
+            case SimpleCommands.OUTPUT_AUTO:
+                res = await self._receiver.output_monitor_auto()
+            case _:
+                return StatusCodes.NOT_IMPLEMENTED
 
         return res
 
