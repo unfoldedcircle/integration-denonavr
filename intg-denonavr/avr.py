@@ -393,6 +393,7 @@ class DenonDevice:
 
         if self._active:
             _LOG.debug("[%s] Already connected", self.id)
+            self.events.emit(Events.CONNECTED, self.id)
             return
 
         self._connecting = True
