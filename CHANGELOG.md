@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## v0.4.1 - 2024-06-19
+### Fixed
+- Invalid logging configuration in v0.4.0
+
 ## v0.4.0 - 2024-06-14
 ### Added
 - Configurable volume step (in setup flow) and improved refresh of volume. Contributed by @albaintor, thanks! ([#38](https://github.com/unfoldedcircle/integration-denonavr/issues/38))
