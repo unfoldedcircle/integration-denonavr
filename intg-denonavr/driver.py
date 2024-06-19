@@ -345,11 +345,11 @@ async def _async_remove(receiver: avr.DenonDevice) -> None:
 
 async def main():
     """Start the Remote Two integration driver."""
-    # logging.basicConfig()  # when running on the device: timestamps are added by the journal
-    logging.basicConfig(
-        format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    logging.basicConfig()  # when running on the device: timestamps are added by the journal
+    # logging.basicConfig(
+    #     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
+    #     datefmt="%Y-%m-%d %H:%M:%S",
+    # )
 
     level = os.getenv("UC_LOG_LEVEL", "DEBUG").upper()
     logging.getLogger("denonavr.ssdp").setLevel(level)
