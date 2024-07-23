@@ -52,7 +52,7 @@ jobs:
             bash -c \
               "cd /workspace && \
               python -m pip install -r requirements.txt && \
-              pyinstaller --clean --onefile --name intg-denonavr intg-denonavr/driver.py"
+              pyinstaller --clean --onedir --name intg-denonavr intg-denonavr/driver.py"
 
       - name: Add version
         run: |
@@ -63,7 +63,9 @@ jobs:
       - name: Prepare artifacts
         shell: bash
         run: |
-          cp dist/intg-denonavr artifacts/
+          mv dist/intg-denonavr artifacts/
+          mv artifacts/intg-denonavr artifacts/bin
+          mv artifacts/bin/intg-denonavr artifacts/bin/driver
           cp driver.json artifacts/
           echo "ARTIFACT_NAME=uc-intg-${{ env.INTG_NAME }}-${{ env.VERSION }}-aarch64" >> $GITHUB_ENV
 
