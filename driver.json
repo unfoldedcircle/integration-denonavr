@@ -1,5 +1,5 @@
 {
-  "driver_id": "uc_denon_driver",
+  "driver_id": "denonavr",
   "version": "0.4.1",
   "min_core_api": "0.20.0",
   "name": {
