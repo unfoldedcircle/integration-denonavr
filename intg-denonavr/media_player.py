@@ -167,6 +167,12 @@ SimpleCommandMappings = {
     "ECO_OFF": "ECOOFF",
 }
 
+SimpleCommandMappingsDenon = {
+    **SimpleCommandMappings,
+
+    "STATUS": "RCSHP0230030",
+}
+
 
 class DenonMediaPlayer(MediaPlayer):
     """Representation of a Denon Media Player entity."""
@@ -213,7 +219,11 @@ class DenonMediaPlayer(MediaPlayer):
             attributes[Attributes.SOUND_MODE] = ""
             attributes[Attributes.SOUND_MODE_LIST] = []
 
-        self.simple_commands = [*SimpleCommandMappings]
+        # Denon has additional simple commands
+        if "denon" in device.name.lower():
+            self.simple_commands = [*SimpleCommandMappingsDenon]
+        else:
+            self.simple_commands = [*SimpleCommandMappings]
 
         options = {Options.SIMPLE_COMMANDS: self.simple_commands}
 
@@ -285,8 +295,9 @@ class DenonMediaPlayer(MediaPlayer):
                 res = await self._receiver.options()
             case Commands.INFO:
                 res = await self._receiver.info()
-            case cmd if cmd in SimpleCommandMappings:
-                res = await self._receiver.send_command(SimpleCommandMappings[cmd])
+            # Use SimpleCommandMappingsDenon as it covers both the shared and Denon specific commands
+            case cmd if cmd in SimpleCommandMappingsDenon:
+                res = await self._receiver.send_command(SimpleCommandMappingsDenon[cmd])
             case _:
                 return StatusCodes.NOT_IMPLEMENTED
 
