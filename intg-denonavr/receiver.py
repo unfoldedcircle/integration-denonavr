@@ -19,6 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 class ConnectDenonAVR:
     """Class to async connect to a DenonAVR receiver."""
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(
         self,
         host: str,
