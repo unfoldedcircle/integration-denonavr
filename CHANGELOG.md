@@ -11,6 +11,17 @@ _Changes in the next release_
 
 ---
 
+## v0.5.0 - 2024-12-06
+### Added
+- New commands contributed by @henrikwidlund, thanks! ([#47](https://github.com/unfoldedcircle/integration-denonavr/pull/47), [#48](https://github.com/unfoldedcircle/integration-denonavr/pull/48))
+  - Adjusting all channel levels
+  - Adjusting delays
+  - Discrete commands for setting surround modes and switching between next and previous
+  - MultiEQ/Audyssey settings
+  - Dirac Live controls
+  - ECO modes
+  - Status (Denon only)
+
 ## v0.4.2 - 2024-07-23
 ### Changed
 - Create a one-folder bundle with PyInstaller instead a one-file bundle to save resources.
