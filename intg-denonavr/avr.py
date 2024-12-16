@@ -404,6 +404,7 @@ class DenonDevice:
                     _LOG.info("Connecting AVR %s on %s", self.id, self._receiver.host)
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
+                    
                     if not self._receiver._is_setup:
                         await self._receiver.async_setup()
                     await self._receiver.async_update()
