@@ -429,7 +429,7 @@ class DenonDevice:
                 self.model_name,
                 self.name,
                 self.id,
-                self._receiver.state
+                self._receiver.state,
             )
 
             self._active = True
