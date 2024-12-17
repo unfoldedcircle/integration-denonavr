@@ -405,8 +405,6 @@ class DenonDevice:
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
 
-                    if not self._receiver._is_setup:
-                        await self._receiver.async_setup()
                     await self._receiver.async_update()
                     if self._use_telnet:
                         if self._update_audyssey:
