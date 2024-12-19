@@ -32,7 +32,7 @@ from denonavr.exceptions import (
     AvrTimoutError,
     DenonAvrError,
 )
-from pyee import AsyncIOEventEmitter
+from pyee.asyncio import AsyncIOEventEmitter
 from ucapi.media_player import Attributes as MediaAttr
 
 _LOG = logging.getLogger(__name__)
@@ -406,7 +406,7 @@ class DenonDevice:
                     _LOG.info("Connecting AVR %s on %s", self.id, self._receiver.host)
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
-                    await self._receiver.async_setup()
+
                     await self._receiver.async_update()
                     if self._use_telnet:
                         if self._update_audyssey:
