@@ -8,7 +8,7 @@ This module implements the Denon AVR receiver communication of the Remote Two in
 import asyncio
 import logging
 import time
-from asyncio import AbstractEventLoop
+from asyncio import AbstractEventLoop, Lock
 from enum import IntEnum
 from functools import wraps
 from typing import Any, Awaitable, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
@@ -200,7 +200,8 @@ class DenonDevice:
         self.id: str = device.id
         # friendly name from configuration
         self._name: str = device.name
-        self.events = AsyncIOEventEmitter(loop or asyncio.get_running_loop())
+        self._event_loop = loop or asyncio.get_running_loop()
+        self.events = AsyncIOEventEmitter(self._event_loop)
         self._zones: dict[str, str | None] = {}
         if device.zone2:
             self._zones["Zone2"] = None
@@ -221,10 +222,11 @@ class DenonDevice:
         self._connecting: bool = False
         self._connection_attempts: int = 0
         self._reconnect_delay: float = MIN_RECONNECT_DELAY
-        self._getting_data: bool = False
 
         # Workaround for weird state behaviour. Sometimes "off" is always returned from the denonlib!
         self._expected_state: States = States.UNKNOWN
+        self._volume_step = device.volume_step
+        self._update_lock = Lock()
 
         _LOG.debug("Denon AVR created: %s", device.address)
 
@@ -515,10 +517,10 @@ class DenonDevice:
         - an async_update task is still running.
         - a (re-)connection task is currently running.
         """
-        if self._getting_data or not self._active or self._connecting:
+        if self._update_lock.locked() or not self._active or self._connecting:
             return
 
-        self._getting_data = True
+        await self._update_lock.acquire()
 
         try:
             receiver = self._receiver
@@ -549,7 +551,7 @@ class DenonDevice:
 
             self._notify_updated_data()
         finally:
-            self._getting_data = False
+            self._update_lock.release()
 
     def _notify_updated_data(self):
         """Notify listeners that the AVR data has been updated."""
@@ -651,6 +653,13 @@ class DenonDevice:
             self._set_expected_state(States.OFF)
 
     @async_handle_denonlib_errors
+    async def power_toggle(self) -> ucapi.StatusCodes:
+        """Send power-on or -off command to AVR based on current power state."""
+        if self._receiver.power is not None and self._receiver.power == "ON":
+            await self.power_off()
+        await self.power_on()
+
+    @async_handle_denonlib_errors
     async def set_volume_level(self, volume: float | None) -> ucapi.StatusCodes:
         """Set volume level, range 0..100."""
         if volume is None:
@@ -661,21 +670,31 @@ class DenonDevice:
         if volume_denon > 18:
             volume_denon = float(18)
         await self._receiver.async_set_volume(volume_denon)
-        if not self._use_telnet:
+        self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
+        if self._use_telnet and not self._update_lock.locked():
+            await self._event_loop.create_task(self.async_update_receiver_data())
+        else:
             self._expected_volume = volume
-            self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
 
     @async_handle_denonlib_errors
     async def volume_up(self) -> ucapi.StatusCodes:
         """Send volume-up command to AVR."""
-        await self._receiver.async_volume_up()
-        self._increase_expected_volume()
+        if self._use_telnet and self._expected_volume is not None and self._volume_step != 0.5:
+            self._expected_volume = min(self._expected_volume + self._volume_step, 100)
+            await self.set_volume_level(self._expected_volume)
+        else:
+            await self._receiver.async_volume_up()
+            self._increase_expected_volume()
 
     @async_handle_denonlib_errors
     async def volume_down(self) -> ucapi.StatusCodes:
         """Send volume-down command to AVR."""
-        await self._receiver.async_volume_down()
-        self._decrease_expected_volume()
+        if self._use_telnet and self._expected_volume is not None and self._volume_step != 0.5:
+            self._expected_volume = max(self._expected_volume - self._volume_step, 0)
+            await self.set_volume_level(self._expected_volume)
+        else:
+            await self._receiver.async_volume_down()
+            self._decrease_expected_volume()
 
     @async_handle_denonlib_errors
     async def play_pause(self) -> ucapi.StatusCodes:
@@ -699,6 +718,8 @@ class DenonDevice:
         await self._receiver.async_mute(muted)
         if not self._use_telnet:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
+        else:
+            await self.async_update_receiver_data()
 
     @async_handle_denonlib_errors
     async def select_source(self, source: str | None) -> ucapi.StatusCodes:
@@ -718,95 +739,55 @@ class DenonDevice:
             return ucapi.StatusCodes.BAD_REQUEST
         await self._receiver.async_set_sound_mode(sound_mode)
 
-    @async_handle_denonlib_errors
     async def cursor_up(self) -> ucapi.StatusCodes:
         """Send cursor up command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            await self._receiver.async_send_telnet_commands("MNCUP")
-        else:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCUP")
+        return await self.send_command("MNCUP")
 
-    @async_handle_denonlib_errors
     async def cursor_down(self) -> ucapi.StatusCodes:
         """Send cursor down command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            await self._receiver.async_send_telnet_commands("MNCDN")
-        else:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCDN")
+        return await self.send_command("MNCDN")
 
-    @async_handle_denonlib_errors
     async def cursor_left(self) -> ucapi.StatusCodes:
         """Send cursor left command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            await self._receiver.async_send_telnet_commands("MNCLT")
-        else:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCLT")
+        return await self.send_command("MNCLT")
 
-    @async_handle_denonlib_errors
     async def cursor_right(self) -> ucapi.StatusCodes:
         """Send cursor right command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            await self._receiver.async_send_telnet_commands("MNCRT")
-        else:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNCRT")
+        return await self.send_command("MNCRT")
 
-    @async_handle_denonlib_errors
     async def cursor_enter(self) -> ucapi.StatusCodes:
         """Send cursor enter command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            await self._receiver.async_send_telnet_commands("MNENT")
-        else:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNENT")
+        return await self.send_command("MNENT")
 
-    @async_handle_denonlib_errors
     async def info(self) -> ucapi.StatusCodes:
         """Send info OSD command command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            await self._receiver.async_send_telnet_commands("MNINF")
-        else:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNINF")
+        return await self.send_command("MNINF")
 
-    @async_handle_denonlib_errors
     async def options(self) -> ucapi.StatusCodes:
         """Send options menu command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            await self._receiver.async_send_telnet_commands("MNOPT")
-        else:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNOPT")
+        return await self.send_command("MNOPT")
 
-    @async_handle_denonlib_errors
     async def back(self) -> ucapi.StatusCodes:
         """Send back command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            await self._receiver.async_send_telnet_commands("MNRTN")
-        else:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNRTN")
+        return await self.send_command("MNRTN")
 
-    @async_handle_denonlib_errors
     async def setup_open(self) -> ucapi.StatusCodes:
         """Send open setup menu command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            await self._receiver.async_send_telnet_commands("MNMEN ON")
-        else:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN%20ON")
+        return await self.send_command("MNMEN ON")
 
-    @async_handle_denonlib_errors
     async def setup_close(self) -> ucapi.StatusCodes:
         """Send close menu command to AVR."""
         # TODO : to be updated when PR will be released https://github.com/ol-iver/denonavr/pull/290
-        if self._use_telnet:
-            await self._receiver.async_send_telnet_commands("MNMEN OFF")
-        else:
-            await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN%20OFF")
+        return await self.send_command("MNMEN OFF")
 
     @async_handle_denonlib_errors
     async def setup(self) -> ucapi.StatusCodes:
@@ -819,16 +800,29 @@ class DenonDevice:
         else:
             await self.setup_open()
 
+    @async_handle_denonlib_errors
+    async def send_command(self, cmd: str) -> ucapi.StatusCodes:
+        """Send a command to the AVR."""
+        if self._use_telnet:
+            await self._receiver.async_send_telnet_commands(cmd)
+        else:
+            url = AVR_COMMAND_URL + "?" + cmd.replace(" ", "%20")
+            await self._receiver.async_get_command(url)
+
     def _increase_expected_volume(self):
         """Without telnet, increase expected volume and send update event."""
         if not self._use_telnet or self._expected_volume is None:
             return
-        self._expected_volume = min(self._expected_volume + VOLUME_STEP, 100)
-        self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: self._expected_volume})
+        self._expected_volume = min(self._expected_volume + self._volume_step, 100)
+        # Send updated volume if no update task in progress
+        if not self._update_lock.locked():
+            self._event_loop.create_task(self._receiver.async_update())
 
     def _decrease_expected_volume(self):
         """Without telnet, decrease expected volume and send update event."""
         if not self._use_telnet or self._expected_volume is None:
             return
-        self._expected_volume = max(self._expected_volume - VOLUME_STEP, 0)
-        self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: self._expected_volume})
+        self._expected_volume = max(self._expected_volume - self._volume_step, 0)
+        # Send updated volume if no update task in progress
+        if not self._update_lock.locked():
+            self._event_loop.create_task(self._receiver.async_update())
