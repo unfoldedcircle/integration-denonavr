@@ -7,6 +7,7 @@ This module implements the Denon AVR receiver communication of the Remote Two in
 
 import asyncio
 import logging
+import math
 import time
 from asyncio import AbstractEventLoop, Lock
 from enum import IntEnum
@@ -591,6 +592,12 @@ class DenonDevice:
             level = self.volume_level
             if level is None:
                 level = int(parameter)
+
+            # remote only displays integers, round down to the nearest integer
+            # so that the remote doesn't round up to a higher integer
+            if self._volume_step == 0.5:
+                level = math.floor(level)
+
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: level})
         elif event == "MU":  # Muted
             self._set_expected_state(States.ON)
