@@ -11,6 +11,12 @@ _Changes in the next release_
 
 ---
 
+## v0.5.1 - 2024-12-23
+### Changed
+- Improved reconnection delay by not always calling setup. Contributed by @albaintor, thanks! ([#49])(https://github.com/unfoldedcircle/integration-denonavr/pull/49)
+- Workaround for setup flow in web-configurator, not showing the first screen with address field.
+- Updated denonavr, pyee and uc-api libraries.
+
 ## v0.5.0 - 2024-12-06
 ### Added
 - New commands contributed by @henrikwidlund, thanks! ([#47](https://github.com/unfoldedcircle/integration-denonavr/pull/47), [#48](https://github.com/unfoldedcircle/integration-denonavr/pull/48))
