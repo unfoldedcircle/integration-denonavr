@@ -87,6 +87,9 @@ async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | Se
 
     _LOG.debug("Starting driver setup")
     _setup_step = SetupSteps.CONFIGURATION_MODE
+
+    await asyncio.sleep(1)
+
     # pylint: disable=line-too-long
     return RequestUserInput(
         {"en": "Setup mode", "de": "Setup Modus"},
