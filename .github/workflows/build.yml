@@ -7,19 +7,23 @@ on:
     branches: [ main ]
     tags:
       - v[0-9]+.[0-9]+.[0-9]+*
+  pull_request:
+    types: [ opened, synchronize, reopened ]
 
 env:
   INTG_NAME: denonavr
   HASH_FILENAME: uc-intg-denonavr.hash
   # Python version to use in the builder image. See https://hub.docker.com/r/arm64v8/python for possible versions.
   PYTHON_VER: 3.11.6-0.2.0
+  BUILD_CHANGELOG: build-changelog.md
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # using ubuntu-24.04: Package 'qemu' has no installation candidate
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # History of 200 should be more than enough to calculate commit count since last release tag.
           fetch-depth: 200
@@ -75,7 +79,7 @@ jobs:
           tar czvf ${{ env.ARTIFACT_NAME }}.tar.gz -C ${GITHUB_WORKSPACE}/artifacts .
           ls -lah
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         id: upload_artifact
         with:
           name: ${{ env.ARTIFACT_NAME }}
@@ -83,15 +87,34 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: "Create Changelog"
+        run: |
+          npm install -g conventional-changelog-cli
+          conventional-changelog -p conventionalcommits -u -o ${{ env.BUILD_CHANGELOG }}
+          cat ${{ env.BUILD_CHANGELOG }}
+
+      - name: Upload changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: ${{ env.BUILD_CHANGELOG }}
+          if-no-files-found: error
+          retention-days: 3
+
   release:
     name: Create Release
     if: github.ref == 'refs/heads/main' || contains(github.ref, 'tags/v')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build ]
 
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Extract build archives from downloaded files
         run: |
@@ -109,6 +132,21 @@ jobs:
         run: |
           echo "TIMESTAMP=$(date +"%Y%m%d_%H%M%S")" >> $GITHUB_ENV
 
+      # Checkout is required for the next `gh release delete` step
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: main
+
+      # We have to delete the "latest" release, otherwise `softprops/action-gh-release` will only append the new artifact.
+      # This simulates the old marvinpinto/action-automatic-releases action.
+      - name: Remove previous pre-release
+        run: |
+          cd main
+          gh release delete latest --cleanup-tag -y || true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       # Add timestamp to development builds
       - name: Create GitHub development build archives
         if: "!contains(github.ref, 'tags/v')"
@@ -117,14 +155,16 @@ jobs:
           for filename in *.tar.gz; do mv $filename "$(basename $filename .tar.gz)-${{ env.TIMESTAMP }}.tar.gz"; done;
           for filename in *.tar.gz; do echo "sha256  `sha256sum $filename`" >> ${{ env.HASH_FILENAME }}; done;
 
+      # Use conventional commit changelog, and append the GitHub generated changelog
       - name: Create Pre-Release
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: softprops/action-gh-release@v2
         if: "!contains(github.ref, 'tags/v')"
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
           prerelease: true
-          title: "Development Build"
+          tag_name: latest
+          body_path: ${{ env.BUILD_CHANGELOG }}
+          generate_release_notes: true
+          name: "Development Build"
           files: |
             *.tar.gz
             ${{ env.HASH_FILENAME }}
@@ -135,11 +175,11 @@ jobs:
           for filename in *.tar.gz; do echo "sha256  `sha256sum $filename`" >> ${{ env.HASH_FILENAME }}; done;
 
       - name: Create Release
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: softprops/action-gh-release@v2
         if: "contains(github.ref, 'tags/v')"
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
+          generate_release_notes: true
           files: |
             *.tar.gz
-            ${{ env.HASH_FILENAME }}            
+            ${{ env.HASH_FILENAME }}
