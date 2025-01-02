@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "intg-denonavr"
-version = "0.5.0"
+version = "0.5.1"
 authors = [
     { name = "Unfolded Circle ApS", email = "hello@unfoldedcircle.com" }
 ]
@@ -21,9 +21,9 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "pyee>=9.0",
-    "denonavr~=0.11.6",
-    "ucapi==0.1.7",
+    "pyee~=12.1.1",
+    "denonavr~=1.0.1",
+    "ucapi==0.2.0",
 ]
 
 [project.readme]
