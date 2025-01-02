@@ -46,6 +46,7 @@ class AvrDevice:
     support_sound_mode: bool
     show_all_inputs: bool
     use_telnet: bool
+    use_telnet_for_events: bool
     update_audyssey: bool
     zone2: bool
     zone3: bool
@@ -109,19 +110,20 @@ class Devices:
                 return dataclasses.replace(item)
         return None
 
-    def update(self, atv: AvrDevice) -> bool:
+    def update(self, avr: AvrDevice) -> bool:
         """Update a configured Denon device and persist configuration."""
         for item in self._config:
-            if item.id == atv.id:
-                item.address = atv.address
-                item.name = atv.name
-                item.support_sound_mode = atv.support_sound_mode
-                item.show_all_inputs = atv.show_all_inputs
-                item.use_telnet = atv.use_telnet
-                item.update_audyssey = atv.update_audyssey
-                item.zone2 = atv.zone2
-                item.zone3 = atv.zone3
-                item.volume_step = atv.volume_step
+            if item.id == avr.id:
+                item.address = avr.address
+                item.name = avr.name
+                item.support_sound_mode = avr.support_sound_mode
+                item.show_all_inputs = avr.show_all_inputs
+                item.use_telnet = avr.use_telnet
+                item.use_telnet_for_events = avr.use_telnet_for_events
+                item.update_audyssey = avr.update_audyssey
+                item.zone2 = avr.zone2
+                item.zone3 = avr.zone3
+                item.volume_step = avr.volume_step
                 return self.store()
         return False
 
@@ -182,6 +184,7 @@ class Devices:
                     item.get("support_sound_mode", True),
                     item.get("show_all_inputs", False),
                     item.get("use_telnet", True),
+                    item.get("use_telnet_for_events", False),
                     item.get("update_audyssey", False),
                     item.get("zone2", False),
                     item.get("zone3", False),
