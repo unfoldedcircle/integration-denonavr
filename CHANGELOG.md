@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## v0.6.0 - 2025-01-10
+### Added
+- Add option for hybrid telnet and http connection. Contributed by @henrikwidlund, thanks! ([#53](https://github.com/unfoldedcircle/integration-denonavr/pull/53))
+
 ## v0.5.1 - 2024-12-23
 ### Fixed
 - Set the device state to connected after adding a new device in the setup flow.
