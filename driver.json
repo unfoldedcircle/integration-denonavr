@@ -7,9 +7,9 @@
   },
   "icon": "uc:integration",
   "description": {
-    "en": "Control your Denon or Marantz AVRs with Remote Two.",
-    "de": "Steuere Denon oder Marantz AVRs mit Remote Two.",
-    "fr": "Contrôler Denon ou Marantz AVRs avec Remote Two."
+    "en": "Control your Denon or Marantz AVRs with Remote Two/3.",
+    "de": "Steuere Denon oder Marantz AVRs mit Remote Two/3.",
+    "fr": "Contrôler Denon ou Marantz AVRs avec Remote Two/3."
   },
   "port": 8092,
   "developer": {

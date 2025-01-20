@@ -26,7 +26,7 @@ We love contributions from everyone.
 Either by opening a feature request describing your proposed changes before submitting code, or by contacting us on
 one of the other [feedback channels](#feedback-speech_balloon).
 
-Since this software is being used on the embedded Remote Two device, we have to make sure it remains
+Since this software is being used on the embedded Remote Two/3 device, we have to make sure it remains
 compatible with the embedded runtime environment and runs smoothly.
 
 Submitting pull requests for typos, formatting issues etc. are happily accepted and usually approved relatively quick.  
