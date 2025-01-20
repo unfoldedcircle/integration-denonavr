@@ -70,6 +70,7 @@ jobs:
           mv artifacts/intg-denonavr artifacts/bin
           mv artifacts/bin/intg-denonavr artifacts/bin/driver
           cp driver.json artifacts/
+          cp LICENSE artifacts/
           echo "ARTIFACT_NAME=uc-intg-${{ env.INTG_NAME }}-${{ env.VERSION }}-aarch64" >> $GITHUB_ENV
 
       - name: Create upload artifact
