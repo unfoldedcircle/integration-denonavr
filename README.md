@@ -1,4 +1,4 @@
-# Denon AVR integration for Remote Two
+# Denon AVR integration for Remote Two/3
 
 Using [denonavr](https://github.com/ol-iver/denonavr)
 and [uc-integration-api](https://github.com/aitatoi/integration-python-library)
@@ -37,11 +37,11 @@ Supported commands:
 pip3 install -r requirements.txt
 ```
 
-For running a separate integration driver on your network for Remote Two, the configuration in file
+For running a separate integration driver on your network for Remote Two/3, the configuration in file
 [driver.json](driver.json) needs to be changed:
 
 - Set `driver_id` to a unique value, `uc_denon_driver` is already used for the embedded driver in the firmware.
-- Change `name` to easily identify the driver for discovery & setup with Remote Two or the web-configurator.
+- Change `name` to easily identify the driver for discovery & setup with Remote Two/3 or the web-configurator.
 - Optionally add a `"port": 8090` field for the WebSocket server listening port.
     - Default port: `9090`
     - Also overrideable with environment variable `UC_INTEGRATION_HTTP_PORT`

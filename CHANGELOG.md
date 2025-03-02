@@ -1,4 +1,4 @@
-# Denon AVR integration for Remote Two Changelog
+# Denon AVR integration for Remote Two/3 Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 _Changes in the next release_
 
 ---
+
+## v0.6.0 - 2025-01-10
+### Added
+- Add option for hybrid telnet and http connection. Contributed by @henrikwidlund, thanks! ([#53](https://github.com/unfoldedcircle/integration-denonavr/pull/53))
 
 ## v0.5.1 - 2024-12-23
 ### Fixed

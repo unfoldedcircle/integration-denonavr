@@ -1,15 +1,15 @@
 {
   "driver_id": "denonavr",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "min_core_api": "0.20.0",
   "name": {
     "en": "Denon AVR Network Receivers"
   },
   "icon": "uc:integration",
   "description": {
-    "en": "Control your Denon or Marantz AVRs with Remote Two.",
-    "de": "Steuere Denon oder Marantz AVRs mit Remote Two.",
-    "fr": "Contrôler Denon ou Marantz AVRs avec Remote Two."
+    "en": "Control your Denon or Marantz AVRs with Remote Two/3.",
+    "de": "Steuere Denon oder Marantz AVRs mit Remote Two/3.",
+    "fr": "Contrôler Denon ou Marantz AVRs avec Remote Two/3."
   },
   "port": 8092,
   "developer": {
@@ -44,5 +44,5 @@
       }
     ]
   },
-  "release_date": "2024-12-23"
+  "release_date": "2025-01-10"
 }

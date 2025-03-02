@@ -152,6 +152,7 @@ async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput |
             zone2=False,
             zone3=False,
             use_telnet=False,
+            use_telnet_for_events=False,
             update_audyssey=False,
         )
 
@@ -221,13 +222,43 @@ async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput |
             #     "field": {"checkbox": {"value": False}},
             # },
             {
-                "id": "use_telnet",
+                "id": "connection_mode",
                 "label": {
-                    "en": "Use Telnet connection",
-                    "de": "Telnet-Verbindung verwenden",
-                    "fr": "Utilise une connexion Telnet",
+                    "en": "Connection mode",
+                    "de": "Verbindungstyp",
+                    "fr": "Mode de connexion",
                 },
-                "field": {"checkbox": {"value": True}},
+                "field": {
+                    "dropdown": {
+                        "value": "use_telnet",
+                        "items": [
+                            {
+                                "id": "use_telnet",
+                                "label": {
+                                    "en": "Use Telnet connection",
+                                    "de": "Telnet-Verbindung verwenden",
+                                    "fr": "Utilise une connexion Telnet",
+                                },
+                            },
+                            {
+                                "id": "use_telnet_for_events",
+                                "label": {
+                                    "en": "Use Telnet connection for events",
+                                    "de": "Telnet-Verbindung für Ereignisse verwenden",
+                                    "fr": "Utilise une connexion Telnet pour les événements",
+                                },
+                            },
+                            {
+                                "id": "use_http",
+                                "label": {
+                                    "en": "Use HTTP connection",
+                                    "de": "HTTP-Verbindung verwenden",
+                                    "fr": "Utilise une connexion HTTP",
+                                },
+                            },
+                        ],
+                    }
+                },
             },
             {
                 "id": "volume_step",
@@ -247,15 +278,23 @@ async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput |
                         "value": {
                             "en": "Using telnet provides realtime updates for many values but "
                             "certain receivers allow a single connection only! If you enable this "
-                            "setting, other apps or systems may no longer work.",
+                            "setting, other apps or systems may no longer work. "
+                            "Using Telnet for events is faster for regular commands while still providing realtime"
+                            " updates. Same limitations regarding Telnet apply.",
                             "de": "Die Verwendung von telnet bietet Echtzeit-Updates für viele "
                             "Werte, aber bestimmte Verstärker erlauben nur eine einzige "
                             "Verbindung! Mit dieser Einstellung können andere Apps oder Systeme "
-                            "nicht mehr funktionieren.",
+                            "nicht mehr funktionieren. "
+                            "Die Verwendung von Telnet für Ereignisse ist schneller für normale Befehle, "
+                            "bietet aber immer noch Echtzeit-Updates. Die gleichen Einschränkungen in Bezug auf Telnet"
+                            " gelten.",
                             "fr": "L'utilisation de telnet fournit des mises à jour en temps réel "
                             "pour de nombreuses valeurs, mais certains amplificateurs ne "
                             "permettent qu'une seule connexion! Avec ce paramètre, d'autres "
-                            "applications ou systèmes ne peuvent plus fonctionner.",
+                            "applications ou systèmes ne peuvent plus fonctionner. "
+                            "L'utilisation de Telnet pour les événements est plus rapide pour les commandes classiques "
+                            "tout en fournissant des mises à jour en temps réel. Les mêmes limitations concernant"
+                            " Telnet s'appliquent.",
                         }
                     }
                 },
@@ -280,7 +319,9 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     update_audyssey = False  # not yet supported
     zone2 = msg.input_values.get("zone2") == "true"
     zone3 = msg.input_values.get("zone3") == "true"
-    use_telnet = msg.input_values.get("use_telnet") == "true"
+    connection_mode = msg.input_values.get("connection_mode")
+    use_telnet = connection_mode == "use_telnet"
+    use_telnet_for_events = connection_mode == "use_telnet_for_events"
     volume_step = 0.5
     try:
         volume_step = float(msg.input_values.get("volume_step", 0.5))
@@ -297,6 +338,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         zone2,
         zone3,
         use_telnet=False,  # always False, connection only used to retrieve model information
+        use_telnet_for_events=False,  # always False, connection only used to retrieve model information
         update_audyssey=False,  # always False, connection only used to retrieve model information
     )
 
@@ -323,6 +365,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         receiver.support_sound_mode,
         show_all_inputs,
         use_telnet=use_telnet,
+        use_telnet_for_events=use_telnet_for_events,
         update_audyssey=update_audyssey,
         zone2=zone2,
         zone3=zone3,
