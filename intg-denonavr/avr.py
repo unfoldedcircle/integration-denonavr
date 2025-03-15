@@ -807,8 +807,7 @@ class DenonDevice:
             res = await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN?")
             if res is not None and res == "MNMEN ON":
                 return await self.send_command("MNMEN ON")
-            else:
-                return await self.send_command("MNMEN OFF")
+            return await self.send_command("MNMEN OFF")
 
         return self._receiver.async_settings_menu()
 
