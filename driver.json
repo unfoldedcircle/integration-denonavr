@@ -1,6 +1,6 @@
 {
   "driver_id": "denonavr",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "min_core_api": "0.20.0",
   "name": {
     "en": "Denon AVR Network Receivers"
@@ -44,5 +44,5 @@
       }
     ]
   },
-  "release_date": "2025-01-10"
+  "release_date": "2025-03-24"
 }

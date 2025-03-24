@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## v0.6.1 - 2025-03-24
+### Changed
+- Maintain ability to skip telnet in hybrid mode. Contributed by @henrikwidlund, thanks! ([#55](https://github.com/unfoldedcircle/integration-denonavr/pull/55))
+
 ## v0.6.0 - 2025-01-10
 ### Added
 - Add option for hybrid telnet and http connection. Contributed by @henrikwidlund, thanks! ([#53](https://github.com/unfoldedcircle/integration-denonavr/pull/53))
