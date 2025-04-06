@@ -417,7 +417,12 @@ class DenonDevice:
                         if self._update_audyssey:
                             await self._receiver.async_update_audyssey()
                         await self._receiver.async_telnet_connect()
+
                         self._receiver.register_callback(ALL_TELNET_EVENTS, self._telnet_callback)
+
+                        # TODO: remove once https://github.com/ol-iver/denonavr/pull/323 is merged
+                        # Avoid waiting 2 seconds for each command that doesn't respond (cursor, enter etc)
+                        self._receiver._device.telnet_api._send_confirmation_timeout = 0.1
 
                     success = True
                     self._connection_attempts = 0
@@ -803,13 +808,11 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def setup(self) -> ucapi.StatusCodes:
         """Send toggle open/close menu command to AVR."""
-        if self._use_telnet_for_events:
-            res = await self._receiver.async_get_command(AVR_COMMAND_URL + "?MNMEN?")
-            if res is not None and res == "MNMEN ON":
-                return await self.send_command("MNMEN ON")
-            return await self.send_command("MNMEN OFF")
-
-        return self._receiver.async_settings_menu()
+        # Toggle only works when receiving events via Telnet
+        # Users using HTTP will have to use the back/return button
+        if self._use_telnet or self._use_telnet_for_events:
+            return await self._receiver.async_settings_menu()
+        return await self.send_command("MNMEN ON")
 
     @async_handle_denonlib_errors
     async def send_command(self, cmd: str) -> ucapi.StatusCodes:
