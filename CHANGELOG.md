@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## v0.6.2 - 2025-04-07
+### Fixed
+- Adjust command timeout and settings menu. Contributed by @henrikwidlund, thanks! ([#56](https://github.com/unfoldedcircle/integration-denonavr/pull/56))
+
 ## v0.6.1 - 2025-03-24
 ### Changed
 - Maintain ability to skip telnet in hybrid mode. Contributed by @henrikwidlund, thanks! ([#55](https://github.com/unfoldedcircle/integration-denonavr/pull/55))
