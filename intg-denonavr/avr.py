@@ -422,7 +422,8 @@ class DenonDevice:
 
                         # TODO: remove once https://github.com/ol-iver/denonavr/pull/323 is merged
                         # Avoid waiting 2 seconds for each command that doesn't respond (cursor, enter etc)
-                        self._receiver._device.telnet_api._send_confirmation_timeout = 0.1
+                        # pylint: disable=W0212
+                        self._receiver._device.telnet_api._send_confirmation_timeout = 0.25
 
                     success = True
                     self._connection_attempts = 0
