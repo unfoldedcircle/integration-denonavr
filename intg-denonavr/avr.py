@@ -33,6 +33,7 @@ from denonavr.exceptions import (
     DenonAvrError,
 )
 from pyee.asyncio import AsyncIOEventEmitter
+from simplecommand import SimpleCommand
 from ucapi.media_player import Attributes as MediaAttr
 
 _LOG = logging.getLogger(__name__)
@@ -212,6 +213,7 @@ class DenonDevice:
             host=device.address, show_all_inputs=device.show_all_inputs, timeout=timeout, add_zones=self._zones
         )
         self._update_audyssey = device.update_audyssey
+        self._simple_command = SimpleCommand(self._receiver, self._send_command_wrapper)
 
         self._active: bool = False
         self._use_telnet = device.use_telnet
@@ -822,6 +824,11 @@ class DenonDevice:
         The command is either sent over telnet, if it is active, or with a http request.
         """
         return await self._send_command(cmd)
+
+    @async_handle_denonlib_errors
+    async def send_simple_command(self, cmd: str) -> ucapi.StatusCodes:
+        """Send a simple command to the AVR."""
+        return await self._simple_command.send_simple_command(cmd)
 
     async def _send_command(self, cmd: str) -> ucapi.StatusCodes:
         """Send a command without error wrapper."""
