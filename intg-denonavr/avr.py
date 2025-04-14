@@ -758,48 +758,56 @@ class DenonDevice:
             return ucapi.StatusCodes.BAD_REQUEST
         await self._receiver.async_set_sound_mode(sound_mode)
 
+    @async_handle_denonlib_errors
     async def cursor_up(self) -> ucapi.StatusCodes:
         """Send cursor up command to AVR."""
         if self._use_telnet_for_events:
             return await self.send_command("MNCUP")
         return await self._receiver.async_cursor_up()
 
+    @async_handle_denonlib_errors
     async def cursor_down(self) -> ucapi.StatusCodes:
         """Send cursor down command to AVR."""
         if self._use_telnet_for_events:
             return await self.send_command("MNCDN")
         return await self._receiver.async_cursor_down()
 
+    @async_handle_denonlib_errors
     async def cursor_left(self) -> ucapi.StatusCodes:
         """Send cursor left command to AVR."""
         if self._use_telnet_for_events:
             return await self.send_command("MNCLT")
         return await self._receiver.async_cursor_left()
 
+    @async_handle_denonlib_errors
     async def cursor_right(self) -> ucapi.StatusCodes:
         """Send cursor right command to AVR."""
         if self._use_telnet_for_events:
             return await self.send_command("MNCRT")
         return await self._receiver.async_cursor_right()
 
+    @async_handle_denonlib_errors
     async def cursor_enter(self) -> ucapi.StatusCodes:
         """Send cursor enter command to AVR."""
         if self._use_telnet_for_events:
             return await self.send_command("MNENT")
         return await self._receiver.async_cursor_enter()
 
+    @async_handle_denonlib_errors
     async def info(self) -> ucapi.StatusCodes:
         """Send info OSD command command to AVR."""
         if self._use_telnet_for_events:
             return await self.send_command("MNINF")
         return await self._receiver.async_info()
 
+    @async_handle_denonlib_errors
     async def options(self) -> ucapi.StatusCodes:
         """Send options menu command to AVR."""
         if self._use_telnet_for_events:
             return await self.send_command("MNOPT")
         return await self._receiver.async_options()
 
+    @async_handle_denonlib_errors
     async def back(self) -> ucapi.StatusCodes:
         """Send back command to AVR."""
         if self._use_telnet_for_events:
