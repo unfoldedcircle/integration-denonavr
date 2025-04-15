@@ -215,6 +215,7 @@ class DenonDevice:
 
         self._active: bool = False
         self._use_telnet = device.use_telnet
+        # force the commands that don't return anything at all, not even acknowledge of the command, to use http
         self._use_telnet_for_events = device.use_telnet_for_events
         self._telnet_was_healthy: bool | None = None
         self._attr_available: bool = True
@@ -772,7 +773,6 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def cursor_up(self) -> ucapi.StatusCodes:
         """Send cursor up command to AVR."""
-        # TODO something is missing for `_use_telnet_for_events`: it is sent by http in send_command!
         if self._use_telnet_for_events:
             return await self._send_command("MNCUP")
         await self._receiver.async_cursor_up()
@@ -854,7 +854,6 @@ class DenonDevice:
 
     async def _send_command(self, cmd: str) -> ucapi.StatusCodes:
         """Send a command without error wrapper."""
-        # TODO does not work if _use_telnet_for_events is set, missing check or misunderstanding?
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands(cmd)
         else:
