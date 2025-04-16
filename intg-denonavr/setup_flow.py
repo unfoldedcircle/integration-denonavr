@@ -71,12 +71,46 @@ _user_input_discovery = RequestUserInput(
             },
         },
         {
-            "field": {"text": {"value": ""}},
             "id": "address",
-            "label": {"en": "IP address", "de": "IP-Adresse", "fr": "Adresse IP"},
+            "label": {
+                "en": "Manual IP address or hostname",
+                "de": "Manuelle IP-Adresse oder Hostname",
+                "fr": "Adresse IP manuelle ou nom d’hôte",
+            },
+            "field": {"text": {"value": ""}},
         },
     ],
 )
+
+_telnet_info = {
+    "id": "info",
+    "label": {"en": "Please note:", "de": "Bitte beachten:", "fr": "Veuillez noter:"},
+    "field": {
+        "label": {
+            "value": {
+                "en": "Using telnet provides realtime updates for many values but "
+                "certain receivers allow a single connection only! If you enable this "
+                "setting, other apps or systems may no longer work. "
+                "Using Telnet for events is faster for regular commands while still providing realtime"
+                " updates. Same limitations regarding Telnet apply.",
+                "de": "Die Verwendung von telnet bietet Echtzeit-Updates für viele "
+                "Werte, aber bestimmte Verstärker erlauben nur eine einzige "
+                "Verbindung! Mit dieser Einstellung können andere Apps oder Systeme "
+                "nicht mehr funktionieren. "
+                "Die Verwendung von Telnet für Ereignisse ist schneller für normale Befehle, "
+                "bietet aber immer noch Echtzeit-Updates. Die gleichen Einschränkungen in Bezug auf Telnet"
+                " gelten.",
+                "fr": "L'utilisation de telnet fournit des mises à jour en temps réel "
+                "pour de nombreuses valeurs, mais certains amplificateurs ne "
+                "permettent qu'une seule connexion! Avec ce paramètre, d'autres "
+                "applications ou systèmes ne peuvent plus fonctionner. "
+                "L'utilisation de Telnet pour les événements est plus rapide pour les commandes classiques "
+                "tout en fournissant des mises à jour en temps réel. Les mêmes limitations concernant"
+                " Telnet s'appliquent.",
+            }
+        }
+    },
+}
 
 
 async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
@@ -109,10 +143,6 @@ async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
     elif isinstance(msg, AbortDriverSetup):
         _LOG.info("Setup was aborted with code: %s", msg.error)
         _setup_step = SetupSteps.INIT
-
-    # user confirmation not used in setup process
-    # if isinstance(msg, UserConfirmationResponse):
-    #     return handle_user_confirmation(msg)
 
     return SetupError()
 
@@ -307,100 +337,10 @@ async def handle_configuration_mode(
                     "fr": "Configurez votre AVR",
                 },
                 [
-                    {
-                        "id": "show_all_inputs",
-                        "label": {
-                            "en": "Show all sources",
-                            "de": "Alle Quellen anzeigen",
-                            "fr": "Afficher tous les sources",
-                        },
-                        "field": {"checkbox": {"value": show_all_inputs}},
-                    },
-                    {
-                        "id": "connection_mode",
-                        "label": {
-                            "en": "Connection mode",
-                            "de": "Verbindungstyp",
-                            "fr": "Mode de connexion",
-                        },
-                        "field": {
-                            "dropdown": {
-                                "value": connection_mode,
-                                "items": [
-                                    {
-                                        "id": "use_telnet",
-                                        "label": {
-                                            "en": "Use Telnet connection",
-                                            "de": "Telnet-Verbindung verwenden",
-                                            "fr": "Utilise une connexion Telnet",
-                                        },
-                                    },
-                                    {
-                                        "id": "use_telnet_for_events",
-                                        "label": {
-                                            "en": "Use Telnet connection for events",
-                                            "de": "Telnet-Verbindung für Ereignisse verwenden",
-                                            "fr": "Utilise une connexion Telnet pour les événements",
-                                        },
-                                    },
-                                    {
-                                        "id": "use_http",
-                                        "label": {
-                                            "en": "Use HTTP connection",
-                                            "de": "HTTP-Verbindung verwenden",
-                                            "fr": "Utilise une connexion HTTP",
-                                        },
-                                    },
-                                ],
-                            }
-                        },
-                    },
-                    {
-                        "id": "volume_step",
-                        "label": {
-                            "en": "Volume step",
-                            "fr": "Pallier de volume",
-                        },
-                        "field": {
-                            "number": {
-                                "value": volume_step,
-                                "min": 0.5,
-                                "max": 10,
-                                "steps": 1,
-                                "decimals": 1,
-                                "unit": {"en": "dB"},
-                            }
-                        },
-                    },
-                    {
-                        "id": "info",
-                        "label": {"en": "Please note:", "de": "Bitte beachten:", "fr": "Veuillez noter:"},
-                        "field": {
-                            "label": {
-                                "value": {
-                                    "en": "Using telnet provides realtime updates for many values but "
-                                    "certain receivers allow a single connection only! If you enable this "
-                                    "setting, other apps or systems may no longer work. "
-                                    "Using Telnet for events is faster for regular commands while still providing realtime"
-                                    " updates. Same limitations regarding Telnet apply.",
-                                    "de": "Die Verwendung von telnet bietet Echtzeit-Updates für viele "
-                                    "Werte, aber bestimmte Verstärker erlauben nur eine einzige "
-                                    "Verbindung! Mit dieser Einstellung können andere Apps oder Systeme "
-                                    "nicht mehr funktionieren. "
-                                    "Die Verwendung von Telnet für Ereignisse ist schneller für normale Befehle, "
-                                    "bietet aber immer noch Echtzeit-Updates. Die gleichen Einschränkungen in Bezug auf Telnet"
-                                    " gelten.",
-                                    "fr": "L'utilisation de telnet fournit des mises à jour en temps réel "
-                                    "pour de nombreuses valeurs, mais certains amplificateurs ne "
-                                    "permettent qu'une seule connexion! Avec ce paramètre, d'autres "
-                                    "applications ou systèmes ne peuvent plus fonctionner. "
-                                    "L'utilisation de Telnet pour les événements est plus rapide pour les commandes classiques "
-                                    "tout en fournissant des mises à jour en temps réel. Les mêmes limitations concernant"
-                                    " Telnet s'appliquent.",
-                                }
-                            }
-                        },
-                    },
+                    __show_all_inputs_cfg(show_all_inputs),
+                    __connection_mode_cfg(connection_mode),
+                    __volume_cfg(volume_step),
+                    _telnet_info,
                 ],
             )
         case "reset":
@@ -479,15 +419,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
                     "fr": "Choisissez votre Denon AVR",
                 },
             },
-            {
-                "id": "show_all_inputs",
-                "label": {
-                    "en": "Show all sources",
-                    "de": "Alle Quellen anzeigen",
-                    "fr": "Afficher tous les sources",
-                },
-                "field": {"checkbox": {"value": False}},
-            },
+            __show_all_inputs_cfg(False),
             # TODO #21 support multiple zones
             # {
             #     "id": "zone2",
@@ -507,84 +439,9 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             #     },
             #     "field": {"checkbox": {"value": False}},
             # },
-            {
-                "id": "connection_mode",
-                "label": {
-                    "en": "Connection mode",
-                    "de": "Verbindungstyp",
-                    "fr": "Mode de connexion",
-                },
-                "field": {
-                    "dropdown": {
-                        "value": "use_telnet",
-                        "items": [
-                            {
-                                "id": "use_telnet",
-                                "label": {
-                                    "en": "Use Telnet connection",
-                                    "de": "Telnet-Verbindung verwenden",
-                                    "fr": "Utilise une connexion Telnet",
-                                },
-                            },
-                            {
-                                "id": "use_telnet_for_events",
-                                "label": {
-                                    "en": "Use Telnet connection for events",
-                                    "de": "Telnet-Verbindung für Ereignisse verwenden",
-                                    "fr": "Utilise une connexion Telnet pour les événements",
-                                },
-                            },
-                            {
-                                "id": "use_http",
-                                "label": {
-                                    "en": "Use HTTP connection",
-                                    "de": "HTTP-Verbindung verwenden",
-                                    "fr": "Utilise une connexion HTTP",
-                                },
-                            },
-                        ],
-                    }
-                },
-            },
-            {
-                "id": "volume_step",
-                "label": {
-                    "en": "Volume step",
-                    "fr": "Pallier de volume",
-                },
-                "field": {
-                    "number": {"value": 0.5, "min": 0.5, "max": 10, "steps": 1, "decimals": 1, "unit": {"en": "dB"}}
-                },
-            },
-            {
-                "id": "info",
-                "label": {"en": "Please note:", "de": "Bitte beachten:", "fr": "Veuillez noter:"},
-                "field": {
-                    "label": {
-                        "value": {
-                            "en": "Using telnet provides realtime updates for many values but "
-                            "certain receivers allow a single connection only! If you enable this "
-                            "setting, other apps or systems may no longer work. "
-                            "Using Telnet for events is faster for regular commands while still providing realtime"
-                            " updates. Same limitations regarding Telnet apply.",
-                            "de": "Die Verwendung von telnet bietet Echtzeit-Updates für viele "
-                            "Werte, aber bestimmte Verstärker erlauben nur eine einzige "
-                            "Verbindung! Mit dieser Einstellung können andere Apps oder Systeme "
-                            "nicht mehr funktionieren. "
-                            "Die Verwendung von Telnet für Ereignisse ist schneller für normale Befehle, "
-                            "bietet aber immer noch Echtzeit-Updates. Die gleichen Einschränkungen in Bezug auf Telnet"
-                            " gelten.",
-                            "fr": "L'utilisation de telnet fournit des mises à jour en temps réel "
-                            "pour de nombreuses valeurs, mais certains amplificateurs ne "
-                            "permettent qu'une seule connexion! Avec ce paramètre, d'autres "
-                            "applications ou systèmes ne peuvent plus fonctionner. "
-                            "L'utilisation de Telnet pour les événements est plus rapide pour les commandes classiques "
-                            "tout en fournissant des mises à jour en temps réel. Les mêmes limitations concernant"
-                            " Telnet s'appliquent.",
-                        }
-                    }
-                },
-            },
+            __connection_mode_cfg("use_telnet"),
+            __volume_cfg(1),
+            _telnet_info,
         ],
     )
 
@@ -707,3 +564,68 @@ async def _handle_device_reconfigure(
     _LOG.info("Setup successfully completed for %s", _reconfigured_device.name)
 
     return SetupComplete()
+
+
+def __show_all_inputs_cfg(enabled: bool):
+    return {
+        "id": "show_all_inputs",
+        "label": {
+            "en": "Show all sources",
+            "de": "Alle Quellen anzeigen",
+            "fr": "Afficher tous les sources",
+        },
+        "field": {"checkbox": {"value": enabled}},
+    }
+
+
+def __connection_mode_cfg(mode: str):
+    return {
+        "id": "connection_mode",
+        "label": {
+            "en": "Connection mode",
+            "de": "Verbindungstyp",
+            "fr": "Mode de connexion",
+        },
+        "field": {
+            "dropdown": {
+                "value": mode,
+                "items": [
+                    {
+                        "id": "use_telnet",
+                        "label": {
+                            "en": "Use Telnet connection",
+                            "de": "Telnet-Verbindung verwenden",
+                            "fr": "Utilise une connexion Telnet",
+                        },
+                    },
+                    {
+                        "id": "use_telnet_for_events",
+                        "label": {
+                            "en": "Use Telnet connection for events",
+                            "de": "Telnet-Verbindung für Ereignisse verwenden",
+                            "fr": "Utilise une connexion Telnet pour les événements",
+                        },
+                    },
+                    {
+                        "id": "use_http",
+                        "label": {
+                            "en": "Use HTTP connection",
+                            "de": "HTTP-Verbindung verwenden",
+                            "fr": "Utilise une connexion HTTP",
+                        },
+                    },
+                ],
+            }
+        },
+    }
+
+
+def __volume_cfg(step: float):
+    return {
+        "id": "volume_step",
+        "label": {
+            "en": "Volume step",
+            "fr": "Pallier de volume",
+        },
+        "field": {"number": {"value": step, "min": 0.5, "max": 10, "steps": 1, "decimals": 1, "unit": {"en": "dB"}}},
+    }
