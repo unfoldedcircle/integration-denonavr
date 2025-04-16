@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Fixed
+- Missing response status codes when using http requests lead to timeout errors in UI. Contributed by @henrikwidlund, thanks! ([#56](https://github.com/unfoldedcircle/integration-denonavr/pull/58))
+- Power toggle command ([#59](https://github.com/unfoldedcircle/integration-denonavr/pull/59)).
+
 ---
 
 ## v0.6.2 - 2025-04-07
