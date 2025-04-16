@@ -88,6 +88,10 @@ class Devices:
         """Get an iterator for all device configurations."""
         return iter(self._config)
 
+    def is_empty(self) -> bool:
+        """Check if there are any device configurations."""
+        return len(self._config) == 0
+
     def contains(self, avr_id: str) -> bool:
         """Check if there's a device with the given device identifier."""
         for item in self._config:

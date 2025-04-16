@@ -35,10 +35,48 @@ class SetupSteps(IntEnum):
 
     INIT = 0
     CONFIGURATION_MODE = 1
-    DEVICE_CHOICE = 2
+    DISCOVER = 2
+    DEVICE_CHOICE = 3
+    RECONFIGURE = 4
 
 
 _setup_step = SetupSteps.INIT
+_cfg_add_device: bool = False
+_reconfigured_device: AvrDevice | None = None
+
+# pylint: disable=line-too-long
+_user_input_discovery = RequestUserInput(
+    {"en": "Setup mode", "de": "Setup Modus", "fr": "Installation"},
+    [
+        {
+            "id": "info",
+            "label": {"en": ""},
+            "field": {
+                "label": {
+                    "value": {
+                        "en": (
+                            "Leave blank to use auto-discovery and click _Next_.\n\n"
+                            "The device must be on the same network as the remote."
+                        ),
+                        "de": (
+                            "Leer lassen, um automatische Erkennung zu verwenden und auf _Weiter_ klicken.\n\n"
+                            "Das Gerät muss sich im gleichen Netzwerk wie die Fernbedienung befinden."
+                        ),
+                        "fr": (
+                            "Laissez le champ vide pour utiliser la découverte automatique et cliquez sur _Suivant_.\n\n"  # noqa: E501
+                            "L'appareil doit être sur le même réseau que la télécommande"
+                        ),
+                    }
+                }
+            },
+        },
+        {
+            "field": {"text": {"value": ""}},
+            "id": "address",
+            "label": {"en": "IP address", "de": "IP-Adresse", "fr": "Adresse IP"},
+        },
+    ],
+)
 
 
 async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
@@ -51,16 +89,22 @@ async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
     :return: the setup action on how to continue
     """
     global _setup_step
+    global _reconfigured_device
 
     if isinstance(msg, DriverSetupRequest):
         _setup_step = SetupSteps.INIT
+        _reconfigured_device = None
         return await handle_driver_setup(msg)
     if isinstance(msg, UserDataResponse):
-        _LOG.debug(msg)
-        if _setup_step == SetupSteps.CONFIGURATION_MODE and "address" in msg.input_values:
+        _LOG.debug("UserDataResponse: %s %s", msg, _setup_step)
+        if _setup_step == SetupSteps.CONFIGURATION_MODE and "action" in msg.input_values:
             return await handle_configuration_mode(msg)
+        if _setup_step == SetupSteps.DISCOVER and "address" in msg.input_values:
+            return await _handle_discovery(msg)
         if _setup_step == SetupSteps.DEVICE_CHOICE and "choice" in msg.input_values:
             return await handle_device_choice(msg)
+        if _setup_step == SetupSteps.RECONFIGURE:
+            return await _handle_device_reconfigure(msg)
         _LOG.error("No or invalid user response was received: %s", msg)
     elif isinstance(msg, AbortDriverSetup):
         _LOG.info("Setup was aborted with code: %s", msg.error)
@@ -73,59 +117,138 @@ async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
     return SetupError()
 
 
-async def handle_driver_setup(_msg: DriverSetupRequest) -> RequestUserInput | SetupError:
+async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | SetupError:
     """
     Start driver setup.
 
-    Initiated by Remote Two to set up the driver.
+    Initiated by Remote Two to set up the driver. The reconfigure flag determines the setup flow:
+
+    - Reconfigure is True: show the configured devices and ask user what action to perform (add, delete, reset).
+    - Reconfigure is False: clear the existing configuration and show device discovery screen.
     Ask user to enter ip-address for manual configuration, otherwise auto-discovery is used.
 
-    :param _msg: not used, we don't have any input fields in the first setup screen.
+    :param msg: driver setup request data, only `reconfigure` flag is of interest.
     :return: the setup action on how to continue
     """
     global _setup_step
 
-    _LOG.debug("Starting driver setup")
-    _setup_step = SetupSteps.CONFIGURATION_MODE
+    reconfigure = msg.reconfigure
+    _LOG.debug("Starting driver setup, reconfigure=%s", reconfigure)
 
+    # workaround for web-configurator not picking up first response
     await asyncio.sleep(1)
 
-    # pylint: disable=line-too-long
-    return RequestUserInput(
-        {"en": "Setup mode", "de": "Setup Modus"},
-        [
-            {
-                "id": "info",
-                "label": {"en": ""},
-                "field": {
+    if reconfigure:
+        _setup_step = SetupSteps.CONFIGURATION_MODE
+
+        # get all configured devices for the user to choose from
+        dropdown_devices = []
+        for device in config.devices.all():
+            dropdown_devices.append(
+                {
+                    "id": device.id,
+                    "label": {"en": f"{device.name} ({device.id} - {device.address})"},
+                }
+            )
+
+        # TODO #27 externalize language texts
+        # build user actions, based on available devices
+        # TODO #20 multiple receivers, for now only show "add" if there is nothing configured yet
+        if config.devices.is_empty():
+            dropdown_actions = [
+                {
+                    "id": "add",
                     "label": {
-                        "value": {
-                            "en": (
-                                "Leave blank to use auto-discovery and click _Next_."
-                                "The device must be on the same network as the remote."
-                            ),
-                            "de": (
-                                "Leer lassen, um automatische Erkennung zu verwenden und auf _Weiter_ klicken."
-                                "Das Gerät muss sich im gleichen Netzwerk wie die Fernbedienung befinden."
-                            ),
-                            "fr": (
-                                "Laissez le champ vide pour utiliser la découverte automatique et cliquez sur _Suivant_."  # noqa: E501
-                                "L'appareil doit être sur le même réseau que la télécommande"
-                            ),
-                        }
-                    }
+                        "en": "Add a new device",
+                        "de": "Neues Gerät hinzufügen",
+                        "fr": "Ajouter un nouvel appareil",
+                    },
                 },
-            },
-            {
-                "field": {"text": {"value": ""}},
-                "id": "address",
-                "label": {"en": "IP address", "de": "IP-Adresse", "fr": "Adresse IP"},
-            },
-        ],
-    )
+            ]
+        else:
+            dropdown_actions = []
+
+        # add remove & reset actions if there's at least one configured device
+        if dropdown_devices:
+            dropdown_actions.append(
+                {
+                    "id": "configure",
+                    "label": {
+                        "en": "Configure selected device",
+                        "fr": "Configurer l'appareil sélectionné",
+                    },
+                },
+            )
+
+            # TODO #20 multiple receivers
+            # dropdown_actions.append(
+            #     {
+            #         "id": "remove",
+            #         "label": {
+            #             "en": "Delete selected device",
+            #             "de": "Selektiertes Gerät löschen",
+            #             "fr": "Supprimer l'appareil sélectionné",
+            #         },
+            #     },
+            # )
+
+            dropdown_actions.append(
+                {
+                    "id": "reset",
+                    "label": {
+                        "en": "Reset configuration and reconfigure",
+                        "de": "Konfiguration zurücksetzen und neu konfigurieren",
+                        "fr": "Réinitialiser la configuration et reconfigurer",
+                    },
+                },
+            )
+        else:
+            # dummy entry if no devices are available
+            dropdown_devices.append({"id": "", "label": {"en": "---"}})
+
+        return RequestUserInput(
+            {"en": "Configuration mode", "de": "Konfigurations-Modus"},
+            [
+                {
+                    "field": {
+                        "dropdown": {
+                            "value": dropdown_devices[0]["id"],
+                            "items": dropdown_devices,
+                        }
+                    },
+                    "id": "choice",
+                    "label": {
+                        "en": "Configured devices",
+                        "de": "Konfigurierte Geräte",
+                        "fr": "Appareils configurés",
+                    },
+                },
+                {
+                    "field": {
+                        "dropdown": {
+                            "value": dropdown_actions[0]["id"],
+                            "items": dropdown_actions,
+                        }
+                    },
+                    "id": "action",
+                    "label": {
+                        "en": "Action",
+                        "de": "Aktion",
+                        "fr": "Appareils configurés",
+                    },
+                },
+            ],
+        )
+
+    # Initial setup, make sure we have a clean configuration
+    config.devices.clear()  # triggers device instance removal
+    _setup_step = SetupSteps.DISCOVER
+    return _user_input_discovery
 
 
-async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput | SetupError:
+async def handle_configuration_mode(
+    msg: UserDataResponse,
+) -> RequestUserInput | SetupComplete | SetupError:
     """
     Process user data response in a setup process.
 
@@ -136,8 +259,171 @@ async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput |
     :return: the setup action on how to continue
     """
     global _setup_step
+    global _cfg_add_device
+    global _reconfigured_device
 
-    config.devices.clear()  # triggers device instance removal
+    action = msg.input_values["action"]
+
+    # workaround for web-configurator not picking up first response
+    await asyncio.sleep(1)
+
+    match action:
+        case "add":
+            _cfg_add_device = True
+        case "remove":
+            choice = msg.input_values["choice"]
+            if not config.devices.remove(choice):
+                _LOG.warning("Could not remove device from configuration: %s", choice)
+                return SetupError(error_type=IntegrationSetupError.OTHER)
+            config.devices.store()
+            return SetupComplete()
+        case "configure":
+            # Reconfigure device if the identifier has changed
+            choice = msg.input_values["choice"]
+            selected_device = config.devices.get(choice)
+            if not selected_device:
+                _LOG.warning("Can not configure device from configuration: %s", choice)
+                return SetupError(error_type=IntegrationSetupError.OTHER)
+
+            _setup_step = SetupSteps.RECONFIGURE
+            _reconfigured_device = selected_device
+
+            show_all_inputs = selected_device.show_all_inputs if selected_device.show_all_inputs else False
+            use_telnet = selected_device.use_telnet if selected_device.use_telnet else False
+            use_telnet_for_events = (
+                selected_device.use_telnet_for_events if selected_device.use_telnet_for_events else False
+            )
+            if use_telnet:
+                connection_mode = "use_telnet"
+            elif use_telnet_for_events:
+                connection_mode = "use_telnet_for_events"
+            else:
+                connection_mode = "use_http"
+            volume_step = selected_device.volume_step if selected_device.volume_step else 0.5
+
+            return RequestUserInput(
+                {
+                    "en": "Configure your AVR",
+                    "fr": "Configurez votre AVR",
+                },
+                [
+                    {
+                        "id": "show_all_inputs",
+                        "label": {
+                            "en": "Show all sources",
+                            "de": "Alle Quellen anzeigen",
+                            "fr": "Afficher tous les sources",
+                        },
+                        "field": {"checkbox": {"value": show_all_inputs}},
+                    },
+                    {
+                        "id": "connection_mode",
+                        "label": {
+                            "en": "Connection mode",
+                            "de": "Verbindungstyp",
+                            "fr": "Mode de connexion",
+                        },
+                        "field": {
+                            "dropdown": {
+                                "value": connection_mode,
+                                "items": [
+                                    {
+                                        "id": "use_telnet",
+                                        "label": {
+                                            "en": "Use Telnet connection",
+                                            "de": "Telnet-Verbindung verwenden",
+                                            "fr": "Utilise une connexion Telnet",
+                                        },
+                                    },
+                                    {
+                                        "id": "use_telnet_for_events",
+                                        "label": {
+                                            "en": "Use Telnet connection for events",
+                                            "de": "Telnet-Verbindung für Ereignisse verwenden",
+                                            "fr": "Utilise une connexion Telnet pour les événements",
+                                        },
+                                    },
+                                    {
+                                        "id": "use_http",
+                                        "label": {
+                                            "en": "Use HTTP connection",
+                                            "de": "HTTP-Verbindung verwenden",
+                                            "fr": "Utilise une connexion HTTP",
+                                        },
+                                    },
+                                ],
+                            }
+                        },
+                    },
+                    {
+                        "id": "volume_step",
+                        "label": {
+                            "en": "Volume step",
+                            "fr": "Pallier de volume",
+                        },
+                        "field": {
+                            "number": {
+                                "value": volume_step,
+                                "min": 0.5,
+                                "max": 10,
+                                "steps": 1,
+                                "decimals": 1,
+                                "unit": {"en": "dB"},
+                            }
+                        },
+                    },
+                    {
+                        "id": "info",
+                        "label": {"en": "Please note:", "de": "Bitte beachten:", "fr": "Veuillez noter:"},
+                        "field": {
+                            "label": {
+                                "value": {
+                                    "en": "Using telnet provides realtime updates for many values but "
+                                    "certain receivers allow a single connection only! If you enable this "
+                                    "setting, other apps or systems may no longer work. "
+                                    "Using Telnet for events is faster for regular commands while still providing realtime"
+                                    " updates. Same limitations regarding Telnet apply.",
+                                    "de": "Die Verwendung von telnet bietet Echtzeit-Updates für viele "
+                                    "Werte, aber bestimmte Verstärker erlauben nur eine einzige "
+                                    "Verbindung! Mit dieser Einstellung können andere Apps oder Systeme "
+                                    "nicht mehr funktionieren. "
+                                    "Die Verwendung von Telnet für Ereignisse ist schneller für normale Befehle, "
+                                    "bietet aber immer noch Echtzeit-Updates. Die gleichen Einschränkungen in Bezug auf Telnet"
+                                    " gelten.",
+                                    "fr": "L'utilisation de telnet fournit des mises à jour en temps réel "
+                                    "pour de nombreuses valeurs, mais certains amplificateurs ne "
+                                    "permettent qu'une seule connexion! Avec ce paramètre, d'autres "
+                                    "applications ou systèmes ne peuvent plus fonctionner. "
+                                    "L'utilisation de Telnet pour les événements est plus rapide pour les commandes classiques "
+                                    "tout en fournissant des mises à jour en temps réel. Les mêmes limitations concernant"
+                                    " Telnet s'appliquent.",
+                                }
+                            }
+                        },
+                    },
+                ],
+            )
+        case "reset":
+            config.devices.clear()  # triggers device instance removal
+        case _:
+            _LOG.error("Invalid configuration action: %s", action)
+            return SetupError(error_type=IntegrationSetupError.OTHER)
+
+    _setup_step = SetupSteps.DISCOVER
+    return _user_input_discovery
+
+
+async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupError:
+    """
+    Process user data response in a setup process.
+
+    If ``address`` field is set by the user: try connecting to device and retrieve model information.
+    Otherwise, start AVR discovery and present the found devices to the user to choose from.
+
+    :param msg: response data from the requested user data
+    :return: the setup action on how to continue
+    """
+    global _setup_step
 
     dropdown_items = []
     address = msg.input_values["address"]
@@ -160,7 +446,7 @@ async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput |
             await connect_denonavr.async_connect_receiver()
             receiver = connect_denonavr.receiver
             dropdown_items.append(
-                {"id": address, "label": {"en": f"{receiver.name} ({receiver.model_name}) [{address}]"}}
+                {"id": address, "label": {"en": f"{receiver.name} ({receiver.model_name} - {address})"}}
             )
         except AvrNetworkError as ex:
             _LOG.error("Cannot connect to manually entered address %s: %s", address, ex)
@@ -173,7 +459,7 @@ async def handle_configuration_mode(msg: UserDataResponse) -> RequestUserInput |
         avrs = await discover.denon_avrs()
 
         for a in avrs:
-            avr_data = {"id": a["host"], "label": {"en": f"{a['friendlyName']} ({a['modelName']}) [{a['host']}]"}}
+            avr_data = {"id": a["host"], "label": {"en": f"{a['friendlyName']} ({a['modelName']} - {a['host']})"}}
             dropdown_items.append(avr_data)
 
     if not dropdown_items:
@@ -379,4 +665,45 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     await asyncio.sleep(1)
 
     _LOG.info("Setup successfully completed for %s", device.name)
+    return SetupComplete()
+
+
+async def _handle_device_reconfigure(
+    msg: UserDataResponse,
+) -> SetupComplete | SetupError:
+    """
+    Process reconfiguration of a configured AVR device.
+
+    :param msg: response data from the requested user data
+    :return: the setup action on how to continue: SetupComplete after updating configuration
+    """
+    # flake8: noqa:F824
+    # pylint: disable=W0602
+    global _reconfigured_device
+
+    if _reconfigured_device is None:
+        return SetupError()
+
+    _LOG.debug("User has changed configuration")
+
+    connection_mode = msg.input_values.get("connection_mode")
+    volume_step = 0.5
+    try:
+        volume_step = float(msg.input_values.get("volume_step", 0.5))
+        if volume_step < 0.1 or volume_step > 10:
+            return SetupError(error_type=IntegrationSetupError.OTHER)
+    except ValueError:
+        return SetupError(error_type=IntegrationSetupError.OTHER)
+
+    _reconfigured_device.show_all_inputs = msg.input_values.get("show_all_inputs") == "true"
+    _reconfigured_device.zone2 = msg.input_values.get("zone2") == "true"
+    _reconfigured_device.zone3 = msg.input_values.get("zone3") == "true"
+    _reconfigured_device.use_telnet = connection_mode == "use_telnet"
+    _reconfigured_device.use_telnet_for_events = connection_mode == "use_telnet_for_events"
+    _reconfigured_device.volume_step = volume_step
+
+    config.devices.update(_reconfigured_device)  # triggers ATV instance update
+    await asyncio.sleep(1)
+    _LOG.info("Setup successfully completed for %s", _reconfigured_device.name)
+
     return SetupComplete()
