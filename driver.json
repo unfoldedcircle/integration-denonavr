@@ -5,7 +5,7 @@
   "name": {
     "en": "Denon AVR Network Receivers"
   },
-  "icon": "uc:integration",
+  "icon": "uc:tv-music",
   "description": {
     "en": "Control your Denon or Marantz AVRs with Remote Two/3.",
     "de": "Steuere Denon oder Marantz AVRs mit Remote Two/3.",
@@ -15,7 +15,7 @@
   "developer": {
     "name": "Unfolded Circle ApS",
     "email": "hello@unfoldedcircle.com",
-    "url": "https://www.unfoldedcircle.com"
+    "url": "https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844"
   },
   "home_page": "https://www.unfoldedcircle.com",
   "setup_data_schema": {
@@ -35,9 +35,9 @@
         "field": {
           "label": {
             "value": {
-              "en": "The integration will discover your Denon or Marantz AVRs on your network. The device must be on the same network as the remote.",
-              "de": "Diese Integration wird Denon und Marantz AVRs im Netzwerk finden. Das Gerät muss sich im gleichen Netzwerk wie die Fernbedienung befinden.",
-              "fr": "Cette intégration trouvera des AVR Denon et Marantz dans le réseau. L'appareil doit être sur le même réseau que la télécommande."
+              "en": "The integration discovers Denon and Marantz Audio Video Receivers (AVR) on the network. Only a single device is supported at the moment.\n\nPlease see our [support article](https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844) for requirements, features and restrictions.",
+              "de": "Die Integration findet Denon- und Marantz-Audio-Video-Receiver (AVR) im Netzwerk. Momentan wird nur ein Gerät unterstützt.\n\nBitte beachte unseren [Support-Artikel](https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844) zu Anforderungen, unterstützten Funktionen und Einschränkungen.",
+              "fr": "Cette intégration trouvera des AVR Denon et Marantz dans le réseau. Seul un appareil est supporté pour le moment.\n\nConsulte [l’article de support](https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844) pour connaître les exigences, les fonctionnalités prises en charge et les restrictions."
             }
           }
         }
