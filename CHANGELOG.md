@@ -14,8 +14,9 @@ _Changes in the next release_
 - Power toggle command ([#59](https://github.com/unfoldedcircle/integration-denonavr/pull/59)).
 
 ### Changed
-- Add support article link and change setup description in first setup flow screen.
+- Add a support article link and change the setup description in the first setup flow screen.
 - Use a nicer FontAwesome icon for the integration (tv-music). 
+- Update the embedded Python runtime to 3.11.12 and upgrade common Python libraries like zeroconf and websockets.
 
 ---
 
