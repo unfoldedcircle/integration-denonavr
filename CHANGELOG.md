@@ -9,16 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## v0.7.0 - 2025-04-25
 ### Fixed
 - Missing response status codes when using http requests lead to timeout errors in UI. Contributed by @henrikwidlund, thanks! ([#56](https://github.com/unfoldedcircle/integration-denonavr/pull/58))
 - Power toggle command ([#59](https://github.com/unfoldedcircle/integration-denonavr/pull/59)).
 
 ### Changed
 - Add a support article link and change the setup description in the first setup flow screen.
-- Use a nicer FontAwesome icon for the integration (tv-music). 
+- Use a nicer FontAwesome icon for the integration (tv-music).
 - Update the embedded Python runtime to 3.11.12 and upgrade common Python libraries like zeroconf and websockets.
-
----
 
 ## v0.6.2 - 2025-04-07
 ### Fixed
