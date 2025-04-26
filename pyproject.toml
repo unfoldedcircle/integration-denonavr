@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "intg-denonavr"
-version = "0.7.0"
+version = "0.7.1"
 authors = [
     { name = "Unfolded Circle ApS", email = "hello@unfoldedcircle.com" }
 ]
@@ -23,7 +23,7 @@ requires-python = ">=3.11"
 dependencies = [
     "pyee~=12.1.1",
     "denonavr~=1.0.1",
-    "ucapi==0.2.0",
+    "ucapi==0.3.0",
 ]
 
 [project.readme]

@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## v0.7.1 - 2025-04-26
+### Changed
+- update ucapi to 0.3.0
+
 ## v0.7.0 - 2025-04-25
 ### Fixed
 - Missing response status codes when using http requests lead to timeout errors in UI. Contributed by @henrikwidlund, thanks! ([#56](https://github.com/unfoldedcircle/integration-denonavr/pull/58))
