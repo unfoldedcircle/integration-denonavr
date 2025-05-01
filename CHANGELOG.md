@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Added
+- Multi-device support ([#20](https://github.com/unfoldedcircle/integration-denonavr/issues/20)).
+
 ---
 
 ## v0.7.1 - 2025-04-26
