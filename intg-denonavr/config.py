@@ -46,7 +46,6 @@ class AvrDevice:
     support_sound_mode: bool
     show_all_inputs: bool
     use_telnet: bool
-    use_telnet_for_events: bool
     update_audyssey: bool
     zone2: bool
     zone3: bool
@@ -123,7 +122,6 @@ class Devices:
                 item.support_sound_mode = avr.support_sound_mode
                 item.show_all_inputs = avr.show_all_inputs
                 item.use_telnet = avr.use_telnet
-                item.use_telnet_for_events = avr.use_telnet_for_events
                 item.update_audyssey = avr.update_audyssey
                 item.zone2 = avr.zone2
                 item.zone3 = avr.zone3
@@ -179,6 +177,7 @@ class Devices:
         try:
             with open(self._cfg_file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
+            needs_migration = False
             for item in data:
                 # not using AvrDevice(**item) to be able to migrate old configuration files with missing attributes
                 atv = AvrDevice(
@@ -187,14 +186,19 @@ class Devices:
                     item.get("address"),
                     item.get("support_sound_mode", True),
                     item.get("show_all_inputs", False),
-                    item.get("use_telnet", True),
-                    item.get("use_telnet_for_events", False),
+                    item.get("use_telnet", True)
+                    # temp, remove in future release
+                    or item.get("use_telnet_for_events", False),
                     item.get("update_audyssey", False),
                     item.get("zone2", False),
                     item.get("zone3", False),
                     item.get("volume_step", 0.5),
                 )
+                needs_migration |= item.get("use_telnet_for_events")
                 self._config.append(atv)
+
+            if needs_migration:
+                self.store()
             return True
         except OSError:
             _LOG.error("Cannot open the config file")

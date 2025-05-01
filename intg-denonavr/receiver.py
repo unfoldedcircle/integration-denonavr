@@ -28,7 +28,6 @@ class ConnectDenonAVR:
         zone2: bool,
         zone3: bool,
         use_telnet: bool,
-        use_telnet_for_events: bool,
         update_audyssey: bool,
     ) -> None:
         """Initialize the class."""
@@ -37,7 +36,6 @@ class ConnectDenonAVR:
         self._show_all_inputs = show_all_inputs
         self._timeout = timeout
         self._use_telnet = use_telnet
-        self._use_telnet_for_events = use_telnet_for_events
         self._update_audyssey = update_audyssey
 
         self._zones: dict[str, str | None] = {}
@@ -93,7 +91,7 @@ class ConnectDenonAVR:
         )
         await receiver.async_setup()
         # Do an initial update if telnet is used.
-        if self._use_telnet or self._use_telnet_for_events:
+        if self._use_telnet:
             await receiver.async_update()
             if self._update_audyssey:
                 await receiver.async_update_audyssey()

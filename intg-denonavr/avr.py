@@ -215,8 +215,6 @@ class DenonDevice:
 
         self._active: bool = False
         self._use_telnet = device.use_telnet
-        # force the commands that don't return anything at all, not even acknowledge of the command, to use http
-        self._use_telnet_for_events = device.use_telnet_for_events
         self._telnet_was_healthy: bool | None = None
         self._attr_available: bool = True
         # expected volume feedback value if telnet isn't used
@@ -285,11 +283,7 @@ class DenonDevice:
         """Return the cached state of the device."""
         reported_state = self._map_denonavr_state(self._receiver.state)
         # Dirty workaround for state reporting issue. Couldn't be reproduced yet.
-        if (
-            (self._use_telnet or self._use_telnet_for_events)
-            and reported_state == States.OFF
-            and self._expected_state != States.OFF
-        ):
+        if self._use_telnet and reported_state == States.OFF and self._expected_state != States.OFF:
             _LOG.warning("State mismatch! Reported: %s. Using expected: %s", reported_state, self._expected_state)
             return self._expected_state
         return reported_state
@@ -415,7 +409,7 @@ class DenonDevice:
                     request_start = time.time()
 
                     await self._receiver.async_update()
-                    if self._use_telnet or self._use_telnet_for_events:
+                    if self._use_telnet:
                         if self._update_audyssey:
                             await self._receiver.async_update_audyssey()
                         await self._receiver.async_telnet_connect()
@@ -502,7 +496,7 @@ class DenonDevice:
         self._active = False
 
         try:
-            if self._use_telnet or self._use_telnet_for_events:
+            if self._use_telnet:
                 try:
                     self._receiver.unregister_callback(ALL_TELNET_EVENTS, self._telnet_callback)
                 except ValueError:
@@ -655,7 +649,7 @@ class DenonDevice:
     async def power_on(self) -> ucapi.StatusCodes:
         """Send power-on command to AVR."""
         await self._receiver.async_power_on()
-        if not self._use_telnet and not self._use_telnet_for_events:
+        if not self._use_telnet:
             self._set_expected_state(States.ON)
         return ucapi.StatusCodes.OK
 
@@ -663,7 +657,7 @@ class DenonDevice:
     async def power_off(self) -> ucapi.StatusCodes:
         """Send power-off command to AVR."""
         await self._receiver.async_power_off()
-        if not self._use_telnet and not self._use_telnet_for_events:
+        if not self._use_telnet:
             self._set_expected_state(States.OFF)
         return ucapi.StatusCodes.OK
 
@@ -685,7 +679,7 @@ class DenonDevice:
             volume_denon = float(18)
         await self._receiver.async_set_volume(volume_denon)
         self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
-        if (self._use_telnet or self._use_telnet_for_events) and not self._update_lock.locked():
+        if self._use_telnet and not self._update_lock.locked():
             await self._event_loop.create_task(self.async_update_receiver_data())
         else:
             self._expected_volume = volume
@@ -694,11 +688,7 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def volume_up(self) -> ucapi.StatusCodes:
         """Send volume-up command to AVR."""
-        if (
-            (self._use_telnet or self._use_telnet_for_events)
-            and self._expected_volume is not None
-            and self._volume_step != 0.5
-        ):
+        if self._use_telnet and self._expected_volume is not None and self._volume_step != 0.5:
             self._expected_volume = min(self._expected_volume + self._volume_step, 100)
             await self.set_volume_level(self._expected_volume)
         else:
@@ -709,11 +699,7 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def volume_down(self) -> ucapi.StatusCodes:
         """Send volume-down command to AVR."""
-        if (
-            (self._use_telnet or self._use_telnet_for_events)
-            and self._expected_volume is not None
-            and self._volume_step != 0.5
-        ):
+        if self._use_telnet and self._expected_volume is not None and self._volume_step != 0.5:
             self._expected_volume = max(self._expected_volume - self._volume_step, 0)
             await self.set_volume_level(self._expected_volume)
         else:
@@ -744,7 +730,7 @@ class DenonDevice:
         """Send mute command to AVR."""
         _LOG.debug("Sending mute: %s", muted)
         await self._receiver.async_mute(muted)
-        if not self._use_telnet and not self._use_telnet_for_events:
+        if not self._use_telnet:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
         else:
             await self.async_update_receiver_data()
@@ -773,64 +759,48 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def cursor_up(self) -> ucapi.StatusCodes:
         """Send cursor up command to AVR."""
-        if self._use_telnet_for_events:
-            return await self._send_command("MNCUP")
         await self._receiver.async_cursor_up()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def cursor_down(self) -> ucapi.StatusCodes:
         """Send cursor down command to AVR."""
-        if self._use_telnet_for_events:
-            return await self._send_command("MNCDN")
         await self._receiver.async_cursor_down()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def cursor_left(self) -> ucapi.StatusCodes:
         """Send cursor left command to AVR."""
-        if self._use_telnet_for_events:
-            return await self._send_command("MNCLT")
         await self._receiver.async_cursor_left()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def cursor_right(self) -> ucapi.StatusCodes:
         """Send cursor right command to AVR."""
-        if self._use_telnet_for_events:
-            return await self._send_command("MNCRT")
         await self._receiver.async_cursor_right()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def cursor_enter(self) -> ucapi.StatusCodes:
         """Send cursor enter command to AVR."""
-        if self._use_telnet_for_events:
-            return await self._send_command("MNENT")
         await self._receiver.async_cursor_enter()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def info(self) -> ucapi.StatusCodes:
         """Send info OSD command to AVR."""
-        if self._use_telnet_for_events:
-            return await self._send_command("MNINF")
         await self._receiver.async_info()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def options(self) -> ucapi.StatusCodes:
         """Send options menu command to AVR."""
-        if self._use_telnet_for_events:
-            return await self._send_command("MNOPT")
         await self._receiver.async_options()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def back(self) -> ucapi.StatusCodes:
         """Send back command to AVR."""
-        if self._use_telnet_for_events:
-            return await self._send_command("MNRTN")
         await self._receiver.async_back()
         return ucapi.StatusCodes.OK
 
@@ -839,8 +809,9 @@ class DenonDevice:
         """Send toggle open/close menu command to AVR."""
         # Toggle only works when receiving events via Telnet
         # Users using HTTP will have to use the back/return button
-        if self._use_telnet or self._use_telnet_for_events:
+        if self._use_telnet:
             await self._receiver.async_settings_menu()
+            return ucapi.StatusCodes.OK
         return await self._send_command("MNMEN ON")
 
     @async_handle_denonlib_errors
@@ -869,7 +840,7 @@ class DenonDevice:
 
     def _increase_expected_volume(self):
         """Without telnet, increase expected volume and send update event."""
-        if not self._use_telnet or not self._use_telnet_for_events or self._expected_volume is None:
+        if not self._use_telnet or self._expected_volume is None:
             return
         self._expected_volume = min(self._expected_volume + self._volume_step, 100)
         # Send updated volume if no update task in progress
@@ -878,7 +849,7 @@ class DenonDevice:
 
     def _decrease_expected_volume(self):
         """Without telnet, decrease expected volume and send update event."""
-        if not self._use_telnet or not self._use_telnet_for_events or self._expected_volume is None:
+        if not self._use_telnet or self._expected_volume is None:
             return
         self._expected_volume = max(self._expected_volume - self._volume_step, 0)
         # Send updated volume if no update task in progress
