@@ -213,7 +213,7 @@ class DenonDevice:
             host=device.address, show_all_inputs=device.show_all_inputs, timeout=timeout, add_zones=self._zones
         )
         self._update_audyssey = device.update_audyssey
-        self._simple_command = SimpleCommand(self._receiver, self._send_command_wrapper)
+        self._simple_command = SimpleCommand(self._receiver, self._send_command)
 
         self._active: bool = False
         self._use_telnet = device.use_telnet

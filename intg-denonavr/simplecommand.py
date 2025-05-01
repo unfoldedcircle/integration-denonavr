@@ -100,7 +100,26 @@ SOUND_MODE_COMMANDS = {
     "SOUND_MODE_IMAX_OFF",
     "IMAX_AUDIO_SETTINGS_AUTO",
     "IMAX_AUDIO_SETTINGS_MANUAL",
-    # IMAX HPF and LPF?
+    "IMAX_HPF_40HZ",
+    "IMAX_HPF_60HZ",
+    "IMAX_HPF_80HZ",
+    "IMAX_HPF_90HZ",
+    "IMAX_HPF_100HZ",
+    "IMAX_HPF_110HZ",
+    "IMAX_HPF_120HZ",
+    "IMAX_HPF_150HZ",
+    "IMAX_HPF_180HZ",
+    "IMAX_HPF_200HZ",
+    "IMAX_HPF_250HZ",
+    "IMAX_LPF_80HZ",
+    "IMAX_LPF_90HZ",
+    "IMAX_LPF_100HZ",
+    "IMAX_LPF_110HZ",
+    "IMAX_LPF_120HZ",
+    "IMAX_LPF_150HZ",
+    "IMAX_LPF_180HZ",
+    "IMAX_LPF_200HZ",
+    "IMAX_LPF_250HZ",
     "IMAX_SUBWOOFER_ON",
     "IMAX_SUBWOOFER_OFF",
     "IMAX_SUBWOOFER_OUTPUT_LFE_MAIN",
@@ -129,7 +148,13 @@ SOUND_MODE_COMMANDS = {
     "SPEAKER_VIRTUALIZER_ON",
     "SPEAKER_VIRTUALIZER_OFF",
     "EFFECT_SPEAKER_SELECTION_FLOOR",
+    "EFFECT_SPEAKER_SELECTION_FRONT",
+    "EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT",
+    "EFFECT_SPEAKER_SELECTION_FRONT_WIDE",
     "EFFECT_SPEAKER_SELECTION_HEIGHT_FLOOR",
+    "EFFECT_SPEAKER_SELECTION_SURROUND_BACK",
+    "EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_HEIGHT",
+    "EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_WIDE",
     "DRC_AUTO",
     "DRC_LOW",
     "DRC_MID",
@@ -146,7 +171,6 @@ SOUND_MODE_COMMANDS_TELNET = {
     "CENTER_SPREAD_TOGGLE",
     "LOUDNESS_MANAGEMENT_TOGGLE",
     "SPEAKER_VIRTUALIZER_TOGGLE",
-    "EFFECT_SPEAKER_SELECTION_TOGGLE",
 }
 
 AUDYSSEY_COMMANDS = {
@@ -245,13 +269,13 @@ VOLUME_COMMANDS = {
     "CHANNEL_VOLUMES_RESET",
     "SUBWOOFER_ON",
     "SUBWOOFER_OFF",
-    "SUBWOOFER_LEVE_UP",
-    "SUBWOOFER_LEVEL_DOWN",
-    "SUBWOOFER2_LEVE_UP",
+    "SUBWOOFER1_LEVEL_UP",
+    "SUBWOOFER1_LEVEL_DOWN",
+    "SUBWOOFER2_LEVEL_UP",
     "SUBWOOFER2_LEVEL_DOWN",
-    "SUBWOOFER3_LEVE_UP",
+    "SUBWOOFER3_LEVEL_UP",
     "SUBWOOFER3_LEVEL_DOWN",
-    "SUBWOOFER4_LEVE_UP",
+    "SUBWOOFER4_LEVEL_UP",
     "SUBWOOFER4_LEVEL_DOWN",
     "LFE_UP",
     "LFE_DOWN",
@@ -304,7 +328,7 @@ ALL_COMMANDS_TELNET_DENON = {
 class SimpleCommand:
     """Handles mapping and sending of Simple Commands to the receiver."""
 
-    def __init__(self, receiver: denonavr.DenonAVR, send_command: Callable[[str], Awaitable[ucapi.StatusCodes | None]]):
+    def __init__(self, receiver: denonavr.DenonAVR, send_command: Callable[[str], Awaitable[ucapi.StatusCodes]]):
         """
         Create a SimpleCommand instance.
 
@@ -314,7 +338,7 @@ class SimpleCommand:
         self._receiver = receiver
         self._send_command = send_command
 
-    async def send_simple_command(self, cmd: str) -> ucapi.StatusCodes | None:
+    async def send_simple_command(self, cmd: str) -> ucapi.StatusCodes:
         """Send a simple command to the AVR."""
         if cmd in CORE_COMMANDS_DENON_TELNET:
             return await self._handle_core_command(cmd)
@@ -328,301 +352,306 @@ class SimpleCommand:
             return await self._handle_dirac_command(cmd)
         return ucapi.StatusCodes.NOT_IMPLEMENTED
 
-    async def _handle_core_command(self, cmd: str) -> ucapi.StatusCodes | None:
-        # pylint: disable=R0911
+    async def _handle_core_command(self, cmd: str) -> ucapi.StatusCodes:
+        # pylint: disable=R0915
         match cmd:
             case "OUTPUT_1":
-                return await self._receiver.async_hdmi_output("HDMI1")
+                await self._receiver.async_hdmi_output("HDMI1")
             case "OUTPUT_2":
-                return await self._receiver.async_hdmi_output("HDMI2")
+                await self._receiver.async_hdmi_output("HDMI2")
             case "OUTPUT_AUTO":
-                return await self._receiver.async_hdmi_output("Auto")
+                await self._receiver.async_hdmi_output("Auto")
             case "DIMMER_TOGGLE":
-                return await self._receiver.async_dimmer_toggle()
+                await self._receiver.async_dimmer_toggle()
             case "DIMMER_BRIGHT":
-                return await self._receiver.async_dimmer("Bright")
+                await self._receiver.async_dimmer("Bright")
             case "DIMMER_DIM":
-                return await self._receiver.async_dimmer("Dim")
+                await self._receiver.async_dimmer("Dim")
             case "DIMMER_DARK":
-                return await self._receiver.async_dimmer("Dark")
+                await self._receiver.async_dimmer("Dark")
             case "DIMMER_OFF":
-                return await self._receiver.async_dimmer("Off")
+                await self._receiver.async_dimmer("Off")
             case "TRIGGER1_ON":
-                return await self._receiver.async_trigger_on(1)
+                await self._receiver.async_trigger_on(1)
             case "TRIGGER1_OFF":
-                return await self._receiver.async_trigger_off(1)
+                await self._receiver.async_trigger_off(1)
             case "TRIGGER2_ON":
-                return await self._receiver.async_trigger_on(2)
+                await self._receiver.async_trigger_on(2)
             case "TRIGGER2_OFF":
-                return await self._receiver.async_trigger_off(2)
+                await self._receiver.async_trigger_off(2)
             case "TRIGGER3_ON":
-                return await self._receiver.async_trigger_on(3)
+                await self._receiver.async_trigger_on(3)
             case "TRIGGER3_OFF":
-                return await self._receiver.async_trigger_off(3)
+                await self._receiver.async_trigger_off(3)
             case "DELAY_UP":
-                return await self._receiver.async_delay_up()
+                await self._receiver.async_delay_up()
             case "DELAY_DOWN":
-                return await self._receiver.async_delay_down()
-            case "ECO_ON":
-                return await self._receiver.async_eco_mode("On")
-            case "ECO_OFF":
-                return await self._receiver.async_eco_mode("Off")
+                await self._receiver.async_delay_down()
             case "ECO_AUTO":
-                return await self._receiver.async_eco_mode("Auto")
+                await self._receiver.async_eco_mode("Auto")
+            case "ECO_ON":
+                await self._receiver.async_eco_mode("On")
+            case "ECO_OFF":
+                await self._receiver.async_eco_mode("Off")
             case "INFO_MENU":
-                return await self._receiver.async_info()
+                await self._receiver.async_info()
             case "OPTIONS_MENU":
-                return await self._receiver.async_options()
+                await self._receiver.async_options()
             case "CHANNEL_LEVEL_ADJUST_MENU":
-                return await self._receiver.async_channel_level_adjust()
+                await self._receiver.async_channel_level_adjust()
             case "AUTO_STANDBY_OFF":
-                return await self._receiver.async_auto_standby("OFF")
+                await self._receiver.async_auto_standby("OFF")
             case "AUTO_STANDBY_15MIN":
-                return await self._receiver.async_auto_standby("15M")
+                await self._receiver.async_auto_standby("15M")
             case "AUTO_STANDBY_30MIN":
-                return await self._receiver.async_auto_standby("30M")
+                await self._receiver.async_auto_standby("30M")
             case "AUTO_STANDBY_60MIN":
-                return await self._receiver.async_auto_standby("60M")
+                await self._receiver.async_auto_standby("60M")
             case "DELAY_TIME_UP":
-                return await self._receiver.async_delay_time_up()
+                await self._receiver.async_delay_time_up()
             case "DELAY_TIME_DOWN":
-                return await self._receiver.async_delay_time_down()
+                await self._receiver.async_delay_time_down()
             case "HDMI_AUDIO_DECODE_AMP":
-                return await self._receiver.async_hdmi_audio_decode("AMP")
+                await self._receiver.async_hdmi_audio_decode("AMP")
             case "HDMI_AUDIO_DECODE_TV":
-                return await self._receiver.async_hdmi_audio_decode("TV")
+                await self._receiver.async_hdmi_audio_decode("TV")
             case "VIDEO_PROCESSING_MODE_AUTO":
-                return await self._receiver.async_video_processing_mode("Auto")
+                await self._receiver.async_video_processing_mode("Auto")
             case "VIDEO_PROCESSING_MODE_GAME":
-                return await self._receiver.async_video_processing_mode("Game")
+                await self._receiver.async_video_processing_mode("Game")
             case "VIDEO_PROCESSING_MODE_MOVIE":
-                return await self._receiver.async_video_processing_mode("Movie")
+                await self._receiver.async_video_processing_mode("Movie")
             case "VIDEO_PROCESSING_MODE_BYPASS":
-                return await self._receiver.async_video_processing_mode("Bypass")
+                await self._receiver.async_video_processing_mode("Bypass")
             case "NETWORK_RESTART":
-                return await self._receiver.async_network_restart()
+                await self._receiver.async_network_restart()
             case "SPEAKER_PRESET_1":
-                return await self._receiver.async_speaker_preset(1)
+                await self._receiver.async_speaker_preset(1)
             case "SPEAKER_PRESET_2":
-                return await self._receiver.async_speaker_preset(2)
+                await self._receiver.async_speaker_preset(2)
             case "SPEAKER_PRESET_TOGGLE":
-                return await self._receiver.async_speaker_preset_toggle()
+                await self._receiver.async_speaker_preset_toggle()
             case "BT_TRANSMITTER_ON":
-                return await self._receiver.async_bt_transmitter_on()
+                await self._receiver.async_bt_transmitter_on()
             case "BT_TRANSMITTER_OFF":
-                return await self._receiver.async_bt_transmitter_off()
+                await self._receiver.async_bt_transmitter_off()
             case "BT_TRANSMITTER_TOGGLE":
-                return await self._receiver.async_bt_transmitter_toggle()
+                await self._receiver.async_bt_transmitter_toggle()
             case "BT_OUTPUT_MODE_BT_SPEAKER":
-                return await self._receiver.async_bt_output_mode("Bluetooth + Speakers")
+                await self._receiver.async_bt_output_mode("Bluetooth + Speakers")
             case "BT_OUTPUT_MODE_BT_ONLY":
-                return await self._receiver.async_bt_output_mode("Bluetooth Only")
+                await self._receiver.async_bt_output_mode("Bluetooth Only")
             case "BT_OUTPUT_MODE_TOGGLE":
-                return await self._receiver.async_bt_output_mode_toggle()
+                await self._receiver.async_bt_output_mode_toggle()
             case "AUDIO_RESTORER_OFF":
-                return await self._receiver.async_audio_restorer("Off")
+                await self._receiver.async_audio_restorer("Off")
             case "AUDIO_RESTORER_LOW":
-                return await self._receiver.async_audio_restorer("Low")
+                await self._receiver.async_audio_restorer("Low")
             case "AUDIO_RESTORER_MEDIUM":
-                return await self._receiver.async_audio_restorer("Medium")
+                await self._receiver.async_audio_restorer("Medium")
             case "AUDIO_RESTORER_HIGH":
-                return await self._receiver.async_audio_restorer("High")
+                await self._receiver.async_audio_restorer("High")
             case "REMOTE_CONTROL_LOCK_ON":
-                return await self._receiver.async_remote_control_lock()
+                await self._receiver.async_remote_control_lock()
             case "REMOTE_CONTROL_LOCK_OFF":
-                return await self._receiver.async_remote_control_unlock()
+                await self._receiver.async_remote_control_unlock()
             case "PANEL_LOCK_PANEL":
-                return await self._receiver.async_panel_lock("Panel")
+                await self._receiver.async_panel_lock("Panel")
             case "PANEL_LOCK_PANEL_VOLUME":
-                return await self._receiver.async_panel_lock("Panel + Master Volume")
+                await self._receiver.async_panel_lock("Panel + Master Volume")
             case "PANEL_LOCK_OFF":
-                return await self._receiver.async_panel_unlock()
+                await self._receiver.async_panel_unlock()
             case "GRAPHIC_EQ_ON":
-                return await self._receiver.async_graphic_eq_on()
+                await self._receiver.async_graphic_eq_on()
             case "GRAPHIC_EQ_OFF":
-                return await self._receiver.async_graphic_eq_off()
+                await self._receiver.async_graphic_eq_off()
             case "GRAPHIC_EQ_TOGGLE":
-                return await self._receiver.async_graphic_eq_toggle()
+                await self._receiver.async_graphic_eq_toggle()
             case "HEADPHONE_EQ_ON":
-                return await self._receiver.async_headphone_eq_on()
+                await self._receiver.async_headphone_eq_on()
             case "HEADPHONE_EQ_OFF":
-                return await self._receiver.async_headphone_eq_off()
+                await self._receiver.async_headphone_eq_off()
             case "HEADPHONE_EQ_TOGGLE":
-                return await self._receiver.async_headphone_eq_toggle()
+                await self._receiver.async_headphone_eq_toggle()
             case "STATUS":
                 await self._receiver.async_status()
-                return None
+            case _:
+                return ucapi.StatusCodes.NOT_IMPLEMENTED
 
-        return ucapi.StatusCodes.BAD_REQUEST
+        return ucapi.StatusCodes.OK
 
-    async def _handle_volume_command(self, cmd: str) -> ucapi.StatusCodes | None:
-        # pylint: disable=R0911
+    async def _handle_volume_command(self, cmd: str) -> ucapi.StatusCodes:
+        # pylint: disable=R0915
         match cmd:
             case "FRONT_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Front Left")
+                await self._receiver.vol.async_channel_volume_up("Front Left")
             case "FRONT_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Front Left")
+                await self._receiver.vol.async_channel_volume_down("Front Left")
             case "FRONT_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Front Right")
+                await self._receiver.vol.async_channel_volume_up("Front Right")
             case "FRONT_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Front Right")
+                await self._receiver.vol.async_channel_volume_down("Front Right")
             case "CENTER_UP":
-                return await self._receiver.vol.async_channel_volume_up("Center")
+                await self._receiver.vol.async_channel_volume_up("Center")
             case "CENTER_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Center")
-            case "SUB_UP":
-                return await self._receiver.vol.async_channel_volume_up("Subwoofer")
-            case "SUB_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Subwoofer")
+                await self._receiver.vol.async_channel_volume_down("Center")
+            case "SUB1_UP":
+                await self._receiver.vol.async_channel_volume_up("Subwoofer")
+            case "SUB1_DOWN":
+                await self._receiver.vol.async_channel_volume_down("Subwoofer")
             case "SUB2_UP":
-                return await self._receiver.vol.async_channel_volume_up("Subwoofer 2")
+                await self._receiver.vol.async_channel_volume_up("Subwoofer 2")
             case "SUB2_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Subwoofer 2")
+                await self._receiver.vol.async_channel_volume_down("Subwoofer 2")
             case "SUB3_UP":
-                return await self._receiver.vol.async_channel_volume_up("Subwoofer 3")
+                await self._receiver.vol.async_channel_volume_up("Subwoofer 3")
             case "SUB3_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Subwoofer 3")
+                await self._receiver.vol.async_channel_volume_down("Subwoofer 3")
             case "SUB4_UP":
-                return await self._receiver.vol.async_channel_volume_up("Subwoofer 4")
+                await self._receiver.vol.async_channel_volume_up("Subwoofer 4")
             case "SUB4_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Subwoofer 4")
+                await self._receiver.vol.async_channel_volume_down("Subwoofer 4")
             case "SURROUND_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Surround Left")
+                await self._receiver.vol.async_channel_volume_up("Surround Left")
             case "SURROUND_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Surround Left")
+                await self._receiver.vol.async_channel_volume_down("Surround Left")
             case "SURROUND_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Surround Right")
+                await self._receiver.vol.async_channel_volume_up("Surround Right")
             case "SURROUND_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Surround Right")
+                await self._receiver.vol.async_channel_volume_down("Surround Right")
             case "SURROUND_BACK_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Surround Back Left")
+                await self._receiver.vol.async_channel_volume_up("Surround Back Left")
             case "SURROUND_BACK_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Surround Back Left")
+                await self._receiver.vol.async_channel_volume_down("Surround Back Left")
             case "SURROUND_BACK_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Surround Back Right")
+                await self._receiver.vol.async_channel_volume_up("Surround Back Right")
             case "SURROUND_BACK_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Surround Back Right")
+                await self._receiver.vol.async_channel_volume_down("Surround Back Right")
             case "FRONT_HEIGHT_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Front Height Left")
+                await self._receiver.vol.async_channel_volume_up("Front Height Left")
             case "FRONT_HEIGHT_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Front Height Left")
+                await self._receiver.vol.async_channel_volume_down("Front Height Left")
             case "FRONT_HEIGHT_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Front Height Right")
+                await self._receiver.vol.async_channel_volume_up("Front Height Right")
             case "FRONT_HEIGHT_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Front Height Right")
+                await self._receiver.vol.async_channel_volume_down("Front Height Right")
             case "FRONT_WIDE_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Front Wide Left")
+                await self._receiver.vol.async_channel_volume_up("Front Wide Left")
             case "FRONT_WIDE_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Front Wide Left")
+                await self._receiver.vol.async_channel_volume_down("Front Wide Left")
             case "FRONT_WIDE_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Front Wide Right")
+                await self._receiver.vol.async_channel_volume_up("Front Wide Right")
             case "FRONT_WIDE_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Front Wide Right")
+                await self._receiver.vol.async_channel_volume_down("Front Wide Right")
             case "TOP_FRONT_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Top Front Left")
+                await self._receiver.vol.async_channel_volume_up("Top Front Left")
             case "TOP_FRONT_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Top Front Left")
+                await self._receiver.vol.async_channel_volume_down("Top Front Left")
             case "TOP_FRONT_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Top Front Right")
+                await self._receiver.vol.async_channel_volume_up("Top Front Right")
             case "TOP_FRONT_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Top Front Right")
+                await self._receiver.vol.async_channel_volume_down("Top Front Right")
             case "TOP_MIDDLE_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Top Middle Left")
+                await self._receiver.vol.async_channel_volume_up("Top Middle Left")
             case "TOP_MIDDLE_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Top Middle Left")
+                await self._receiver.vol.async_channel_volume_down("Top Middle Left")
             case "TOP_MIDDLE_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Top Middle Right")
+                await self._receiver.vol.async_channel_volume_up("Top Middle Right")
             case "TOP_MIDDLE_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Top Middle Right")
+                await self._receiver.vol.async_channel_volume_down("Top Middle Right")
             case "TOP_REAR_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Top Rear Left")
+                await self._receiver.vol.async_channel_volume_up("Top Rear Left")
             case "TOP_REAR_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Top Rear Left")
+                await self._receiver.vol.async_channel_volume_down("Top Rear Left")
             case "TOP_REAR_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Top Rear Right")
+                await self._receiver.vol.async_channel_volume_up("Top Rear Right")
             case "TOP_REAR_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Top Rear Right")
+                await self._receiver.vol.async_channel_volume_down("Top Rear Right")
             case "REAR_HEIGHT_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Rear Height Left")
+                await self._receiver.vol.async_channel_volume_up("Rear Height Left")
             case "REAR_HEIGHT_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Rear Height Left")
+                await self._receiver.vol.async_channel_volume_down("Rear Height Left")
             case "REAR_HEIGHT_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Rear Height Right")
+                await self._receiver.vol.async_channel_volume_up("Rear Height Right")
             case "REAR_HEIGHT_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Rear Height Right")
+                await self._receiver.vol.async_channel_volume_down("Rear Height Right")
             case "FRONT_DOLBY_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Front Dolby Left")
+                await self._receiver.vol.async_channel_volume_up("Front Dolby Left")
             case "FRONT_DOLBY_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Front Dolby Left")
+                await self._receiver.vol.async_channel_volume_down("Front Dolby Left")
             case "FRONT_DOLBY_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Front Dolby Right")
+                await self._receiver.vol.async_channel_volume_up("Front Dolby Right")
             case "FRONT_DOLBY_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Front Dolby Right")
+                await self._receiver.vol.async_channel_volume_down("Front Dolby Right")
             case "SURROUND_DOLBY_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Surround Dolby Left")
+                await self._receiver.vol.async_channel_volume_up("Surround Dolby Left")
             case "SURROUND_DOLBY_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Surround Dolby Left")
+                await self._receiver.vol.async_channel_volume_down("Surround Dolby Left")
             case "SURROUND_DOLBY_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Surround Dolby Right")
+                await self._receiver.vol.async_channel_volume_up("Surround Dolby Right")
             case "BACK_DOLBY_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Back Dolby Left")
+                await self._receiver.vol.async_channel_volume_up("Back Dolby Left")
             case "BACK_DOLBY_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Back Dolby Left")
+                await self._receiver.vol.async_channel_volume_down("Back Dolby Left")
             case "BACK_DOLBY_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Back Dolby Right")
+                await self._receiver.vol.async_channel_volume_up("Back Dolby Right")
             case "BACK_DOLBY_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Back Dolby Right")
+                await self._receiver.vol.async_channel_volume_down("Back Dolby Right")
             case "SURROUND_HEIGHT_LEFT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Surround Height Left")
+                await self._receiver.vol.async_channel_volume_up("Surround Height Left")
             case "SURROUND_HEIGHT_LEFT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Surround Height Left")
+                await self._receiver.vol.async_channel_volume_down("Surround Height Left")
             case "SURROUND_HEIGHT_RIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Surround Height Right")
+                await self._receiver.vol.async_channel_volume_up("Surround Height Right")
             case "SURROUND_HEIGHT_RIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Surround Height Right")
+                await self._receiver.vol.async_channel_volume_down("Surround Height Right")
             case "TOP_SURROUND_UP":
-                return await self._receiver.vol.async_channel_volume_up("Top Surround")
+                await self._receiver.vol.async_channel_volume_up("Top Surround")
             case "TOP_SURROUND_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Top Surround")
+                await self._receiver.vol.async_channel_volume_down("Top Surround")
             case "CENTER_HEIGHT_UP":
-                return await self._receiver.vol.async_channel_volume_up("Center Height")
+                await self._receiver.vol.async_channel_volume_up("Center Height")
             case "CENTER_HEIGHT_DOWN":
-                return await self._receiver.vol.async_channel_volume_down("Center Height")
+                await self._receiver.vol.async_channel_volume_down("Center Height")
             case "CHANNEL_VOLUMES_RESET":
-                return await self._receiver.vol.async_channel_volumes_reset()
+                await self._receiver.vol.async_channel_volumes_reset()
             case "SUBWOOFER_ON":
-                return await self._receiver.vol.async_subwoofer_on()
+                await self._receiver.vol.async_subwoofer_on()
             case "SUBWOOFER_OFF":
-                return await self._receiver.vol.async_subwoofer_off()
+                await self._receiver.vol.async_subwoofer_off()
             case "SUBWOOFER_TOGGLE":
-                return await self._receiver.vol.async_subwoofer_toggle()
-            case "SUBWOOFER_LEVE_UP":
-                return await self._receiver.vol.async_subwoofer_level_up("Subwoofer")
-            case "SUBWOOFER_LEVEL_DOWN":
-                return await self._receiver.vol.async_subwoofer_level_down("Subwoofer")
-            case "SUBWOOFER2_LEVE_UP":
-                return await self._receiver.vol.async_subwoofer_level_up("Subwoofer 2")
+                await self._receiver.vol.async_subwoofer_toggle()
+            case "SUBWOOFER1_LEVEL_UP":
+                await self._receiver.vol.async_subwoofer_level_up("Subwoofer")
+            case "SUBWOOFER1_LEVEL_DOWN":
+                await self._receiver.vol.async_subwoofer_level_down("Subwoofer")
+            case "SUBWOOFER2_LEVEL_UP":
+                await self._receiver.vol.async_subwoofer_level_up("Subwoofer 2")
             case "SUBWOOFER2_LEVEL_DOWN":
-                return await self._receiver.vol.async_subwoofer_level_down("Subwoofer 2")
-            case "SUBWOOFER3_LEVE_UP":
-                return await self._receiver.vol.async_subwoofer_level_up("Subwoofer 3")
+                await self._receiver.vol.async_subwoofer_level_down("Subwoofer 2")
+            case "SUBWOOFER3_LEVEL_UP":
+                await self._receiver.vol.async_subwoofer_level_up("Subwoofer 3")
             case "SUBWOOFER3_LEVEL_DOWN":
-                return await self._receiver.vol.async_subwoofer_level_down("Subwoofer 3")
-            case "SUBWOOFER4_LEVE_UP":
-                return await self._receiver.vol.async_subwoofer_level_up("Subwoofer 4")
+                await self._receiver.vol.async_subwoofer_level_down("Subwoofer 3")
+            case "SUBWOOFER4_LEVEL_UP":
+                await self._receiver.vol.async_subwoofer_level_up("Subwoofer 4")
             case "SUBWOOFER4_LEVEL_DOWN":
-                return await self._receiver.vol.async_subwoofer_level_down("Subwoofer 4")
+                await self._receiver.vol.async_subwoofer_level_down("Subwoofer 4")
             case "LFE_UP":
-                return await self._receiver.vol.async_lfe_up()
+                await self._receiver.vol.async_lfe_up()
             case "LFE_DOWN":
-                return await self._receiver.vol.async_lfe_down()
+                await self._receiver.vol.async_lfe_down()
             case "BASS_SYNC_UP":
-                return await self._receiver.vol.async_bass_sync_up()
+                await self._receiver.vol.async_bass_sync_up()
             case "BASS_SYNC_DOWN":
-                return await self._receiver.vol.async_bass_sync_down()
+                await self._receiver.vol.async_bass_sync_down()
+            case _:
+                return ucapi.StatusCodes.NOT_IMPLEMENTED
 
-    async def _handle_sound_mode_command(self, cmd: str) -> ucapi.StatusCodes | None:
-        # pylint: disable=R0911
+        return ucapi.StatusCodes.OK
+
+    async def _handle_sound_mode_command(self, cmd: str) -> ucapi.StatusCodes:
+        # pylint: disable=R0915, R0911
         match cmd:
             case "SURROUND_MODE_AUTO":
                 return await self._send_command("MSAUTO")
@@ -641,107 +670,163 @@ class SimpleCommand:
             case "SURROUND_MODE_MCH_STEREO":
                 return await self._send_command("MSMCH STEREO")
             case "SURROUND_MODE_NEXT":
-                return await self._receiver.soundmode.async_sound_mode_next()
+                await self._receiver.soundmode.async_sound_mode_next()
             case "SURROUND_MODE_PREVIOUS":
-                return await self._receiver.soundmode.async_sound_mode_previous()
+                await self._receiver.soundmode.async_sound_mode_previous()
             case "SOUND_MODE_NEURAL_X_ON":
-                return await self._receiver.soundmode.async_neural_x_on()
+                await self._receiver.soundmode.async_neural_x_on()
             case "SOUND_MODE_NEURAL_X_OFF":
-                return await self._receiver.soundmode.async_neural_x_off()
+                await self._receiver.soundmode.async_neural_x_off()
             case "SOUND_MODE_NEURAL_X_TOGGLE":
-                return await self._receiver.soundmode.async_neural_x_toggle()
+                await self._receiver.soundmode.async_neural_x_toggle()
             case "SOUND_MODE_IMAX_AUTO":
-                return await self._receiver.soundmode.async_imax_auto()
+                await self._receiver.soundmode.async_imax_auto()
             case "SOUND_MODE_IMAX_OFF":
-                return await self._receiver.soundmode.async_imax_off()
+                await self._receiver.soundmode.async_imax_off()
             case "SOUND_MODE_IMAX_TOGGLE":
-                return await self._receiver.soundmode.async_imax_toggle()
+                await self._receiver.soundmode.async_imax_toggle()
             case "IMAX_AUDIO_SETTINGS_AUTO":
-                return await self._receiver.soundmode.async_imax_audio_settings("AUTO")
+                await self._receiver.soundmode.async_imax_audio_settings("AUTO")
             case "IMAX_AUDIO_SETTINGS_MANUAL":
-                return await self._receiver.soundmode.async_imax_audio_settings("MANUAL")
+                await self._receiver.soundmode.async_imax_audio_settings("MANUAL")
             case "IMAX_AUDIO_SETTINGS_TOGGLE":
-                return await self._receiver.soundmode.async_imax_audio_settings_toggle()
+                await self._receiver.soundmode.async_imax_audio_settings_toggle()
+            case "IMAX_HPF_40HZ":
+                await self._receiver.soundmode.async_imax_hpf("40")
+            case "IMAX_HPF_60HZ":
+                await self._receiver.soundmode.async_imax_hpf("60")
+            case "IMAX_HPF_80HZ":
+                await self._receiver.soundmode.async_imax_hpf("80")
+            case "IMAX_HPF_90HZ":
+                await self._receiver.soundmode.async_imax_hpf("90")
+            case "IMAX_HPF_100HZ":
+                await self._receiver.soundmode.async_imax_hpf("100")
+            case "IMAX_HPF_110HZ":
+                await self._receiver.soundmode.async_imax_hpf("110")
+            case "IMAX_HPF_120HZ":
+                await self._receiver.soundmode.async_imax_hpf("120")
+            case "IMAX_HPF_150HZ":
+                await self._receiver.soundmode.async_imax_hpf("150")
+            case "IMAX_HPF_180HZ":
+                await self._receiver.soundmode.async_imax_hpf("180")
+            case "IMAX_HPF_200HZ":
+                await self._receiver.soundmode.async_imax_hpf("200")
+            case "IMAX_HPF_250HZ":
+                await self._receiver.soundmode.async_imax_hpf("250")
+            case "IMAX_LPF_80HZ":
+                await self._receiver.soundmode.async_imax_lpf("80")
+            case "IMAX_LPF_90HZ":
+                await self._receiver.soundmode.async_imax_lpf("90")
+            case "IMAX_LPF_100HZ":
+                await self._receiver.soundmode.async_imax_lpf("100")
+            case "IMAX_LPF_110HZ":
+                await self._receiver.soundmode.async_imax_lpf("110")
+            case "IMAX_LPF_120HZ":
+                await self._receiver.soundmode.async_imax_lpf("120")
+            case "IMAX_LPF_150HZ":
+                await self._receiver.soundmode.async_imax_lpf("150")
+            case "IMAX_LPF_180HZ":
+                await self._receiver.soundmode.async_imax_lpf("180")
+            case "IMAX_LPF_200HZ":
+                await self._receiver.soundmode.async_imax_lpf("200")
+            case "IMAX_LPF_250HZ":
+                await self._receiver.soundmode.async_imax_lpf("250")
             case "IMAX_SUBWOOFER_ON":
-                return await self._receiver.soundmode.async_imax_subwoofer_mode("ON")
+                await self._receiver.soundmode.async_imax_subwoofer_mode("ON")
             case "IMAX_SUBWOOFER_OFF":
-                return await self._receiver.soundmode.async_imax_subwoofer_mode("OFF")
+                await self._receiver.soundmode.async_imax_subwoofer_mode("OFF")
             case "IMAX_SUBWOOFER_OUTPUT_LFE_MAIN":
-                return await self._receiver.soundmode.async_imax_subwoofer_output("L+M")
+                await self._receiver.soundmode.async_imax_subwoofer_output("L+M")
             case "IMAX_SUBWOOFER_OUTPUT_LFE":
-                return await self._receiver.soundmode.async_imax_subwoofer_output("LFE")
+                await self._receiver.soundmode.async_imax_subwoofer_output("LFE")
             case "CINEMA_EQ_ON":
-                return await self._receiver.soundmode.async_cinema_eq_on()
+                await self._receiver.soundmode.async_cinema_eq_on()
             case "CINEMA_EQ_OFF":
-                return await self._receiver.soundmode.async_cinema_eq_off()
+                await self._receiver.soundmode.async_cinema_eq_off()
             case "CINEMA_EQ_TOGGLE":
-                return await self._receiver.soundmode.async_cinema_eq_toggle()
+                await self._receiver.soundmode.async_cinema_eq_toggle()
             case "CENTER_SPREAD_ON":
-                return await self._receiver.soundmode.async_center_spread_on()
+                await self._receiver.soundmode.async_center_spread_on()
             case "CENTER_SPREAD_OFF":
-                return await self._receiver.soundmode.async_center_spread_off()
+                await self._receiver.soundmode.async_center_spread_off()
             case "CENTER_SPREAD_TOGGLE":
-                return await self._receiver.soundmode.async_center_spread_toggle()
+                await self._receiver.soundmode.async_center_spread_toggle()
             case "LOUDNESS_MANAGEMENT_ON":
-                return await self._receiver.soundmode.async_loudness_management_on()
+                await self._receiver.soundmode.async_loudness_management_on()
             case "LOUDNESS_MANAGEMENT_OFF":
-                return await self._receiver.soundmode.async_loudness_management_off()
+                await self._receiver.soundmode.async_loudness_management_off()
             case "LOUDNESS_MANAGEMENT_TOGGLE":
-                return await self._receiver.soundmode.async_loudness_management_toggle()
+                await self._receiver.soundmode.async_loudness_management_toggle()
             case "DIALOG_ENHANCER_OFF":
-                return await self._receiver.soundmode.async_dialog_enhancer("Off")
+                await self._receiver.soundmode.async_dialog_enhancer("Off")
             case "DIALOG_ENHANCER_LOW":
-                return await self._receiver.soundmode.async_dialog_enhancer("Low")
+                await self._receiver.soundmode.async_dialog_enhancer("Low")
             case "DIALOG_ENHANCER_MEDIUM":
-                return await self._receiver.soundmode.async_dialog_enhancer("Medium")
+                await self._receiver.soundmode.async_dialog_enhancer("Medium")
             case "DIALOG_ENHANCER_HIGH":
-                return await self._receiver.soundmode.async_dialog_enhancer("High")
+                await self._receiver.soundmode.async_dialog_enhancer("High")
             case "AUROMATIC_3D_PRESET_SMALL":
-                return await self._receiver.soundmode.async_auromatic_3d_preset("Small")
+                await self._receiver.soundmode.async_auromatic_3d_preset("Small")
             case "AUROMATIC_3D_PRESET_MEDIUM":
-                return await self._receiver.soundmode.async_auromatic_3d_preset("Medium")
+                await self._receiver.soundmode.async_auromatic_3d_preset("Medium")
             case "AUROMATIC_3D_PRESET_LARGE":
-                return await self._receiver.soundmode.async_auromatic_3d_preset("Large")
+                await self._receiver.soundmode.async_auromatic_3d_preset("Large")
             case "AUROMATIC_3D_PRESET_SPEECH":
-                return await self._receiver.soundmode.async_auromatic_3d_preset("Speech")
+                await self._receiver.soundmode.async_auromatic_3d_preset("Speech")
             case "AUROMATIC_3D_PRESET_MOVIE":
-                return await self._receiver.soundmode.async_auromatic_3d_preset("Movie")
+                await self._receiver.soundmode.async_auromatic_3d_preset("Movie")
             case "AUROMATIC_3D_STRENGTH_UP":
-                return await self._receiver.soundmode.async_auromatic_3d_strength_up()
+                await self._receiver.soundmode.async_auromatic_3d_strength_up()
             case "AUROMATIC_3D_STRENGTH_DOWN":
-                return await self._receiver.soundmode.async_auromatic_3d_strength_down()
+                await self._receiver.soundmode.async_auromatic_3d_strength_down()
             case "AURO_3D_MODE_DIRECT":
-                return await self._receiver.soundmode.async_auro_3d_mode("Direct")
+                await self._receiver.soundmode.async_auro_3d_mode("Direct")
             case "AURO_3D_MODE_CHANNEL_EXPANSION":
-                return await self._receiver.soundmode.async_auro_3d_mode("Channel Expansion")
+                await self._receiver.soundmode.async_auro_3d_mode("Channel Expansion")
             case "DIALOG_CONTROL_UP":
-                return await self._receiver.soundmode.async_dialog_control_up()
+                await self._receiver.soundmode.async_dialog_control_up()
             case "DIALOG_CONTROL_DOWN":
-                return await self._receiver.soundmode.async_dialog_control_down()
+                await self._receiver.soundmode.async_dialog_control_down()
             case "SPEAKER_VIRTUALIZER_ON":
-                return await self._receiver.soundmode.async_speaker_virtualizer_on()
+                await self._receiver.soundmode.async_speaker_virtualizer_on()
             case "SPEAKER_VIRTUALIZER_OFF":
-                return await self._receiver.soundmode.async_speaker_virtualizer_off()
+                await self._receiver.soundmode.async_speaker_virtualizer_off()
             case "SPEAKER_VIRTUALIZER_TOGGLE":
-                return await self._receiver.soundmode.async_speaker_virtualizer_toggle()
+                await self._receiver.soundmode.async_speaker_virtualizer_toggle()
             case "EFFECT_SPEAKER_SELECTION_FLOOR":
-                return await self._receiver.soundmode.async_effect_speaker_selection("Floor")
+                await self._receiver.soundmode.async_effect_speaker_selection("Floor")
+            case "EFFECT_SPEAKER_SELECTION_FRONT":
+                await self._receiver.soundmode.async_effect_speaker_selection("Front")
+            case "EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT":
+                await self._receiver.soundmode.async_effect_speaker_selection("Front Height")
+            case "EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT_WIDE":
+                await self._receiver.soundmode.async_effect_speaker_selection("Front Height + Front Wide")
+            case "EFFECT_SPEAKER_SELECTION_FRONT_WIDE":
+                await self._receiver.soundmode.async_effect_speaker_selection("Front Wide")
             case "EFFECT_SPEAKER_SELECTION_HEIGHT_FLOOR":
-                return await self._receiver.soundmode.async_effect_speaker_selection("Height + Floor")
-            case "EFFECT_SPEAKER_SELECTION_TOGGLE":
-                return await self._receiver.soundmode.async_effect_speaker_selection_toggle()
+                await self._receiver.soundmode.async_effect_speaker_selection("Height + Floor")
+            case "EFFECT_SPEAKER_SELECTION_SURROUND_BACK":
+                await self._receiver.soundmode.async_effect_speaker_selection("Surround Back")
+            case "EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_HEIGHT":
+                await self._receiver.soundmode.async_effect_speaker_selection("Surround Back + Front Height")
+            case "EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_WIDE":
+                await self._receiver.soundmode.async_effect_speaker_selection("Surround Back + Front Wide")
             case "DRC_AUTO":
-                return await self._receiver.soundmode.async_drc("AUTO")
+                await self._receiver.soundmode.async_drc("AUTO")
             case "DRC_LOW":
-                return await self._receiver.soundmode.async_drc("LOW")
+                await self._receiver.soundmode.async_drc("LOW")
             case "DRC_MID":
-                return await self._receiver.soundmode.async_drc("MID")
+                await self._receiver.soundmode.async_drc("MID")
             case "DRC_HI":
-                return await self._receiver.soundmode.async_drc("HI")
+                await self._receiver.soundmode.async_drc("HI")
             case "DRC_OFF":
-                return await self._receiver.soundmode.async_drc("OFF")
+                await self._receiver.soundmode.async_drc("OFF")
+            case _:
+                return ucapi.StatusCodes.NOT_IMPLEMENTED
 
-    async def _handle_audyssey_command(self, cmd: str) -> ucapi.StatusCodes | None:
+        return ucapi.StatusCodes.OK
+
+    async def _handle_audyssey_command(self, cmd: str) -> ucapi.StatusCodes:
         # pylint: disable=R0911
         match cmd:
             case "MULTIEQ_REFERENCE":
@@ -753,36 +838,44 @@ class SimpleCommand:
             case "MULTIEQ_OFF":
                 return await self._send_command("PSMULTEQ:OFF")
             case "DYNAMIC_EQ_ON":
-                return await self._receiver.audyssey.async_dynamiceq_on()
+                await self._receiver.audyssey.async_dynamiceq_on()
             case "DYNAMIC_EQ_OFF":
-                return await self._receiver.audyssey.async_dynamiceq_off()
+                await self._receiver.audyssey.async_dynamiceq_off()
             case "DYNAMIC_EQ_TOGGLE":
-                return await self._receiver.audyssey.async_toggle_dynamic_eq()
+                await self._receiver.audyssey.async_toggle_dynamic_eq()
             case "AUDYSSEY_LFC":
-                return await self._receiver.audyssey.async_lfc_on()
+                await self._receiver.audyssey.async_lfc_on()
             case "AUDYSSEY_LFC_OFF":
-                return await self._receiver.audyssey.async_lfc_off()
+                await self._receiver.audyssey.async_lfc_off()
             case "DYNAMIC_VOLUME_OFF":
-                return await self._receiver.audyssey.async_set_dynamicvol("Off")
+                await self._receiver.audyssey.async_set_dynamicvol("Off")
             case "DYNAMIC_VOLUME_LIGHT":
-                return await self._receiver.audyssey.async_set_dynamicvol("Light")
+                await self._receiver.audyssey.async_set_dynamicvol("Light")
             case "DYNAMIC_VOLUME_MEDIUM":
-                return await self._receiver.audyssey.async_set_dynamicvol("Medium")
+                await self._receiver.audyssey.async_set_dynamicvol("Medium")
             case "DYNAMIC_VOLUME_HEAVY":
-                return await self._receiver.audyssey.async_set_dynamicvol("Heavy")
+                await self._receiver.audyssey.async_set_dynamicvol("Heavy")
             case "CONTAINMENT_AMOUNT_UP":
-                return await self._receiver.audyssey.async_containment_amount_up()
+                await self._receiver.audyssey.async_containment_amount_up()
             case "CONTAINMENT_AMOUNT_DOWN":
-                return await self._receiver.audyssey.async_containment_amount_down()
+                await self._receiver.audyssey.async_containment_amount_down()
+            case _:
+                return ucapi.StatusCodes.NOT_IMPLEMENTED
 
-    async def _handle_dirac_command(self, cmd: str) -> ucapi.StatusCodes | None:
+        return ucapi.StatusCodes.OK
+
+    async def _handle_dirac_command(self, cmd: str) -> ucapi.StatusCodes:
         # pylint: disable=R0911
         match cmd:
             case "DIRAC_LIVE_FILTER_SLOT1":
-                return await self._receiver.dirac.async_dirac_filter("Slot 1")
+                await self._receiver.dirac.async_dirac_filter("Slot 1")
             case "DIRAC_LIVE_FILTER_SLOT2":
-                return await self._receiver.dirac.async_dirac_filter("Slot 2")
+                await self._receiver.dirac.async_dirac_filter("Slot 2")
             case "DIRAC_LIVE_FILTER_SLOT3":
-                return await self._receiver.dirac.async_dirac_filter("Slot 3")
+                await self._receiver.dirac.async_dirac_filter("Slot 3")
             case "DIRAC_LIVE_FILTER_OFF":
-                return await self._receiver.dirac.async_dirac_filter("Off")
+                await self._receiver.dirac.async_dirac_filter("Off")
+            case _:
+                return ucapi.StatusCodes.NOT_IMPLEMENTED
+
+        return ucapi.StatusCodes.OK
