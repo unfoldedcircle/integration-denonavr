@@ -378,7 +378,6 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             zone2=False,
             zone3=False,
             use_telnet=False,
-            use_telnet_for_events=False,
             update_audyssey=False,
         )
 
@@ -464,7 +463,6 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     zone3 = msg.input_values.get("zone3") == "true"
     connection_mode = msg.input_values.get("connection_mode")
     use_telnet = connection_mode == "use_telnet"
-    use_telnet_for_events = connection_mode == "use_telnet_for_events"
     volume_step = 0.5
     try:
         volume_step = float(msg.input_values.get("volume_step", 0.5))
@@ -481,7 +479,6 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         zone2,
         zone3,
         use_telnet=False,  # always False, connection only used to retrieve model information
-        use_telnet_for_events=False,  # always False, connection only used to retrieve model information
         update_audyssey=False,  # always False, connection only used to retrieve model information
     )
 
@@ -508,7 +505,6 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         receiver.support_sound_mode,
         show_all_inputs,
         use_telnet=use_telnet,
-        use_telnet_for_events=use_telnet_for_events,
         update_audyssey=update_audyssey,
         zone2=zone2,
         zone3=zone3,
@@ -596,14 +592,6 @@ def __connection_mode_cfg(mode: str):
                             "en": "Use Telnet connection",
                             "de": "Telnet-Verbindung verwenden",
                             "fr": "Utilise une connexion Telnet",
-                        },
-                    },
-                    {
-                        "id": "use_telnet_for_events",
-                        "label": {
-                            "en": "Use Telnet connection for events",
-                            "de": "Telnet-Verbindung für Ereignisse verwenden",
-                            "fr": "Utilise une connexion Telnet pour les événements",
                         },
                     },
                     {
