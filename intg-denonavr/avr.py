@@ -38,7 +38,8 @@ from ucapi.media_player import Attributes as MediaAttr
 
 _LOG = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = 5
+DEFAULT_TIMEOUT = 0.25
+SETUP_TIMEOUT = 5
 VOLUME_STEP = 0.5
 
 BACKOFF_MAX: float = 30
@@ -417,11 +418,6 @@ class DenonDevice:
                         await self._receiver.async_telnet_connect()
 
                         self._receiver.register_callback(ALL_TELNET_EVENTS, self._telnet_callback)
-
-                        # TODO: remove once https://github.com/ol-iver/denonavr/pull/323 is merged
-                        # Avoid waiting 2 seconds for each command that doesn't respond (cursor, enter etc)
-                        # pylint: disable=W0212
-                        self._receiver._device.telnet_api._send_confirmation_timeout = 0.25
 
                     success = True
                     self._connection_attempts = 0

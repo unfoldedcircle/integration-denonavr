@@ -373,7 +373,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
         # simple connection check
         connect_denonavr = ConnectDenonAVR(
             address,
-            avr.DEFAULT_TIMEOUT,
+            avr.SETUP_TIMEOUT,
             show_all_inputs=False,
             zone2=False,
             zone3=False,
@@ -474,7 +474,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     # Telnet connection not required for connection check and retrieving model information
     connect_denonavr = ConnectDenonAVR(
         host,
-        avr.DEFAULT_TIMEOUT,
+        avr.SETUP_TIMEOUT,
         show_all_inputs,
         zone2,
         zone3,
