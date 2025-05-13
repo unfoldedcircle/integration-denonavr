@@ -65,115 +65,257 @@ Supported media player commands:
 
 Additional commands are exposed as "simple commands" that can be used in macros and activities. Many of these commands
 are only supported by specific receiver models. Please check your manual what commands your receiver supports.
+Note that the toggle commands only are available when using Telnet.
 
-| Simple Command              | Denon Command     |
-|-----------------------------|-------------------|
-| OUTPUT_1                    | VSMONI1           |
-| OUTPUT_2                    | VSMONI2           |
-| OUTPUT_AUTO                 | VSMONIAUTO        |
-| DIMMER_TOGGLE               | DIM SEL           |
-| DIMMER_BRIGHT               | DIM BRI           |
-| DIMMER_DIM                  | DIM DIM           |
-| DIMMER_DARK                 | DIM DAR           |
-| DIMMER_OFF                  | DIM OFF           |
-| TRIGGER1_ON                 | TR1 ON            |
-| TRIGGER1_OFF                | TR1 OFF           |
-| TRIGGER2_ON                 | TR2 ON            |
-| TRIGGER2_OFF                | TR2 OFF           |
-| FRONT_LEFT_UP               | CVFL UP           |
-| FRONT_LEFT_DOWN             | CVFL DOWN         |
-| FRONT_RIGHT_UP              | CVFR UP           |
-| FRONT_RIGHT_DOWN            | CVFR DOWN         |
-| CENTER_UP                   | CVC UP            |
-| CENTER_DOWN                 | CVC DOWN          |
-| SUB1_UP                     | CVSW UP           |
-| SUB1_DOWN                   | CVSW DOWN         |
-| SUB2_UP                     | CVSW2 UP          |
-| SUB2_DOWN                   | CVSW2 DOWN        |
-| SUB3_UP                     | CVSW3 UP          |
-| SUB3_DOWN                   | CVSW3 DOWN        |
-| SUB4_UP                     | CVSW4 UP          |
-| SUB4_DOWN                   | CVSW4 DOWN        |
-| SURROUND_LEFT_UP            | CVSL UP           |
-| SURROUND_LEFT_DOWN          | CVSL DOWN         |
-| SURROUND_RIGHT_UP           | CVSR UP           |
-| SURROUND_RIGHT_DOWN         | CVSR DOWN         |
-| SURROUND_BACK_LEFT_UP       | CVSBL UP          |
-| SURROUND_BACK_LEFT_DOWN     | CVSBL DOWN        |
-| SURROUND_BACK_RIGHT_UP      | CVSBR UP          |
-| SURROUND_BACK_RIGHT_DOWN    | CVSBR DOWN        |
-| FRONT_HEIGHT_LEFT_UP        | CVFHL UP          |
-| FRONT_HEIGHT_LEFT_DOWN      | CVFHL DOWN        |
-| FRONT_HEIGHT_RIGHT_UP       | CVFHR UP          |
-| FRONT_HEIGHT_RIGHT_DOWN     | CVFHR DOWN        |
-| FRONT_WIDE_LEFT_UP          | CVFWL UP          |
-| FRONT_WIDE_LEFT_DOWN        | CVFWL DOWN        |
-| FRONT_WIDE_RIGHT_UP         | CVFWR UP          |
-| FRONT_WIDE_RIGHT_DOWN       | CVFWR DOWN        |
-| TOP_FRONT_LEFT_UP           | CVTFL UP          |
-| TOP_FRONT_LEFT_DOWN         | CVTFL DOWN        |
-| TOP_FRONT_RIGHT_UP          | CVTFR UP          |
-| TOP_FRONT_RIGHT_DOWN        | CVTFR DOWN        |
-| TOP_MIDDLE_LEFT_UP          | CVTML UP          |
-| TOP_MIDDLE_LEFT_DOWN        | CVTML DOWN        |
-| TOP_MIDDLE_RIGHT_UP         | CVTMR UP          |
-| TOP_MIDDLE_RIGHT_DOWN       | CVTMR DOWN        |
-| TOP_REAR_LEFT_UP            | CVTRL UP          |
-| TOP_REAR_LEFT_DOWN          | CVTRL DOWN        |
-| TOP_REAR_RIGHT_UP           | CVTRR UP          |
-| TOP_REAR_RIGHT_DOWN         | CVTRR DOWN        |
-| REAR_HEIGHT_LEFT_UP         | CVRHL UP          |
-| REAR_HEIGHT_LEFT_DOWN       | CVRHL DOWN        |
-| REAR_HEIGHT_RIGHT_UP        | CVRHR UP          |
-| REAR_HEIGHT_RIGHT_DOWN      | CVRHR DOWN        |
-| FRONT_DOLBY_LEFT_UP         | CVFDL UP          |
-| FRONT_DOLBY_LEFT_DOWN       | CVFDL DOWN        |
-| FRONT_DOLBY_RIGHT_UP        | CVFDR UP          |
-| FRONT_DOLBY_RIGHT_DOWN      | CVFDR DOWN        |
-| SURROUND_DOLBY_LEFT_UP      | CVSDL UP          |
-| SURROUND_DOLBY_LEFT_DOWN    | CVSDL DOWN        |
-| SURROUND_DOLBY_RIGHT_UP     | CVSDR UP          |
-| SURROUND_DOLBY_RIGHT_DOWN   | CVSDR DOWN        |
-| BACK_DOLBY_LEFT_UP          | CVBDL UP          |
-| BACK_DOLBY_LEFT_DOWN        | CVBDL DOWN        |
-| BACK_DOLBY_RIGHT_UP         | CVBDR UP          |
-| BACK_DOLBY_RIGHT_DOWN       | CVBDR DOWN        |
-| SURROUND_HEIGHT_LEFT_UP     | CVSHL UP          |
-| SURROUND_HEIGHT_LEFT_DOWN   | CVSHL DOWN        |
-| SURROUND_HEIGHT_RIGHT_UP    | CVSHR UP          |
-| SURROUND_HEIGHT_RIGHT_DOWN  | CVSHR DOWN        |
-| TOP_SURROUND_UP             | CVTS UP           |
-| TOP_SURROUND_DOWN           | CVTS DOWN         |
-| CENTER_HEIGHT_UP            | CVCH UP           |
-| CENTER_HEIGHT_DOWN          | CVCH DOWN         |
-| DELAY_UP                    | PSDELAY UP        |
-| DELAY_DOWN                  | PSDELAY DOWN      |
-| SURROUND_MODE_AUTO          | MSAUTO            |
-| SURROUND_MODE_DIRECT        | MSDIRECT          |
-| SURROUND_MODE_PURE_DIRECT   | MSPURE DIRECT     |
-| SURROUND_MODE_DOLBY_DIGITAL | MSDOLBY DIGITAL   |
-| SURROUND_MODE_DTS_SURROUND  | MSDTS SURROUND    |
-| SURROUND_MODE_AURO3D        | MSAURO3D          |
-| SURROUND_MODE_AURO2DSURR    | MSAURO2DSURR      |
-| SURROUND_MODE_MCH_STEREO    | MSMCH STEREO      |
-| SURROUND_MODE_NEXT          | MSLEFT            |
-| SURROUND_MODE_PREVIOUS      | MSRIGHT           |
-| MULTIEQ_REFERENCE           | PSMULTEQ:AUDYSSEY |
-| MULTIEQ_BYPASS_LR           | MULTEQ:BYP.LR     |
-| MULTIEQ_FLAT                | PSMULTEQ:FLAT     |
-| MULTIEQ_OFF                 | PSMULTEQ:OFF      |
-| DYNAMIC_EQ_ON               | PSDYNEQ ON        |
-| DYNAMIC_EQ_OFF              | PSDYNEQ OFF       |
-| AUDYSSEY_LFC                | PSLFC ON          |
-| AUDYSSEY_LFC_OFF            | PSLFC OFF         |
-| DIRAC_LIVE_FILTER_SLOT1     | PSDIRAC 1         |
-| DIRAC_LIVE_FILTER_SLOT2     | PSDIRAC 2         |
-| DIRAC_LIVE_FILTER_SLOT3     | PSDIRAC 3         |
-| DIRAC_LIVE_FILTER_OFF       | PSDIRAC OFF       |
-| ECO_ON                      | ECOON             |
-| ECO_AUTO                    | ECOAUTO           |
-| ECO_OFF                     | ECOOFF            |
-| STATUS                      | RCSHP0230030      |
+| Simple Command                                      | Denon Command         |
+|-----------------------------------------------------|-----------------------|
+| OUTPUT_1                                            | VSMONI1               |
+| OUTPUT_2                                            | VSMONI2               |
+| OUTPUT_AUTO                                         | VSMONIAUTO            |
+| DIMMER_TOGGLE                                       | DIM SEL               |
+| DIMMER_BRIGHT                                       | DIM BRI               |
+| DIMMER_DIM                                          | DIM DIM               |
+| DIMMER_DARK                                         | DIM DAR               |
+| DIMMER_OFF                                          | DIM OFF               |
+| TRIGGER1_ON                                         | TR1 ON                |
+| TRIGGER1_OFF                                        | TR1 OFF               |
+| TRIGGER2_ON                                         | TR2 ON                |
+| TRIGGER2_OFF                                        | TR2 OFF               |
+| TRIGGER3_ON                                         | TR2 ON                |
+| TRIGGER3_OFF                                        | TR2 OFF               |
+| DELAY_UP                                            | PSDELAY UP            |
+| DELAY_DOWN                                          | PSDELAY DOWN          |
+| ECO_AUTO                                            | ECOAUTO               |
+| ECO_ON                                              | ECOON                 |
+| ECO_OFF                                             | ECOOFF                |
+| INFO_MENU                                           | MNINF                 |
+| OPTIONS_MENU                                        | MNOPT                 |
+| CHANNEL_LEVEL_ADJUST_MENU                           | MNCHL                 |
+| AUTO_STANDBY_OFF                                    | STBYOFF               |
+| AUTO_STANDBY_15MIN                                  | STBY15M               |
+| AUTO_STANDBY_30MIN                                  | STBY30M               |
+| AUTO_STANDBY_60MIN                                  | STBY60M               |
+| DELAY_TIME_UP                                       | PSDEL UP              |
+| DELAY_TIME_DOWN                                     | PSDEL DOWN            |
+| HDMI_AUDIO_DECODE_AMP                               | VSAUDIO AMP           |
+| HDMI_AUDIO_DECODE_TV                                | VSAUDIO TV            |
+| VIDEO_PROCESSING_MODE_AUTO                          | VSVPMAUTO             |
+| VIDEO_PROCESSING_MODE_GAME                          | VSVPMGAME             |
+| VIDEO_PROCESSING_MODE_MOVIE                         | VSVPMOVI              |
+| VIDEO_PROCESSING_MODE_BYPASS                        | VSVPMBYP              |
+| NETWORK_RESTART                                     | NSRBT                 |
+| SPEAKER_PRESET_1                                    | SPPR 1                |
+| SPEAKER_PRESET_2                                    | SPPR 2                |
+| SPEAKER_PRESET_TOGGLE                               | SPPR 1/2              |
+| BT_TRANSMITTER_ON                                   | BTTX ON               |
+| BT_TRANSMITTER_OFF                                  | BTTX OFF              |
+| BT_TRANSMITTER_TOGGLE                               | BTTX ON/OFF           |
+| BT_OUTPUT_MODE_BT_SPEAKER                           | BTTX SP               |
+| BT_OUTPUT_MODE_BT_ONLY                              | BTTX BT               |
+| BT_OUTPUT_MODE_TOGGLE                               | BTTX SP/BT            |
+| AUDIO_RESTORER_OFF                                  | PSRSTR OFF            |
+| AUDIO_RESTORER_LOW                                  | PSRSTR LOW            |
+| AUDIO_RESTORER_MEDIUM                               | PSRSTR MED            |
+| AUDIO_RESTORER_HIGH                                 | PSRSTR HI             |
+| REMOTE_CONTROL_LOCK_ON                              | SYREMOTE LOCK ON      |
+| REMOTE_CONTROL_LOCK_OFF                             | SYREMOTE LOCK OFF     |
+| PANEL_LOCK_PANEL                                    | SYPANEL LOCK ON       |
+| PANEL_LOCK_PANEL_VOLUME                             | SYPANEL+V LOCK ON     |
+| PANEL_LOCK_OFF                                      | SYPANEL LOCK OFF      |
+| GRAPHIC_EQ_ON                                       | PSGEQ ON              |
+| GRAPHIC_EQ_OFF                                      | PSGEQ OFF             |
+| GRAPHIC_EQ_TOGGLE                                   | PSGEQ ON/OFF          |
+| HEADPHONE_EQ_ON                                     | PSHEQ ON              |
+| HEADPHONE_EQ_OFF                                    | PSHEQ OFF             |
+| HEADPHONE_EQ_TOGGLE                                 | PSHEQ ON/OFF          |
+| STATUS                                              | RCSHP0230030          |
+| FRONT_LEFT_UP                                       | CVFL UP               |
+| FRONT_LEFT_DOWN                                     | CVFL DOWN             |
+| FRONT_RIGHT_UP                                      | CVFR UP               |
+| FRONT_RIGHT_DOWN                                    | CVFR DOWN             |
+| CENTER_UP                                           | CVC UP                |
+| CENTER_DOWN                                         | CVC DOWN              |
+| SUB1_UP                                             | CVSW UP               |
+| SUB1_DOWN                                           | CVSW DOWN             |
+| SUB2_UP                                             | CVSW2 UP              |
+| SUB2_DOWN                                           | CVSW2 DOWN            |
+| SUB3_UP                                             | CVSW3 UP              |
+| SUB3_DOWN                                           | CVSW3 DOWN            |
+| SUB4_UP                                             | CVSW4 UP              |
+| SUB4_DOWN                                           | CVSW4 DOWN            |
+| SURROUND_LEFT_UP                                    | CVSL UP               |
+| SURROUND_LEFT_DOWN                                  | CVSL DOWN             |
+| SURROUND_RIGHT_UP                                   | CVSR UP               |
+| SURROUND_RIGHT_DOWN                                 | CVSR DOWN             |
+| SURROUND_BACK_LEFT_UP                               | CVSBL UP              |
+| SURROUND_BACK_LEFT_DOWN                             | CVSBL DOWN            |
+| SURROUND_BACK_RIGHT_UP                              | CVSBR UP              |
+| SURROUND_BACK_RIGHT_DOWN                            | CVSBR DOWN            |
+| FRONT_HEIGHT_LEFT_UP                                | CVFHL UP              |
+| FRONT_HEIGHT_LEFT_DOWN                              | CVFHL DOWN            |
+| FRONT_HEIGHT_RIGHT_UP                               | CVFHR UP              |
+| FRONT_HEIGHT_RIGHT_DOWN                             | CVFHR DOWN            |
+| FRONT_WIDE_LEFT_UP                                  | CVFWL UP              |
+| FRONT_WIDE_LEFT_DOWN                                | CVFWL DOWN            |
+| FRONT_WIDE_RIGHT_UP                                 | CVFWR UP              |
+| FRONT_WIDE_RIGHT_DOWN                               | CVFWR DOWN            |
+| TOP_FRONT_LEFT_UP                                   | CVTFL UP              |
+| TOP_FRONT_LEFT_DOWN                                 | CVTFL DOWN            |
+| TOP_FRONT_RIGHT_UP                                  | CVTFR UP              |
+| TOP_FRONT_RIGHT_DOWN                                | CVTFR DOWN            |
+| TOP_MIDDLE_LEFT_UP                                  | CVTML UP              |
+| TOP_MIDDLE_LEFT_DOWN                                | CVTML DOWN            |
+| TOP_MIDDLE_RIGHT_UP                                 | CVTMR UP              |
+| TOP_MIDDLE_RIGHT_DOWN                               | CVTMR DOWN            |
+| TOP_REAR_LEFT_UP                                    | CVTRL UP              |
+| TOP_REAR_LEFT_DOWN                                  | CVTRL DOWN            |
+| TOP_REAR_RIGHT_UP                                   | CVTRR UP              |
+| TOP_REAR_RIGHT_DOWN                                 | CVTRR DOWN            |
+| REAR_HEIGHT_LEFT_UP                                 | CVRHL UP              |
+| REAR_HEIGHT_LEFT_DOWN                               | CVRHL DOWN            |
+| REAR_HEIGHT_RIGHT_UP                                | CVRHR UP              |
+| REAR_HEIGHT_RIGHT_DOWN                              | CVRHR DOWN            |
+| FRONT_DOLBY_LEFT_UP                                 | CVFDL UP              |
+| FRONT_DOLBY_LEFT_DOWN                               | CVFDL DOWN            |
+| FRONT_DOLBY_RIGHT_UP                                | CVFDR UP              |
+| FRONT_DOLBY_RIGHT_DOWN                              | CVFDR DOWN            |
+| SURROUND_DOLBY_LEFT_UP                              | CVSDL UP              |
+| SURROUND_DOLBY_LEFT_DOWN                            | CVSDL DOWN            |
+| SURROUND_DOLBY_RIGHT_UP                             | CVSDR UP              |
+| SURROUND_DOLBY_RIGHT_DOWN                           | CVSDR DOWN            |
+| BACK_DOLBY_LEFT_UP                                  | CVBDL UP              |
+| BACK_DOLBY_LEFT_DOWN                                | CVBDL DOWN            |
+| BACK_DOLBY_RIGHT_UP                                 | CVBDR UP              |
+| BACK_DOLBY_RIGHT_DOWN                               | CVBDR DOWN            |
+| SURROUND_HEIGHT_LEFT_UP                             | CVSHL UP              |
+| SURROUND_HEIGHT_LEFT_DOWN                           | CVSHL DOWN            |
+| SURROUND_HEIGHT_RIGHT_UP                            | CVSHR UP              |
+| SURROUND_HEIGHT_RIGHT_DOWN                          | CVSHR DOWN            |
+| TOP_SURROUND_UP                                     | CVTS UP               |
+| TOP_SURROUND_DOWN                                   | CVTS DOWN             |
+| CENTER_HEIGHT_UP                                    | CVCH UP               |
+| CENTER_HEIGHT_DOWN                                  | CVCH DOWN             |
+| CHANNEL_VOLUMES_RESET                               | CVZRL                 |
+| SUBWOOFER_ON                                        | PSSWR ON              |
+| SUBWOOFER_OFF                                       | PSSWR OFF             |
+| SUBWOOFER_TOGGLE                                    | PSSWR ON/OFF          |
+| SUBWOOFER1_LEVEL_UP                                 | PSSWL UP              |
+| SUBWOOFER1_LEVEL_DOWN                               | PSSWL DOWN            |
+| SUBWOOFER2_LEVEL_UP                                 | PSSWL2 UP             |
+| SUBWOOFER2_LEVEL_DOWN                               | PSSWL2 DOWN           |
+| SUBWOOFER3_LEVEL_UP                                 | PSSWL3 UP             |
+| SUBWOOFER3_LEVEL_DOWN                               | PSSWL3 DOWN           |
+| SUBWOOFER4_LEVEL_UP                                 | PSSWL4 UP             |
+| SUBWOOFER4_LEVEL_DOWN                               | PSSWL4 DOWN           |
+| LFE_UP                                              | PSLFE UP              |
+| LFE_DOWN                                            | PSLFE DOWN            |
+| BASS_SYNC_UP                                        | PSBSC UP              |
+| BASS_SYNC_DOWN                                      | PSBSC DOWN            |
+| SURROUND_MODE_AUTO                                  | MSAUTO                |
+| SURROUND_MODE_DIRECT                                | MSDIRECT              |
+| SURROUND_MODE_PURE_DIRECT                           | MSPURE DIRECT         |
+| SURROUND_MODE_DOLBY_DIGITAL                         | MSDOLBY DIGITAL       |
+| SURROUND_MODE_DTS_SURROUND                          | MSDTS SURROUND        |
+| SURROUND_MODE_AURO3D                                | MSAURO3D              |
+| SURROUND_MODE_AURO2DSURR                            | MSAURO2DSURR          |
+| SURROUND_MODE_MCH_STEREO                            | MSMCH STEREO          |
+| SURROUND_MODE_NEXT                                  | MSRIGHT               |
+| SURROUND_MODE_PREVIOUS                              | MSLEFT                |
+| SOUND_MODE_NEURAL_X_ON                              | PSNEURAL ON           |
+| SOUND_MODE_NEURAL_X_OFF                             | PSNEURAL OFF          |
+| SOUND_MODE_NEURAL_X_TOGGLE                          | PSNEURAL ON/OFF       |
+| SOUND_MODE_IMAX_AUTO                                | PSIMAX AUTO           |
+| SOUND_MODE_IMAX_OFF                                 | PSIMAX OFF            |
+| SOUND_MODE_IMAX_TOGGLE                              | PSIMAX AUTO/OFF       |
+| IMAX_AUDIO_SETTINGS_AUTO                            | PSIMAXAUD AUTO        |
+| IMAX_AUDIO_SETTINGS_MANUAL                          | PSIMAXAUD MANUAL      |
+| IMAX_AUDIO_SETTINGS_TOGGLE                          | PSIMAXAUD AUTO/MANUAL |
+| IMAX_HPF_40HZ                                       | PSIMAXHPF 40          |
+| IMAX_HPF_60HZ                                       | PSIMAXHPF 60          |
+| IMAX_HPF_80HZ                                       | PSIMAXHPF 80          |
+| IMAX_HPF_90HZ                                       | PSIMAXHPF 90          |
+| IMAX_HPF_100HZ                                      | PSIMAXHPF 100         |
+| IMAX_HPF_110HZ                                      | PSIMAXHPF 110         |
+| IMAX_HPF_120HZ                                      | PSIMAXHPF 120         |
+| IMAX_HPF_150HZ                                      | PSIMAXHPF 150         |
+| IMAX_HPF_180HZ                                      | PSIMAXHPF 180         |
+| IMAX_HPF_200HZ                                      | PSIMAXHPF 200         |
+| IMAX_HPF_250HZ                                      | PSIMAXHPF 250         |
+| IMAX_LPF_80HZ                                       | PSIMAXLPF 80          |
+| IMAX_LPF_90HZ                                       | PSIMAXLPF 90          |
+| IMAX_LPF_100HZ                                      | PSIMAXLPF 100         |
+| IMAX_LPF_110HZ                                      | PSIMAXLPF 110         |
+| IMAX_LPF_120HZ                                      | PSIMAXLPF 120         |
+| IMAX_LPF_150HZ                                      | PSIMAXLPF 150         |
+| IMAX_LPF_180HZ                                      | PSIMAXLPF 180         |
+| IMAX_LPF_200HZ                                      | PSIMAXLPF 200         |
+| IMAX_LPF_250HZ                                      | PSIMAXLPF 250         |
+| IMAX_SUBWOOFER_ON                                   | PSIMAXSWM ON          |
+| IMAX_SUBWOOFER_OFF                                  | PSIMAXSWM OFF         |
+| IMAX_SUBWOOFER_OUTPUT_LFE_MAIN                      | PSIMAXSWO L+M         |
+| IMAX_SUBWOOFER_OUTPUT_LFE                           | PSIMAXSWO LFE         |
+| CINEMA_EQ_ON                                        | PSCINEMA EQ.ON        |
+| CINEMA_EQ_OFF                                       | PSCINEMA EQ.OFF       |
+| CINEMA_EQ_TOGGLE                                    | PSCINEMA EQ.ON/OFF    |
+| CENTER_SPREAD_ON                                    | PSCES ON              |
+| CENTER_SPREAD_OFF                                   | PSCES OFF             |
+| CENTER_SPREAD_TOGGLE                                | PSCES ON/OFF          |
+| LOUDNESS_MANAGEMENT_ON                              | PSLOM ON              |
+| LOUDNESS_MANAGEMENT_OFF                             | PSLOM OFF             |
+| LOUDNESS_MANAGEMENT_TOGGLE                          | PSLOM ON/OFF          |
+| DIALOG_ENHANCER_OFF                                 | PSDEH OFF             |
+| DIALOG_ENHANCER_LOW                                 | PSDEH LOW             |
+| DIALOG_ENHANCER_MEDIUM                              | PSDEH MED             |
+| DIALOG_ENHANCER_HIGH                                | PSDEH HIGH            |
+| AUROMATIC_3D_PRESET_SMALL                           | PSAUROPR SMA          |
+| AUROMATIC_3D_PRESET_MEDIUM                          | PSAUROPR MED          |
+| AUROMATIC_3D_PRESET_LARGE                           | PSAUROPR LAR          |
+| AUROMATIC_3D_PRESET_SPEECH                          | PSAUROPR SPE          |
+| AUROMATIC_3D_PRESET_MOVIE                           | PSAUROPR MOV          |
+| AUROMATIC_3D_STRENGTH_UP                            | PSAUROST UP           |
+| AUROMATIC_3D_STRENGTH_DOWN                          | PSAUROST DOWN         |
+| AURO_3D_MODE_DIRECT                                 | PSAUROMODE DRCT       |
+| AURO_3D_MODE_CHANNEL_EXPANSION                      | PSAUROMODE EXP        |
+| DIALOG_CONTROL_UP                                   | PSDIC UP              |
+| DIALOG_CONTROL_DOWN                                 | PSDIC DOWN            |
+| SPEAKER_VIRTUALIZER_ON                              | PSSPV ON              |
+| SPEAKER_VIRTUALIZER_OFF                             | PSSPV OFF             |
+| SPEAKER_VIRTUALIZER_TOGGLE                          | PSSPV ON/OFF          |
+| EFFECT_SPEAKER_SELECTION_FLOOR                      | PSSP:FL               |
+| EFFECT_SPEAKER_SELECTION_FRONT                      | PSSP:FR               |
+| EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT               | PSSP:FH               |
+| EFFECT_SPEAKER_SELECTION_FRONT_WIDE                 | PSSP:FW               |
+| EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT_WIDE          | PSSP:HW               |
+| EFFECT_SPEAKER_SELECTION_HEIGHT_FLOOR               | PSSP:HF               |
+| EFFECT_SPEAKER_SELECTION_SURROUND_BACK              | PSSP:SB               |
+| EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_HEIGHT | PSSP:BH               |
+| EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_WIDE   | PSSP:BW               |
+| DRC_AUTO                                            | PSDRC AUTO            |
+| DRC_LOW                                             | PSDRC LOW             |
+| DRC_MID                                             | PSDRC MID             |
+| DRC_HI                                              | PSDRC HI              |
+| DRC_OFF                                             | PSDRC OFF             |
+| MULTIEQ_REFERENCE                                   | PSMULTEQ:AUDYSSEY     |
+| MULTIEQ_BYPASS_LR                                   | MULTEQ:BYP.LR         |
+| MULTIEQ_FLAT                                        | PSMULTEQ:FLAT         |
+| MULTIEQ_OFF                                         | PSMULTEQ:OFF          |
+| DYNAMIC_EQ_ON                                       | PSDYNEQ ON            |
+| DYNAMIC_EQ_OFF                                      | PSDYNEQ OFF           |
+| DYNAMIC_EQ_TOGGLE                                   | PSDYNEQ OFF           |
+| DYNAMIC_VOLUME_OFF                                  | PSDYNVOL OFF          |
+| AUDYSSEY_LFC                                        | PSLFC ON              |
+| AUDYSSEY_LFC_OFF                                    | PSLFC OFF             |
+| DYNAMIC_VOLUME_LIGHT                                | PSDYNVOL LIT          |
+| DYNAMIC_VOLUME_MEDIUM                               | PSDYNVOL MED          |
+| DYNAMIC_VOLUME_HEAVY                                | PSDYNVOL HEV          |
+| CONTAINMENT_AMOUNT_UP                               | PSCNTAMT UP           |
+| CONTAINMENT_AMOUNT_DOWN                             | PSCNTAMT DOWN         |
+| DIRAC_LIVE_FILTER_SLOT1                             | PSDIRAC 1             |
+| DIRAC_LIVE_FILTER_SLOT2                             | PSDIRAC 2             |
+| DIRAC_LIVE_FILTER_SLOT3                             | PSDIRAC 3             |
+| DIRAC_LIVE_FILTER_OFF                               | PSDIRAC OFF           |
+
+
 
 ## Known supported devices
 
