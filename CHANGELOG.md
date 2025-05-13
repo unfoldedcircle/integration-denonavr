@@ -9,10 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## v0.8.0 - 2025-05-13
 ### Added
 - Multi-device support ([#20](https://github.com/unfoldedcircle/integration-denonavr/issues/20)).
+- Additional commands. Contributed by @henrikwidlund, thanks! ([#65](https://github.com/unfoldedcircle/integration-denonavr/pull/65))
 
----
+### Changed
+- Update denonavr library to 1.1.0, remove hybrid connection.
+- Use built-in API for setting timeouts. Contributed by @henrikwidlund, thanks! ([#66](https://github.com/unfoldedcircle/integration-denonavr/pull/66))
 
 ## v0.7.1 - 2025-04-26
 ### Changed
@@ -20,7 +26,7 @@ _Changes in the next release_
 
 ## v0.7.0 - 2025-04-25
 ### Fixed
-- Missing response status codes when using http requests lead to timeout errors in UI. Contributed by @henrikwidlund, thanks! ([#56](https://github.com/unfoldedcircle/integration-denonavr/pull/58))
+- Missing response status codes when using http requests lead to timeout errors in UI. Contributed by @henrikwidlund, thanks! ([#58](https://github.com/unfoldedcircle/integration-denonavr/pull/58))
 - Power toggle command ([#59](https://github.com/unfoldedcircle/integration-denonavr/pull/59)).
 
 ### Changed

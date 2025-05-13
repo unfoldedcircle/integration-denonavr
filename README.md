@@ -3,14 +3,15 @@
 Using [denonavr](https://github.com/ol-iver/denonavr)
 and [uc-integration-api](https://github.com/aitatoi/integration-python-library)
 
-This integration is included in the Remote Two and Remote 3 firmware and no external service must be run to connect with
-Denon AVR devices. It can be run as an external integration for development or connecting multiple devices.
+This integration is included in the Remote Two and Remote 3 firmware, and no external service must be run to connect
+with Denon AVR devices. It can be run as an external integration for development.
 
-The driver discovers Denon or Marantz AVRs on the network. Only a single AVR is supported at the moment.  
-A [media player entity](https://github.com/unfoldedcircle/core-api/blob/main/doc/entities/entity_media_player.md)
+- The driver discovers Denon or Marantz AVRs on the local network. Manual configuration by hostname or IP is also supported.  
+- Multiple AVR devices are supported with version 0.8.0 and newer.
+- A [media player entity](https://github.com/unfoldedcircle/core-api/blob/main/doc/entities/entity_media_player.md)
 is exposed to the Remote to control the AVR.
 
-The receiver can be controlled by HTTP or Telnet. Using Telnet provides realtime updates for many values but certain
+Receiver can be controlled by HTTP or Telnet. Using Telnet provides realtime updates for many values, but certain
 receivers are limited to a single connection only (see limitations below).
 
 ## Requirements
@@ -28,19 +29,19 @@ receivers are limited to a single connection only (see limitations below).
 - Device discovery is using
   the [Simple Device Discovery Protocol](https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol)
   (SSDP) to find a network receiver.
-    - Unfortunately this doesn’t work anymore for all models. If your receiver cannot be found when it is turned on, a
-      manual setup with the IP address of the receiver is required. In this case, please either configure a static IP
-      address in your receiver, or use a DHCP IP reservation in your router / DHCP server.
+    - Unfortunately, this doesn’t work anymore for all models. If your receiver cannot be found when it is turned on, a
+      manual setup with the IP address or hostname of the receiver is required. In this case, please either configure a
+      static IP address in your receiver or use a DHCP IP reservation in your router / DHCP server.
 - Telnet might be limited to one client connection only, depending on AVR model.
     - Older models only support a single connection. That means, if you have multiple Remotes that only one is able to
       use Telnet. If the AVR is already controlled by another system, for example your smart home controller, then the
       Remote can’t use Telnet anymore.
     - We have successfully tested multiple Telnet connections on newer AVR-X models.  
-      Unfortunately there’s no official documentation, which models support multiple connections. One has to try out if
+      Unfortunately, there’s no official documentation, which models support multiple connections. One has to try out if
       it works or not.
 - A cold start of the AVR can take up to a minute or longer until it is reachable on the network and can be controlled
   by this integration.  
-  Please keep this in mind when using a smart power switch to completely power off the AVR. For example when using an
+  Please keep this in mind when using a smart power switch to completely power off the AVR. For example, when using an
   activity to control the smart power switch, it requires a longer delay to send the AVR power-on command.
 - HEOS control is not supported.
 
@@ -314,8 +315,6 @@ Note that the toggle commands only are available when using Telnet.
 | DIRAC_LIVE_FILTER_SLOT2                             | PSDIRAC 2             |
 | DIRAC_LIVE_FILTER_SLOT3                             | PSDIRAC 3             |
 | DIRAC_LIVE_FILTER_OFF                               | PSDIRAC OFF           |
-
-
 
 ## Known supported devices
 
