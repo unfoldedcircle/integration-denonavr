@@ -336,6 +336,7 @@ async def handle_configuration_mode(
             return RequestUserInput(
                 {
                     "en": "Configure your AVR",
+                    "de": "Konfiguriere deinen Denon AVR",
                     "fr": "Configurez votre AVR",
                 },
                 [
