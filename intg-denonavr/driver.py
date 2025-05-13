@@ -148,8 +148,7 @@ async def on_avr_connected(avr_id: str):
         _LOG.warning("AVR %s is not configured", avr_id)
         return
 
-    # TODO #20 when multiple devices are supported, the device state logic isn't that simple anymore!
-    await api.set_device_state(ucapi.DeviceStates.CONNECTED)
+    await api.set_device_state(ucapi.DeviceStates.CONNECTED)  # just to make sure the device state is set
 
     for entity_id in _entities_from_avr(avr_id):
         configured_entity = api.configured_entities.get(entity_id)
@@ -181,9 +180,6 @@ async def on_avr_disconnected(avr_id: str):
                 entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
             )
 
-    # TODO #20 when multiple devices are supported, the device state logic isn't that simple anymore!
-    await api.set_device_state(ucapi.DeviceStates.DISCONNECTED)
-
 
 async def on_avr_connection_error(avr_id: str, message):
     """Set entities of AVR to state UNAVAILABLE if AVR connection error occurred."""
@@ -198,9 +194,6 @@ async def on_avr_connection_error(avr_id: str, message):
             api.configured_entities.update_attributes(
                 entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
             )
-
-    # TODO #20 when multiple devices are supported, the device state logic isn't that simple anymore!
-    await api.set_device_state(ucapi.DeviceStates.ERROR)
 
 
 async def handle_avr_address_change(avr_id: str, address: str) -> None:
@@ -278,7 +271,8 @@ def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> None:
     # the device should not yet be configured, but better be safe
     if device.id in _configured_avrs:
         receiver = _configured_avrs[device.id]
-        receiver.disconnect()
+        if not connect:
+            _LOOP.create_task(receiver.disconnect())
     else:
         receiver = avr.DenonDevice(device, loop=_LOOP)
 

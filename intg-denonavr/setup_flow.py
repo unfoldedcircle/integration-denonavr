@@ -123,12 +123,15 @@ async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
     :return: the setup action on how to continue
     """
     global _setup_step
+    global _cfg_add_device
     global _reconfigured_device
 
     if isinstance(msg, DriverSetupRequest):
         _setup_step = SetupSteps.INIT
         _reconfigured_device = None
+        _cfg_add_device = False
         return await handle_driver_setup(msg)
+
     if isinstance(msg, UserDataResponse):
         _LOG.debug("UserDataResponse: %s %s", msg, _setup_step)
         if _setup_step == SetupSteps.CONFIGURATION_MODE and "action" in msg.input_values:
@@ -183,44 +186,43 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
 
         # TODO #27 externalize language texts
         # build user actions, based on available devices
-        # TODO #20 multiple receivers, for now only show "add" if there is nothing configured yet
-        if config.devices.is_empty():
-            dropdown_actions = [
-                {
-                    "id": "add",
-                    "label": {
-                        "en": "Add a new device",
-                        "de": "Neues Gerät hinzufügen",
-                        "fr": "Ajouter un nouvel appareil",
-                    },
+        selected_action_index = 0
+        dropdown_actions = [
+            {
+                "id": "add",
+                "label": {
+                    "en": "Add a new device",
+                    "de": "Neues Gerät hinzufügen",
+                    "fr": "Ajouter un nouvel appareil",
                 },
-            ]
-        else:
-            dropdown_actions = []
+            },
+        ]
 
         # add remove & reset actions if there's at least one configured device
         if dropdown_devices:
+            # pre-select configure action if at least one device exists
+            selected_action_index = 1
             dropdown_actions.append(
                 {
                     "id": "configure",
                     "label": {
                         "en": "Configure selected device",
+                        "de": "Selektiertes Gerät konfigurieren",
                         "fr": "Configurer l'appareil sélectionné",
                     },
                 },
             )
 
-            # TODO #20 multiple receivers
-            # dropdown_actions.append(
-            #     {
-            #         "id": "remove",
-            #         "label": {
-            #             "en": "Delete selected device",
-            #             "de": "Selektiertes Gerät löschen",
-            #             "fr": "Supprimer l'appareil sélectionné",
-            #         },
-            #     },
-            # )
+            dropdown_actions.append(
+                {
+                    "id": "remove",
+                    "label": {
+                        "en": "Delete selected device",
+                        "de": "Selektiertes Gerät löschen",
+                        "fr": "Supprimer l'appareil sélectionné",
+                    },
+                },
+            )
 
             dropdown_actions.append(
                 {
@@ -256,7 +258,7 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
                 {
                     "field": {
                         "dropdown": {
-                            "value": dropdown_actions[0]["id"],
+                            "value": dropdown_actions[selected_action_index]["id"],
                             "items": dropdown_actions,
                         }
                     },
@@ -334,6 +336,7 @@ async def handle_configuration_mode(
             return RequestUserInput(
                 {
                     "en": "Configure your AVR",
+                    "de": "Konfiguriere deinen Denon AVR",
                     "fr": "Configurez votre AVR",
                 },
                 [
@@ -384,6 +387,12 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
         try:
             await connect_denonavr.async_connect_receiver()
             receiver = connect_denonavr.receiver
+            existing = config.devices.get(receiver.serial_number)
+            if _cfg_add_device and existing:
+                _LOG.warning("Manually specified device is already configured %s: %s", address, receiver.name)
+                # no better error code at the moment
+                return SetupError(error_type=IntegrationSetupError.OTHER)
+
             dropdown_items.append(
                 {"id": address, "label": {"en": f"{receiver.name} ({receiver.model_name} - {address})"}}
             )
@@ -399,6 +408,18 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
 
         for a in avrs:
             avr_data = {"id": a["host"], "label": {"en": f"{a['friendlyName']} ({a['modelName']} - {a['host']})"}}
+
+            # not sure if the serial number is always available in the discovery data
+            serial_number = a["serialNumber"]
+            if serial_number:
+                existing = config.devices.get(serial_number)
+                if _cfg_add_device and existing:
+                    _LOG.info(
+                        "Skipping found device '%s' %s: already configured",
+                        a["friendlyName"],
+                        a["host"],
+                    )
+                    continue
             dropdown_items.append(avr_data)
 
     if not dropdown_items:
@@ -471,7 +492,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     except ValueError:
         return SetupError(error_type=IntegrationSetupError.OTHER)
 
-    # Telnet connection not required for connection check and retrieving model information
+    # Telnet connection isn't required for connection check and retrieving model information
     connect_denonavr = ConnectDenonAVR(
         host,
         avr.SETUP_TIMEOUT,
@@ -510,8 +531,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         zone3=zone3,
         volume_step=volume_step,
     )
-    config.devices.add(device)  # triggers DenonAVR instance creation
-    config.devices.store()
+    config.devices.add_or_update(device)  # triggers DenonAVR instance creation
 
     # AVR device connection will be triggered with subscribe_entities request
 

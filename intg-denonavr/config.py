@@ -98,12 +98,22 @@ class Devices:
                 return True
         return False
 
-    def add(self, atv: AvrDevice) -> None:
-        """Add a new configured Denon device."""
-        # TODO duplicate check
-        self._config.append(atv)
-        if self._add_handler is not None:
-            self._add_handler(atv)
+    def add_or_update(self, avr: AvrDevice) -> None:
+        """
+        Add a newly configured device and persist configuration.
+
+        The device is updated if it already exists in the configuration.
+        """
+        if self.update(avr):
+            if self._remove_handler is not None:
+                self._remove_handler(avr)
+            if self._add_handler is not None:
+                self._add_handler(avr)
+        else:
+            self._config.append(avr)
+            self.store()
+            if self._add_handler is not None:
+                self._add_handler(avr)
 
     def get(self, avr_id: str) -> AvrDevice | None:
         """Get device configuration for given identifier."""
