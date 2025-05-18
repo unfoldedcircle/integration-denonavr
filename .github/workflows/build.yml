@@ -41,6 +41,11 @@ jobs:
             exit 1
           fi
 
+      - name: Compile language files
+        run: |
+          cd intg-denonavr/locales
+          make all
+
       - name: Prepare
         run: |
           sudo apt-get update && sudo apt-get install -y qemu-system-arm binfmt-support qemu-user-static

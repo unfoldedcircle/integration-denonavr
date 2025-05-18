@@ -333,6 +333,16 @@ integration, which uses the same [denonavr](https://github.com/ol-iver/denonavr)
 pip3 install -r requirements.txt
 ```
 
+- Compile gettext translation files:
+  - This requires `msgfmt` from the GNU gettext utilities.
+  - See [intg-denonavr/locales/README](intg-denonavr/locales/README.md) for more information.
+  - Helper Makefile:
+
+```shell
+cd intg-denonavr/locales
+make all
+```
+
 For running a separate integration driver on your network for Remote Two/3, the configuration in file
 [driver.json](driver.json) needs to be changed:
 

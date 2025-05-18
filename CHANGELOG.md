@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Changed
+- Externalize language strings for translations with Crowdin ([#27](https://github.com/unfoldedcircle/integration-denonavr/issues/27)))
+
 ---
 
 ## v0.8.2 - 2025-05-27
 ### Fixed
-- Temporary fix for HDMI output, ECO, dimmer and direct commands that don't work ([#69](https://github.com/unfoldedcircle/integration-denonavr/pull/69)).
+- Temporary fix for HDMI output, ECO, dimmer and dirac commands that don't work ([#69](https://github.com/unfoldedcircle/integration-denonavr/pull/69)).
 
 ## v0.8.1 - 2025-05-19
 ### Fixed
