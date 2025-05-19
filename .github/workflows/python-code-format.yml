@@ -9,7 +9,6 @@ on:
       - 'tests/**'
       - '.github/**/*.yml'
       - '.pylintrc'
-      - 'pyproject.toml'
       - 'tox.ini'
   pull_request:
     branches: [ main ]
