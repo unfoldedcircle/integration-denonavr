@@ -322,13 +322,8 @@ async def handle_configuration_mode(
 
             show_all_inputs = selected_device.show_all_inputs if selected_device.show_all_inputs else False
             use_telnet = selected_device.use_telnet if selected_device.use_telnet else False
-            use_telnet_for_events = (
-                selected_device.use_telnet_for_events if selected_device.use_telnet_for_events else False
-            )
             if use_telnet:
                 connection_mode = "use_telnet"
-            elif use_telnet_for_events:
-                connection_mode = "use_telnet_for_events"
             else:
                 connection_mode = "use_http"
             volume_step = selected_device.volume_step if selected_device.volume_step else 0.5
@@ -560,7 +555,6 @@ async def _handle_device_reconfigure(
     _LOG.debug("User has changed configuration")
 
     connection_mode = msg.input_values.get("connection_mode")
-    volume_step = 0.5
     try:
         volume_step = float(msg.input_values.get("volume_step", 0.5))
         if volume_step < 0.1 or volume_step > 10:
@@ -572,7 +566,6 @@ async def _handle_device_reconfigure(
     _reconfigured_device.zone2 = msg.input_values.get("zone2") == "true"
     _reconfigured_device.zone3 = msg.input_values.get("zone3") == "true"
     _reconfigured_device.use_telnet = connection_mode == "use_telnet"
-    _reconfigured_device.use_telnet_for_events = connection_mode == "use_telnet_for_events"
     _reconfigured_device.volume_step = volume_step
 
     config.devices.update(_reconfigured_device)  # triggers ATV instance update
