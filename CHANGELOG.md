@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Fixed
+- Startup error after the first setup on a clean device ([#67](https://github.com/unfoldedcircle/integration-denonavr/issues/67)).
+
 ---
 
 ## v0.8.0 - 2025-05-13

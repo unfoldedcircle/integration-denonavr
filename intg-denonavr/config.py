@@ -204,7 +204,7 @@ class Devices:
                     item.get("zone3", False),
                     item.get("volume_step", 0.5),
                 )
-                needs_migration |= item.get("use_telnet_for_events")
+                needs_migration |= item.get("use_telnet_for_events") is not None
                 self._config.append(atv)
 
             if needs_migration:
