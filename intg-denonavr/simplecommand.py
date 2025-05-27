@@ -357,15 +357,15 @@ class SimpleCommand:
         match cmd:
             case "OUTPUT_1":
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self.send_simple_command("VSMONI1")
+                await self._send_command("VSMONI1")
                 # await self._receiver.async_hdmi_output("HDMI1")
             case "OUTPUT_2":
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self.send_simple_command("VSMONI2")
+                await self._send_command("VSMONI2")
                 # await self._receiver.async_hdmi_output("HDMI2")
             case "OUTPUT_AUTO":
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self.send_simple_command("VSMONIAUTO")
+                await self._send_command("VSMONIAUTO")
                 # await self._receiver.async_hdmi_output("Auto")
             case "DIMMER_TOGGLE":
                 await self._receiver.async_dimmer_toggle()
