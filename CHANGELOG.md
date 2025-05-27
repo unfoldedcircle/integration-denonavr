@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## v0.8.2 - 2025-05-27
+### Fixed
+- Temporary fix for HDMI output, ECO, dimmer and direct commands that don't work ([#69](https://github.com/unfoldedcircle/integration-denonavr/pull/69)).
+
 ## v0.8.1 - 2025-05-19
 ### Fixed
 - Startup error after the first setup on a clean device ([#67](https://github.com/unfoldedcircle/integration-denonavr/issues/67)).
