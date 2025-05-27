@@ -356,11 +356,17 @@ class SimpleCommand:
         # pylint: disable=R0915
         match cmd:
             case "OUTPUT_1":
-                await self._receiver.async_hdmi_output("HDMI1")
+                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
+                await self.send_simple_command("VSMONI1")
+                # await self._receiver.async_hdmi_output("HDMI1")
             case "OUTPUT_2":
-                await self._receiver.async_hdmi_output("HDMI2")
+                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
+                await self.send_simple_command("VSMONI2")
+                # await self._receiver.async_hdmi_output("HDMI2")
             case "OUTPUT_AUTO":
-                await self._receiver.async_hdmi_output("Auto")
+                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
+                await self.send_simple_command("VSMONIAUTO")
+                # await self._receiver.async_hdmi_output("Auto")
             case "DIMMER_TOGGLE":
                 await self._receiver.async_dimmer_toggle()
             case "DIMMER_BRIGHT":
