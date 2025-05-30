@@ -39,7 +39,6 @@ from ucapi.media_player import Attributes as MediaAttr
 _LOG = logging.getLogger(__name__)
 
 SETUP_TIMEOUT = 5
-VOLUME_STEP = 0.5
 
 BACKOFF_MAX: float = 30
 MIN_RECONNECT_DELAY: float = 0.5

@@ -482,7 +482,6 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     zone3 = msg.input_values.get("zone3") == "true"
     connection_mode = msg.input_values.get("connection_mode")
     use_telnet = connection_mode == "use_telnet"
-    volume_step = 0.5
     try:
         volume_step = float(msg.input_values.get("volume_step", 0.5))
         if volume_step < 0.1 or volume_step > 10:
@@ -575,7 +574,7 @@ async def _handle_device_reconfigure(
     _reconfigured_device.volume_step = volume_step
     _reconfigured_device.timeout = int(msg.input_values.get("timeout", 2000))
 
-    config.devices.update(_reconfigured_device)  # triggers ATV instance update
+    config.devices.update(_reconfigured_device)  # triggers receiver instance update
     await asyncio.sleep(1)
     _LOG.info("Setup successfully completed for %s", _reconfigured_device.name)
 
@@ -633,6 +632,7 @@ def __volume_cfg(step: float):
         "id": "volume_step",
         "label": {
             "en": "Volume step",
+            "de": "Lautstärke-Schritt",
             "fr": "Pallier de volume",
         },
         "field": {"number": {"value": step, "min": 0.5, "max": 10, "steps": 1, "decimals": 1, "unit": {"en": "dB"}}},
