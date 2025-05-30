@@ -50,6 +50,7 @@ class AvrDevice:
     zone2: bool
     zone3: bool
     volume_step: float
+    timeout: int
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
@@ -136,18 +137,19 @@ class Devices:
                 item.zone2 = avr.zone2
                 item.zone3 = avr.zone3
                 item.volume_step = avr.volume_step
+                item.timeout = avr.timeout
                 return self.store()
         return False
 
     def remove(self, avr_id: str) -> bool:
         """Remove the given device configuration."""
-        atv = self.get(avr_id)
-        if atv is None:
+        avr = self.get(avr_id)
+        if avr is None:
             return False
         try:
-            self._config.remove(atv)
+            self._config.remove(avr)
             if self._remove_handler is not None:
-                self._remove_handler(atv)
+                self._remove_handler(avr)
             return True
         except ValueError:
             pass
@@ -190,7 +192,7 @@ class Devices:
             needs_migration = False
             for item in data:
                 # not using AvrDevice(**item) to be able to migrate old configuration files with missing attributes
-                atv = AvrDevice(
+                avr = AvrDevice(
                     item.get("id"),
                     item.get("name"),
                     item.get("address"),
@@ -203,9 +205,10 @@ class Devices:
                     item.get("zone2", False),
                     item.get("zone3", False),
                     item.get("volume_step", 0.5),
+                    item.get("timeout", 2000),
                 )
                 needs_migration |= item.get("use_telnet_for_events") is not None
-                self._config.append(atv)
+                self._config.append(avr)
 
             if needs_migration:
                 self.store()
