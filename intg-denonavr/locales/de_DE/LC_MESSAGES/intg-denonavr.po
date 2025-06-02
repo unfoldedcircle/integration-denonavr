@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Denon AVR Integration\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-02 21:55+0200\n"
+"POT-Creation-Date: 2025-06-02 23:25+0200\n"
 "PO-Revision-Date: 2023-11-15 12:00+0000\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: German\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../driver.py:362 ../setup_flow.py:570
+#: ../driver.py:362 ../setup_flow.py:567
 msgid "Connection and request timeout"
 msgstr "Verbindungs- und Anforderungstimeout"
 
@@ -45,10 +45,7 @@ msgstr "Bitte beachten:"
 #: ../setup_flow.py:83
 msgid ""
 "Using telnet provides realtime updates for many values but certain receivers "
-"allow a single connection only! If you enable this setting, other apps or "
-"systems may no longer work. Using Telnet for events is faster for regular "
-"commands while still providing realtime updates. Same limitations regarding "
-"Telnet apply."
+"allow a single connection only!"
 msgstr ""
 "Die Verwendung von telnet bietet Echtzeit-Updates für viele Werte, aber "
 "bestimmte Verstärker erlauben nur eine einzige Verbindung! Mit dieser "
@@ -57,62 +54,62 @@ msgstr ""
 "bietet aber immer noch Echtzeit-Updates. Die gleichen Einschränkungen in "
 "Bezug auf Telnet gelten."
 
-#: ../setup_flow.py:170
+#: ../setup_flow.py:167
 msgid "Add a new device"
 msgstr "Neues Gerät hinzufügen"
 
-#: ../setup_flow.py:181
+#: ../setup_flow.py:178
 msgid "Configure selected device"
 msgstr "Selektiertes Gerät konfigurieren"
 
-#: ../setup_flow.py:188
+#: ../setup_flow.py:185
 msgid "Delete selected device"
 msgstr "Selektiertes Gerät löschen"
 
-#: ../setup_flow.py:195
+#: ../setup_flow.py:192
 msgid "Reset configuration and reconfigure"
 msgstr "Konfiguration zurücksetzen und neu konfigurieren"
 
-#: ../setup_flow.py:203
+#: ../setup_flow.py:200
 msgid "Configuration mode"
 msgstr "Konfigurations-Modus"
 
-#: ../setup_flow.py:213
+#: ../setup_flow.py:210
 msgid "Configured devices"
 msgstr "Konfigurierte Geräte"
 
-#: ../setup_flow.py:223
+#: ../setup_flow.py:220
 msgid "Action"
 msgstr "Aktion"
 
-#: ../setup_flow.py:286
+#: ../setup_flow.py:283
 msgid "Configure your AVR"
 msgstr "Konfiguriere deinen Denon AVR"
 
-#: ../setup_flow.py:377
+#: ../setup_flow.py:374
 msgid "Please choose your Denon AVR"
 msgstr "Bitte Denon AVR auswählen"
 
-#: ../setup_flow.py:382
+#: ../setup_flow.py:379
 msgid "Choose your Denon AVR"
 msgstr "Wähle deinen Denon AVR"
 
-#: ../setup_flow.py:532
+#: ../setup_flow.py:529
 msgid "Show all sources"
 msgstr "Alle Quellen anzeigen"
 
-#: ../setup_flow.py:540
+#: ../setup_flow.py:537
 msgid "Connection mode"
 msgstr "Verbindungstyp"
 
-#: ../setup_flow.py:547
+#: ../setup_flow.py:544
 msgid "Use Telnet connection"
 msgstr "Telnet-Verbindung verwenden"
 
-#: ../setup_flow.py:551
+#: ../setup_flow.py:548
 msgid "Use HTTP connection"
 msgstr "HTTP-Verbindung verwenden"
 
-#: ../setup_flow.py:562
+#: ../setup_flow.py:559
 msgid "Volume step"
 msgstr "Lautstärkestufe"

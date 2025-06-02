@@ -81,10 +81,7 @@ def __telnet_info():
             "label": {
                 "value": _a(
                     "Using telnet provides realtime updates for many values but "
-                    "certain receivers allow a single connection only! If you enable this "
-                    "setting, other apps or systems may no longer work. "
-                    "Using Telnet for events is faster for regular commands while still providing realtime"
-                    " updates. Same limitations regarding Telnet apply."
+                    "certain receivers allow a single connection only!"
                 )
             }
         },
