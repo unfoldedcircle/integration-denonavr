@@ -1,0 +1,107 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: uc-integration-denon-avr\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-02 13:29+0200\n"
+"PO-Revision-Date: 2025-06-02 19:37\n"
+"Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
+"Language-Team: Italian\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: uc-integration-denon-avr\n"
+"X-Crowdin-Project-ID: 796252\n"
+"X-Crowdin-Language: it\n"
+"X-Crowdin-File: /feat.27-i18n_gettext/intg-denonavr/locales/en/LC_MESSAGES/intg-denonavr.po\n"
+"X-Crowdin-File-ID: 80\n"
+
+#: ../setup_flow.py:52
+msgid "Setup mode"
+msgstr ""
+
+#: ../setup_flow.py:60
+msgid "Leave blank to use auto-discovery and click _Next_."
+msgstr ""
+
+#: ../setup_flow.py:62
+msgid "The device must be on the same network as the remote."
+msgstr ""
+
+#: ../setup_flow.py:69
+msgid "Manual IP address or hostname"
+msgstr ""
+
+#: ../setup_flow.py:79
+msgid "Please note:"
+msgstr ""
+
+#: ../setup_flow.py:83
+msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only! If you enable this setting, other apps or systems may no longer work. Using Telnet for events is faster for regular commands while still providing realtime updates. Same limitations regarding Telnet apply."
+msgstr ""
+
+#: ../setup_flow.py:170
+msgid "Add a new device"
+msgstr ""
+
+#: ../setup_flow.py:181
+msgid "Configure selected device"
+msgstr ""
+
+#: ../setup_flow.py:188
+msgid "Delete selected device"
+msgstr ""
+
+#: ../setup_flow.py:195
+msgid "Reset configuration and reconfigure"
+msgstr ""
+
+#: ../setup_flow.py:203
+msgid "Configuration mode"
+msgstr ""
+
+#: ../setup_flow.py:213
+msgid "Configured devices"
+msgstr ""
+
+#: ../setup_flow.py:223
+msgid "Action"
+msgstr ""
+
+#: ../setup_flow.py:286
+msgid "Configure your AVR"
+msgstr ""
+
+#: ../setup_flow.py:377
+msgid "Please choose your Denon AVR"
+msgstr ""
+
+#: ../setup_flow.py:382
+msgid "Choose your Denon AVR"
+msgstr ""
+
+#: ../setup_flow.py:532
+msgid "Show all sources"
+msgstr ""
+
+#: ../setup_flow.py:540
+msgid "Connection mode"
+msgstr ""
+
+#: ../setup_flow.py:547
+msgid "Use Telnet connection"
+msgstr ""
+
+#: ../setup_flow.py:551
+msgid "Use HTTP connection"
+msgstr ""
+
+#: ../setup_flow.py:562
+msgid "Volume step"
+msgstr ""
+
+#: ../setup_flow.py:570
+msgid "Connection and request timeout"
+msgstr ""
+
