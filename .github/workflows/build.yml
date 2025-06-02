@@ -4,8 +4,7 @@ name: "Build & Release"
 
 on:
   push:
-    # feat/27-i18n_gettext ONLY FOR PR TESTING
-    branches: [ main, feat/27-i18n_gettext ]
+    branches: [ main ]
     tags:
       - v[0-9]+.[0-9]+.[0-9]+*
   pull_request:
