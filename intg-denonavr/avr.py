@@ -38,9 +38,7 @@ from ucapi.media_player import Attributes as MediaAttr
 
 _LOG = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = 0.25
 SETUP_TIMEOUT = 5
-VOLUME_STEP = 0.5
 
 BACKOFF_MAX: float = 30
 MIN_RECONNECT_DELAY: float = 0.5
@@ -195,7 +193,6 @@ class DenonDevice:
     def __init__(
         self,
         device: AvrDevice,
-        timeout: float = DEFAULT_TIMEOUT,
         loop: AbstractEventLoop | None = None,
     ):
         """Create instance with given IP or hostname of AVR."""
@@ -211,7 +208,7 @@ class DenonDevice:
         if device.zone3:
             self._zones["Zone3"] = None
         self._receiver: denonavr.DenonAVR = denonavr.DenonAVR(
-            host=device.address, show_all_inputs=device.show_all_inputs, timeout=timeout, add_zones=self._zones
+            host=device.address, show_all_inputs=device.show_all_inputs, timeout=device.timeout, add_zones=self._zones
         )
         self._update_audyssey = device.update_audyssey
         self._simple_command = SimpleCommand(self._receiver, self._send_command)
