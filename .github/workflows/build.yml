@@ -4,7 +4,8 @@ name: "Build & Release"
 
 on:
   push:
-    branches: [ main ]
+    # feat/27-i18n_gettext ONLY FOR PR TESTING
+    branches: [ main, feat/27-i18n_gettext ]
     tags:
       - v[0-9]+.[0-9]+.[0-9]+*
   pull_request:
@@ -46,7 +47,7 @@ jobs:
           cd intg-denonavr/locales
           make all
 
-      - name: Prepare
+      - name: Pyinstaller
         run: |
           sudo apt-get update && sudo apt-get install -y qemu-system-arm binfmt-support qemu-user-static
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
@@ -60,7 +61,10 @@ jobs:
             bash -c \
               "cd /workspace && \
               python -m pip install -r requirements.txt && \
-              pyinstaller --clean --onedir --name intg-denonavr intg-denonavr/driver.py"
+              pyinstaller --clean --onedir --name intg-denonavr --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
+          echo "Clean up locales"
+          cd dist/intg-denonavr/_internal/locales
+          rm -Rf *.pot Makefile README.md */LC_MESSAGES/*.po
 
       - name: Add version
         run: |
