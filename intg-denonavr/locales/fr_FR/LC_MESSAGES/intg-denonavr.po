@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Denon AVR Integration\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-02 13:29+0200\n"
+"POT-Creation-Date: 2025-06-02 21:55+0200\n"
 "PO-Revision-Date: 2023-11-15 12:00+0000\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: French\n"
@@ -15,6 +15,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: ../driver.py:362 ../setup_flow.py:570
+msgid "Connection and request timeout"
+msgstr "Délai de connexion et de requête"
 
 #: ../setup_flow.py:52
 msgid "Setup mode"
@@ -112,7 +116,3 @@ msgstr "Utilise une connexion HTTP"
 #: ../setup_flow.py:562
 msgid "Volume step"
 msgstr "Pallier de volume"
-
-#: ../setup_flow.py:570
-msgid "Connection and request timeout"
-msgstr "Délai de connexion et de requête"

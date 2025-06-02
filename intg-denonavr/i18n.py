@@ -15,8 +15,8 @@ from pathlib import Path
 from typing import Dict, Optional
 
 # Define the available languages
-AVAILABLE_LANGUAGES = ["en", "de", "fr"]
-DEFAULT_LANGUAGE = "en"
+AVAILABLE_LANGUAGES = ["en_US", "de_DE", "fr_FR"]
+DEFAULT_LANGUAGE = "en_US"
 
 # Path to the locales directory (relative to the package)
 LOCALE_DIR = Path(__file__).parent / "locales"
