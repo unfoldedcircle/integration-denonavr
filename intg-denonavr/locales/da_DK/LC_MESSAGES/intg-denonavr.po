@@ -1,0 +1,107 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: uc-integration-denon-avr\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-02 21:55+0200\n"
+"PO-Revision-Date: 2025-06-02 20:41\n"
+"Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
+"Language-Team: Danish\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: uc-integration-denon-avr\n"
+"X-Crowdin-Project-ID: 796252\n"
+"X-Crowdin-Language: da\n"
+"X-Crowdin-File: /feat.27-i18n_gettext/intg-denonavr/locales/en_US/LC_MESSAGES/intg-denonavr.po\n"
+"X-Crowdin-File-ID: 94\n"
+
+#: ../driver.py:362 ../setup_flow.py:570
+msgid "Connection and request timeout"
+msgstr "Forbindelses- og forespørgselstimeout"
+
+#: ../setup_flow.py:52
+msgid "Setup mode"
+msgstr "Opsætningstilstand"
+
+#: ../setup_flow.py:60
+msgid "Leave blank to use auto-discovery and click _Next_."
+msgstr "Lad det være tomt for at bruge automatisk opdagelse og klik på _Next_."
+
+#: ../setup_flow.py:62
+msgid "The device must be on the same network as the remote."
+msgstr "Enheden skal være på samme netværk som fjernbetjeningen."
+
+#: ../setup_flow.py:69
+msgid "Manual IP address or hostname"
+msgstr "Manuel IP-adresse eller værtsnavn"
+
+#: ../setup_flow.py:79
+msgid "Please note:"
+msgstr "Bemærk:"
+
+#: ../setup_flow.py:83
+msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only! If you enable this setting, other apps or systems may no longer work. Using Telnet for events is faster for regular commands while still providing realtime updates. Same limitations regarding Telnet apply."
+msgstr "Brug af telnet giver realtidsopdateringer for mange værdier, men visse modtagere tillader kun en enkelt forbindelse! Hvis du aktiverer denne indstilling, kan andre apps eller systemer muligvis ikke længere fungere. Brug af Telnet til begivenheder er hurtigere til regelmæssige kommandoer og giver stadig realtidsopdateringer. De samme begrænsninger for Telnet gælder."
+
+#: ../setup_flow.py:170
+msgid "Add a new device"
+msgstr "Add a new device"
+
+#: ../setup_flow.py:181
+msgid "Configure selected device"
+msgstr "Konfigurer den valgte enhed"
+
+#: ../setup_flow.py:188
+msgid "Delete selected device"
+msgstr "Slet den valgte enhed"
+
+#: ../setup_flow.py:195
+msgid "Reset configuration and reconfigure"
+msgstr "Nulstil konfiguration og konfigurer igen"
+
+#: ../setup_flow.py:203
+msgid "Configuration mode"
+msgstr "Konfigurationstilstand"
+
+#: ../setup_flow.py:213
+msgid "Configured devices"
+msgstr "Konfigurerede enheder"
+
+#: ../setup_flow.py:223
+msgid "Action"
+msgstr "Handling"
+
+#: ../setup_flow.py:286
+msgid "Configure your AVR"
+msgstr "Konfigurer din AVR"
+
+#: ../setup_flow.py:377
+msgid "Please choose your Denon AVR"
+msgstr "Vælg venligst din Denon AVR"
+
+#: ../setup_flow.py:382
+msgid "Choose your Denon AVR"
+msgstr "Vælg din Denon AVR"
+
+#: ../setup_flow.py:532
+msgid "Show all sources"
+msgstr "Vis alle kilder"
+
+#: ../setup_flow.py:540
+msgid "Connection mode"
+msgstr "Forbindelsestilstand"
+
+#: ../setup_flow.py:547
+msgid "Use Telnet connection"
+msgstr "Brug Telnet-forbindelse"
+
+#: ../setup_flow.py:551
+msgid "Use HTTP connection"
+msgstr "Brug HTTP-forbindelse"
+
+#: ../setup_flow.py:562
+msgid "Volume step"
+msgstr "Volumetrin"
+
