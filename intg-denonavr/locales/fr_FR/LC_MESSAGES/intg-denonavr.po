@@ -1,13 +1,9 @@
-# French translations for Denon AVR Integration.
-# Copyright (C) 2023 Unfolded Circle ApS
-# This file is distributed under the same license as the Denon AVR Integration package.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: Denon AVR Integration\n"
+"Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-06-02 21:55+0200\n"
-"PO-Revision-Date: 2023-11-15 12:00+0000\n"
+"PO-Revision-Date: 2025-06-02 20:41\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -15,6 +11,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Crowdin-Project: uc-integration-denon-avr\n"
+"X-Crowdin-Project-ID: 796252\n"
+"X-Crowdin-Language: fr\n"
+"X-Crowdin-File: /feat.27-i18n_gettext/intg-denonavr/locales/en_US/LC_MESSAGES/intg-denonavr.po\n"
+"X-Crowdin-File-ID: 94\n"
 
 #: ../driver.py:362 ../setup_flow.py:570
 msgid "Connection and request timeout"
@@ -26,9 +27,7 @@ msgstr "Installation"
 
 #: ../setup_flow.py:60
 msgid "Leave blank to use auto-discovery and click _Next_."
-msgstr ""
-"Laissez le champ vide pour utiliser la découverte automatique et cliquez sur "
-"_Suivant_."
+msgstr "Laissez le champ vide pour utiliser la découverte automatique et cliquez sur _Suivant_."
 
 #: ../setup_flow.py:62
 msgid "The device must be on the same network as the remote."
@@ -43,19 +42,8 @@ msgid "Please note:"
 msgstr "Veuillez noter:"
 
 #: ../setup_flow.py:83
-msgid ""
-"Using telnet provides realtime updates for many values but certain receivers "
-"allow a single connection only! If you enable this setting, other apps or "
-"systems may no longer work. Using Telnet for events is faster for regular "
-"commands while still providing realtime updates. Same limitations regarding "
-"Telnet apply."
-msgstr ""
-"L'utilisation de telnet fournit des mises à jour en temps réel pour de "
-"nombreuses valeurs, mais certains amplificateurs ne permettent qu'une seule "
-"connexion! Avec ce paramètre, d'autres applications ou systèmes ne peuvent "
-"plus fonctionner. L'utilisation de Telnet pour les événements est plus "
-"rapide pour les commandes classiques tout en fournissant des mises à jour en "
-"temps réel. Les mêmes limitations concernant Telnet s'appliquent."
+msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only! If you enable this setting, other apps or systems may no longer work. Using Telnet for events is faster for regular commands while still providing realtime updates. Same limitations regarding Telnet apply."
+msgstr "L'utilisation de telnet fournit des mises à jour en temps réel pour de nombreuses valeurs, mais certains amplificateurs ne permettent qu'une seule connexion! Avec ce paramètre, d'autres applications ou systèmes ne peuvent plus fonctionner. L'utilisation de Telnet pour les événements est plus rapide pour les commandes classiques tout en fournissant des mises à jour en temps réel. Les mêmes limitations concernant Telnet s'appliquent."
 
 #: ../setup_flow.py:170
 msgid "Add a new device"
@@ -83,7 +71,7 @@ msgstr "Appareils configurés"
 
 #: ../setup_flow.py:223
 msgid "Action"
-msgstr "Action"
+msgstr ""
 
 #: ../setup_flow.py:286
 msgid "Configure your AVR"
@@ -116,3 +104,4 @@ msgstr "Utilise une connexion HTTP"
 #: ../setup_flow.py:562
 msgid "Volume step"
 msgstr "Pallier de volume"
+
