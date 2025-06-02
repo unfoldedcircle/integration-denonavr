@@ -4,6 +4,7 @@ on:
   push:
     branches-ignore:
       - l10n
+      - feat/27-i18n_gettext
     paths:
       - 'intg-denonavr/**'
       - 'requirements.txt'
