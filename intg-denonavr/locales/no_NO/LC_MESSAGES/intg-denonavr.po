@@ -1,0 +1,107 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: uc-integration-denon-avr\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-02 23:25+0200\n"
+"PO-Revision-Date: 2025-06-02 22:11\n"
+"Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
+"Language-Team: Norwegian\n"
+"Language: no\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: uc-integration-denon-avr\n"
+"X-Crowdin-Project-ID: 796252\n"
+"X-Crowdin-Language: no\n"
+"X-Crowdin-File: /feat.27-i18n_gettext/intg-denonavr/locales/en_US/LC_MESSAGES/intg-denonavr.po\n"
+"X-Crowdin-File-ID: 94\n"
+
+#: ../driver.py:362 ../setup_flow.py:567
+msgid "Connection and request timeout"
+msgstr ""
+
+#: ../setup_flow.py:52
+msgid "Setup mode"
+msgstr ""
+
+#: ../setup_flow.py:60
+msgid "Leave blank to use auto-discovery and click _Next_."
+msgstr ""
+
+#: ../setup_flow.py:62
+msgid "The device must be on the same network as the remote."
+msgstr ""
+
+#: ../setup_flow.py:69
+msgid "Manual IP address or hostname"
+msgstr ""
+
+#: ../setup_flow.py:79
+msgid "Please note:"
+msgstr ""
+
+#: ../setup_flow.py:83
+msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only!"
+msgstr ""
+
+#: ../setup_flow.py:167
+msgid "Add a new device"
+msgstr ""
+
+#: ../setup_flow.py:178
+msgid "Configure selected device"
+msgstr ""
+
+#: ../setup_flow.py:185
+msgid "Delete selected device"
+msgstr ""
+
+#: ../setup_flow.py:192
+msgid "Reset configuration and reconfigure"
+msgstr ""
+
+#: ../setup_flow.py:200
+msgid "Configuration mode"
+msgstr ""
+
+#: ../setup_flow.py:210
+msgid "Configured devices"
+msgstr ""
+
+#: ../setup_flow.py:220
+msgid "Action"
+msgstr ""
+
+#: ../setup_flow.py:283
+msgid "Configure your AVR"
+msgstr ""
+
+#: ../setup_flow.py:374
+msgid "Please choose your Denon AVR"
+msgstr ""
+
+#: ../setup_flow.py:379
+msgid "Choose your Denon AVR"
+msgstr ""
+
+#: ../setup_flow.py:529
+msgid "Show all sources"
+msgstr ""
+
+#: ../setup_flow.py:537
+msgid "Connection mode"
+msgstr ""
+
+#: ../setup_flow.py:544
+msgid "Use Telnet connection"
+msgstr ""
+
+#: ../setup_flow.py:548
+msgid "Use HTTP connection"
+msgstr ""
+
+#: ../setup_flow.py:559
+msgid "Volume step"
+msgstr ""
+
