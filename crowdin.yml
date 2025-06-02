@@ -1,0 +1,3 @@
+files:
+  - source: /intg-denonavr/locales/en/**/*.po
+    translation: /intg-denonavr/locales/%two_letters_code%/**/%original_file_name%
