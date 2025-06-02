@@ -396,7 +396,8 @@ docker run --rm --name builder \
     docker.io/unfoldedcircle/r2-pyinstaller:3.11.12  \
     bash -c \
       "python -m pip install -r requirements.txt && \
-      pyinstaller --clean --onedir --name intg-denonavr intg-denonavr/driver.py"
+      pyinstaller --clean --onedir --name intg-denonavr \
+        --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
 ```
 
 ### aarch64 Linux / Mac
@@ -410,7 +411,8 @@ docker run --rm --name builder \
     docker.io/unfoldedcircle/r2-pyinstaller:3.11.12  \
     bash -c \
       "python -m pip install -r requirements.txt && \
-      pyinstaller --clean --onedir --name intg-denonavr intg-denonavr/driver.py"
+      pyinstaller --clean --onedir --name intg-denonavr \
+        --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
 ```
 
 ## Versioning
