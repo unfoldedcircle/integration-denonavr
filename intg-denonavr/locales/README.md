@@ -9,13 +9,13 @@ The locales directory is organized as follows:
 
 ```
 locales/
-├── en/
+├── en_US/
 │   └── LC_MESSAGES/
 │       └── intg-denonavr.po
-├── de/
+├── de_DE/
 │   └── LC_MESSAGES/
 │       └── intg-denonavr.po
-├── fr/
+├── fr_FR/
 │   └── LC_MESSAGES/
 │       └── intg-denonavr.po
 └── intg-denonavr.pot
@@ -23,6 +23,7 @@ locales/
 
 - `intg-denonavr.pot`: The template file containing all translatable strings
 - `<language>/LC_MESSAGES/intg-denonavr.po`: Translation files for each supported language
+- Country suffixes are used to prepare country-specific translations, for example `en_UK`, `de_CH`, etc.
 
 ## Working with Translations
 
@@ -61,10 +62,12 @@ To extract translatable strings from the source code, you can use the `xgettext`
 
 ```shell
 xgettext -d intg-denonavr -o intg-denonavr/locales/intg-denonavr.pot --from-code=UTF-8 --language=Python \
-    --keyword=_ --keyword=_n:1,2 --keyword=__ --keyword=_a \
+    --keyword=_ --keyword=_n:1,2 --keyword=__ --keyword=_a --no-wrap \
     --copyright-holder="Unfolded Circle ApS" --package-name "uc-integration-denon-avr" \
     intg-denonavr/*.py
 ```
+
+Note: `--no-wrap` is used for better Crowdin merge compatibility.
 
 ### Creating or Updating Translation Files
 
