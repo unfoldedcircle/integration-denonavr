@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-06-03 08:38+0200\n"
-"PO-Revision-Date: 2025-06-03 09:06\n"
+"PO-Revision-Date: 2025-06-03 10:15\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -27,7 +27,7 @@ msgstr "Integrationssetup"
 
 #: ../setup_flow.py:60
 msgid "Setup proces"
-msgstr ""
+msgstr "Setup Fortschritt"
 
 #: ../setup_flow.py:64
 msgid "The integration discovers Denon and Marantz Receivers on the network."
@@ -59,7 +59,7 @@ msgstr "Bitte beachten:"
 
 #: ../setup_flow.py:109
 msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only!"
-msgstr "Die Verwendung von telnet bietet Echtzeit-Updates für viele Werte, aber bestimmte Verstärker erlauben nur eine einzige Verbindung! Mit dieser Einstellung können andere Apps oder Systeme nicht mehr funktionieren. Die Verwendung von Telnet für Ereignisse ist schneller für normale Befehle, bietet aber immer noch Echtzeit-Updates. Die gleichen Einschränkungen in Bezug auf Telnet gelten."
+msgstr "Die Verwendung von Telnet bietet Echtzeit-Updates für viele Werte, aber bestimmte Verstärker erlauben nur eine einzige Verbindung! Mit dieser Einstellung können andere Apps oder Systeme nicht mehr funktionieren."
 
 #: ../setup_flow.py:193
 msgid "Add a new device"
@@ -123,5 +123,5 @@ msgstr "Lautstärkestufe"
 
 #: ../setup_flow.py:593
 msgid "Connection and request timeout"
-msgstr "Verbindungs- und Anforderungstimeout"
+msgstr "Verbindung und Anfrage-Timeout"
 
