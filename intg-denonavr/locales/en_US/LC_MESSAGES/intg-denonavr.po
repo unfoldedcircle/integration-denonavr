@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Denon AVR Integration\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 08:38+0200\n"
+"POT-Creation-Date: 2025-06-02 23:25+0200\n"
 "PO-Revision-Date: 2023-11-15 12:00+0000\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: English\n"
@@ -16,53 +16,31 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../driver.py:370
-msgid "Control your Denon or Marantz AVRs with Remote Two/3."
-msgstr "Control your Denon or Marantz AVRs with Remote Two/3."
+#: ../driver.py:362 ../setup_flow.py:567
+msgid "Connection and request timeout"
+msgstr "Connection and request timeout"
 
-#: ../setup_flow.py:56
-msgid "Integration setup"
-msgstr "Integration setup"
-
-#: ../setup_flow.py:60
-#, fuzzy
-msgid "Setup proces"
-msgstr "Setup mode"
-
-#: ../setup_flow.py:64
-msgid "The integration discovers Denon and Marantz Receivers on the network."
-msgstr ""
-"The integration discovers Denon and Marantz Audio Video Receivers (AVR) on "
-"the network."
-
-#: ../setup_flow.py:66
-msgid ""
-"Please see our support article for requirements, features and restrictions."
-msgstr ""
-"Please see our [support article](https://support.unfoldedcircle.com/hc/en-us/"
-"articles/19480446994844) for requirements, features and restrictions."
-
-#: ../setup_flow.py:78
+#: ../setup_flow.py:52
 msgid "Setup mode"
 msgstr "Setup mode"
 
-#: ../setup_flow.py:86
+#: ../setup_flow.py:60
 msgid "Leave blank to use auto-discovery and click _Next_."
 msgstr ""
 
-#: ../setup_flow.py:88
+#: ../setup_flow.py:62
 msgid "The device must be on the same network as the remote."
 msgstr ""
 
-#: ../setup_flow.py:95
+#: ../setup_flow.py:69
 msgid "Manual IP address or hostname"
 msgstr "Manual IP address or hostname"
 
-#: ../setup_flow.py:105
+#: ../setup_flow.py:79
 msgid "Please note:"
 msgstr "Please note:"
 
-#: ../setup_flow.py:109
+#: ../setup_flow.py:83
 msgid ""
 "Using telnet provides realtime updates for many values but certain receivers "
 "allow a single connection only!"
@@ -73,66 +51,62 @@ msgstr ""
 "commands while still providing realtime updates. Same limitations regarding "
 "Telnet apply."
 
-#: ../setup_flow.py:193
+#: ../setup_flow.py:167
 msgid "Add a new device"
 msgstr "Add a new device"
 
-#: ../setup_flow.py:204
+#: ../setup_flow.py:178
 msgid "Configure selected device"
 msgstr "Configure selected device"
 
-#: ../setup_flow.py:211
+#: ../setup_flow.py:185
 msgid "Delete selected device"
 msgstr "Delete selected device"
 
-#: ../setup_flow.py:218
+#: ../setup_flow.py:192
 msgid "Reset configuration and reconfigure"
 msgstr "Reset configuration and reconfigure"
 
-#: ../setup_flow.py:226
+#: ../setup_flow.py:200
 msgid "Configuration mode"
 msgstr "Configuration mode"
 
-#: ../setup_flow.py:236
+#: ../setup_flow.py:210
 msgid "Configured devices"
 msgstr "Configured devices"
 
-#: ../setup_flow.py:246
+#: ../setup_flow.py:220
 msgid "Action"
 msgstr "Action"
 
-#: ../setup_flow.py:309
+#: ../setup_flow.py:283
 msgid "Configure your AVR"
 msgstr "Configure your AVR"
 
-#: ../setup_flow.py:400
+#: ../setup_flow.py:374
 msgid "Please choose your Denon AVR"
 msgstr "Please choose your Denon AVR"
 
-#: ../setup_flow.py:405
+#: ../setup_flow.py:379
 msgid "Choose your Denon AVR"
 msgstr "Choose your Denon AVR"
 
-#: ../setup_flow.py:555
+#: ../setup_flow.py:529
 msgid "Show all sources"
 msgstr "Show all sources"
 
-#: ../setup_flow.py:563
+#: ../setup_flow.py:537
 msgid "Connection mode"
 msgstr "Connection mode"
 
-#: ../setup_flow.py:570
+#: ../setup_flow.py:544
 msgid "Use Telnet connection"
 msgstr "Use Telnet connection"
 
-#: ../setup_flow.py:574
+#: ../setup_flow.py:548
 msgid "Use HTTP connection"
 msgstr "Use HTTP connection"
 
-#: ../setup_flow.py:585
+#: ../setup_flow.py:559
 msgid "Volume step"
 msgstr "Volume step"
-
-#: ../setup_flow.py:593
-msgid "Connection and request timeout"
-msgstr "Connection and request timeout"
