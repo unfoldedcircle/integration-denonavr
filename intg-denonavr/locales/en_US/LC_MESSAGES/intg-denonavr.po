@@ -31,16 +31,11 @@ msgstr "Setup mode"
 
 #: ../setup_flow.py:64
 msgid "The integration discovers Denon and Marantz Receivers on the network."
-msgstr ""
-"The integration discovers Denon and Marantz Audio Video Receivers (AVR) on "
-"the network."
+msgstr "The integration discovers Denon and Marantz Audio Video Receivers (AVR) on the network."
 
 #: ../setup_flow.py:66
-msgid ""
-"Please see our support article for requirements, features and restrictions."
-msgstr ""
-"Please see our [support article](https://support.unfoldedcircle.com/hc/en-us/"
-"articles/19480446994844) for requirements, features and restrictions."
+msgid "Please see our support article for requirements, features and restrictions."
+msgstr "Please see our [support article](https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844) for requirements, features and restrictions."
 
 #: ../setup_flow.py:78
 msgid "Setup mode"
@@ -48,11 +43,11 @@ msgstr "Setup mode"
 
 #: ../setup_flow.py:86
 msgid "Leave blank to use auto-discovery and click _Next_."
-msgstr ""
+msgstr "Leave blank to use auto-discovery and click _Next_."
 
 #: ../setup_flow.py:88
 msgid "The device must be on the same network as the remote."
-msgstr ""
+msgstr "The device must be on the same network as the remote."
 
 #: ../setup_flow.py:95
 msgid "Manual IP address or hostname"
@@ -63,13 +58,8 @@ msgid "Please note:"
 msgstr "Please note:"
 
 #: ../setup_flow.py:109
-msgid ""
-"Using telnet provides realtime updates for many values but certain receivers "
-"allow a single connection only!"
-msgstr ""
-"Using telnet provides realtime updates for many values but certain receivers "
-"allow a single connection only! If you enable this setting, other apps or "
-"systems may no longer work."
+msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only!"
+msgstr "Using Telnet provides realtime updates for many values but certain receivers allow a single connection only! If you enable this setting, other apps or systems may no longer work."
 
 #: ../setup_flow.py:193
 msgid "Add a new device"
