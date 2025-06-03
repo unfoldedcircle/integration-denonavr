@@ -69,9 +69,7 @@ msgid ""
 msgstr ""
 "Using telnet provides realtime updates for many values but certain receivers "
 "allow a single connection only! If you enable this setting, other apps or "
-"systems may no longer work. Using Telnet for events is faster for regular "
-"commands while still providing realtime updates. Same limitations regarding "
-"Telnet apply."
+"systems may no longer work."
 
 #: ../setup_flow.py:193
 msgid "Add a new device"
