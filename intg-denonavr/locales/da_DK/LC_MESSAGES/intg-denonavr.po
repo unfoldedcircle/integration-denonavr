@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-06-03 08:38+0200\n"
-"PO-Revision-Date: 2025-06-03 11:49\n"
+"PO-Revision-Date: 2025-06-03 13:16\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: Danish\n"
 "Language: da\n"
@@ -40,23 +40,23 @@ msgstr "Please see our [support article](https://support.unfoldedcircle.com/hc/e
 
 #: ../setup_flow.py:78
 msgid "Setup mode"
-msgstr "Opsætningstilstand"
+msgstr "Setup mode"
 
 #: ../setup_flow.py:86
 msgid "Leave blank to use auto-discovery and click _Next_."
-msgstr "Lad det være tomt for at bruge automatisk opdagelse og klik på _Next_."
+msgstr "Leave blank to use auto-discovery and click _Next_."
 
 #: ../setup_flow.py:88
 msgid "The device must be on the same network as the remote."
-msgstr "Enheden skal være på samme netværk som fjernbetjeningen."
+msgstr "The device must be on the same network as the remote."
 
 #: ../setup_flow.py:95
 msgid "Manual IP address or hostname"
-msgstr "Manuel IP-adresse eller værtsnavn"
+msgstr "Manual IP address or hostname"
 
 #: ../setup_flow.py:105
 msgid "Please note:"
-msgstr "Bemærk:"
+msgstr "Please note:"
 
 #: ../setup_flow.py:109
 msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only!"
@@ -68,61 +68,61 @@ msgstr "Add a new device"
 
 #: ../setup_flow.py:204
 msgid "Configure selected device"
-msgstr "Konfigurer den valgte enhed"
+msgstr "Configure selected device"
 
 #: ../setup_flow.py:211
 msgid "Delete selected device"
-msgstr "Slet den valgte enhed"
+msgstr "Delete selected device"
 
 #: ../setup_flow.py:218
 msgid "Reset configuration and reconfigure"
-msgstr "Nulstil konfiguration og konfigurer igen"
+msgstr "Reset configuration and reconfigure"
 
 #: ../setup_flow.py:226
 msgid "Configuration mode"
-msgstr "Konfigurationstilstand"
+msgstr "Configuration mode"
 
 #: ../setup_flow.py:236
 msgid "Configured devices"
-msgstr "Konfigurerede enheder"
+msgstr "Configured devices"
 
 #: ../setup_flow.py:246
 msgid "Action"
-msgstr "Handling"
+msgstr "Action"
 
 #: ../setup_flow.py:309
 msgid "Configure your AVR"
-msgstr "Konfigurer din AVR"
+msgstr "Configure your AVR"
 
 #: ../setup_flow.py:400
 msgid "Please choose your Denon AVR"
-msgstr "Vælg venligst din Denon AVR"
+msgstr "Please choose your Denon AVR"
 
 #: ../setup_flow.py:405
 msgid "Choose your Denon AVR"
-msgstr "Vælg din Denon AVR"
+msgstr "Choose your Denon AVR"
 
 #: ../setup_flow.py:555
 msgid "Show all sources"
-msgstr "Vis alle kilder"
+msgstr "Show all sources"
 
 #: ../setup_flow.py:563
 msgid "Connection mode"
-msgstr "Forbindelsestilstand"
+msgstr "Connection mode"
 
 #: ../setup_flow.py:570
 msgid "Use Telnet connection"
-msgstr "Brug Telnet-forbindelse"
+msgstr "Use Telnet connection"
 
 #: ../setup_flow.py:574
 msgid "Use HTTP connection"
-msgstr "Brug HTTP-forbindelse"
+msgstr "Use HTTP connection"
 
 #: ../setup_flow.py:585
 msgid "Volume step"
-msgstr "Volumetrin"
+msgstr "Volume step"
 
 #: ../setup_flow.py:593
 msgid "Connection and request timeout"
-msgstr "Forbindelses- og forespørgselstimeout"
+msgstr "Connection and request timeout"
 
