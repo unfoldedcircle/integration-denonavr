@@ -62,7 +62,7 @@ To extract translatable strings from the source code, you can use the `xgettext`
 ```shell
 xgettext -d intg-denonavr -o intg-denonavr/locales/intg-denonavr.pot --from-code=UTF-8 --language=Python \
     --keyword=_ --keyword=_n:1,2 --keyword=__ --keyword=_a \
-    --copyright-holder="Unfolded Circle ApS" --package-name "Denon AVR Integration" \
+    --copyright-holder="Unfolded Circle ApS" --package-name "uc-integration-denon-avr" \
     intg-denonavr/*.py
 ```
 

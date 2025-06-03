@@ -46,6 +46,32 @@ _cfg_add_device: bool = False
 _reconfigured_device: AvrDevice | None = None
 
 
+def setup_data_schema():
+    """
+    Get the JSON setup data structure for the driver.json file.
+
+    :return: ``setup_data_schema`` json object
+    """
+    return {
+        "title": _a("Integration setup"),
+        "settings": [
+            {
+                "id": "info",
+                "label": _a("Setup proces"),
+                "field": {
+                    "label": {
+                        "value": _am(
+                            __("The integration discovers Denon and Marantz Receivers on the network."),
+                            "\n\n",
+                            __("Please see our support article for requirements, features and restrictions."),
+                        )
+                    }
+                },
+            }
+        ],
+    }
+
+
 def __user_input_discovery():
     # pylint: disable=line-too-long
     return RequestUserInput(
