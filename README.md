@@ -1,7 +1,8 @@
 # Denon AVR integration for Remote Two/3
 
 Using [denonavr](https://github.com/ol-iver/denonavr)
-and [uc-integration-api](https://github.com/aitatoi/integration-python-library)
+and [uc-integration-api](https://github.com/aitatoi/integration-python-library),
+[Crowdin translations](https://crowdin.com/project/uc-integration-denon-avr).
 
 This integration is included in the Remote Two and Remote 3 firmware, and no external service must be run to connect
 with Denon AVR devices. It can be run as an external integration for development.
@@ -11,7 +12,7 @@ with Denon AVR devices. It can be run as an external integration for development
 - A [media player entity](https://github.com/unfoldedcircle/core-api/blob/main/doc/entities/entity_media_player.md)
 is exposed to the Remote to control the AVR.
 
-Receiver can be controlled by HTTP or Telnet. Using Telnet provides realtime updates for many values, but certain
+Receivers can be controlled by HTTP or Telnet. Using Telnet provides realtime updates for many values, but certain
 receivers are limited to a single connection only (see limitations below).
 
 ## Requirements
@@ -335,7 +336,7 @@ pip3 install -r requirements.txt
 
 - Compile gettext translation files:
   - This requires `msgfmt` from the GNU gettext utilities.
-  - See [intg-denonavr/locales/README](intg-denonavr/locales/README.md) for more information.
+  - See [docs/i18n.md](docs/i18n.md) for more information.
   - Helper Makefile:
 
 ```shell
