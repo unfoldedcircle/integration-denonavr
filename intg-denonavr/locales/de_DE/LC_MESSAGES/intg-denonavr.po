@@ -1,13 +1,9 @@
-# German translations for Denon AVR Integration.
-# Copyright (C) 2023 Unfolded Circle ApS
-# This file is distributed under the same license as the Denon AVR Integration package.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: Denon AVR Integration\n"
+"Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-06-03 08:38+0200\n"
-"PO-Revision-Date: 2023-11-15 12:00+0000\n"
+"PO-Revision-Date: 2025-06-03 10:54\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -15,6 +11,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: uc-integration-denon-avr\n"
+"X-Crowdin-Project-ID: 796252\n"
+"X-Crowdin-Language: de\n"
+"X-Crowdin-File: /feat.27-i18n_gettext/intg-denonavr/locales/en_US/LC_MESSAGES/intg-denonavr.po\n"
+"X-Crowdin-File-ID: 94\n"
 
 #: ../driver.py:370
 msgid "Control your Denon or Marantz AVRs with Remote Two/3."
@@ -25,23 +26,16 @@ msgid "Integration setup"
 msgstr "Integrationssetup"
 
 #: ../setup_flow.py:60
-#, fuzzy
 msgid "Setup proces"
-msgstr "Setup Modus"
+msgstr "Setup Fortschritt"
 
 #: ../setup_flow.py:64
 msgid "The integration discovers Denon and Marantz Receivers on the network."
-msgstr ""
-"Die Integration findet Denon- und Marantz-Audio-Video-Receiver (AVR) im "
-"Netzwerk."
+msgstr "Die Integration findet Denon- und Marantz-Audio-Video-Receiver (AVR) im Netzwerk."
 
 #: ../setup_flow.py:66
-msgid ""
-"Please see our support article for requirements, features and restrictions."
-msgstr ""
-"Bitte beachte unseren [Support-Artikel](https://support.unfoldedcircle.com/"
-"hc/en-us/articles/19480446994844) zu Anforderungen, unterstützten Funktionen "
-"und Einschränkungen."
+msgid "Please see our support article for requirements, features and restrictions."
+msgstr "Bitte beachte unseren [Support-Artikel](https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844) zu Anforderungen, unterstützten Funktionen und Einschränkungen."
 
 #: ../setup_flow.py:78
 msgid "Setup mode"
@@ -49,13 +43,11 @@ msgstr "Setup Modus"
 
 #: ../setup_flow.py:86
 msgid "Leave blank to use auto-discovery and click _Next_."
-msgstr ""
-"Leer lassen, um automatische Erkennung zu verwenden und auf _Weiter_ klicken."
+msgstr "Leer lassen, um automatische Erkennung zu verwenden und auf _Weiter_ klicken."
 
 #: ../setup_flow.py:88
 msgid "The device must be on the same network as the remote."
-msgstr ""
-"Das Gerät muss sich im gleichen Netzwerk wie die Fernbedienung befinden."
+msgstr "Das Gerät muss sich im gleichen Netzwerk wie die Fernbedienung befinden."
 
 #: ../setup_flow.py:95
 msgid "Manual IP address or hostname"
@@ -66,16 +58,8 @@ msgid "Please note:"
 msgstr "Bitte beachten:"
 
 #: ../setup_flow.py:109
-msgid ""
-"Using telnet provides realtime updates for many values but certain receivers "
-"allow a single connection only!"
-msgstr ""
-"Die Verwendung von telnet bietet Echtzeit-Updates für viele Werte, aber "
-"bestimmte Verstärker erlauben nur eine einzige Verbindung! Mit dieser "
-"Einstellung können andere Apps oder Systeme nicht mehr funktionieren. Die "
-"Verwendung von Telnet für Ereignisse ist schneller für normale Befehle, "
-"bietet aber immer noch Echtzeit-Updates. Die gleichen Einschränkungen in "
-"Bezug auf Telnet gelten."
+msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only!"
+msgstr "Die Verwendung von Telnet bietet Echtzeit-Updates für viele Werte, aber bestimmte Verstärker erlauben nur eine einzige Verbindung! Mit dieser Einstellung können andere Apps oder Systeme nicht mehr funktionieren."
 
 #: ../setup_flow.py:193
 msgid "Add a new device"
@@ -139,4 +123,5 @@ msgstr "Lautstärkestufe"
 
 #: ../setup_flow.py:593
 msgid "Connection and request timeout"
-msgstr "Verbindungs- und Anforderungstimeout"
+msgstr "Verbindung und Anfrage-Timeout"
+
