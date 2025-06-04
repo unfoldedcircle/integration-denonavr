@@ -63,6 +63,7 @@ def setup_data_schema():
                         "value": _am(
                             __("The integration discovers Denon and Marantz Receivers on the network."),
                             "\n\n",
+                            # Translators: Make sure to include the support article link as Markdown. See English text
                             __("Please see our support article for requirements, features and restrictions."),
                         )
                     }
