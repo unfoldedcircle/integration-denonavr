@@ -334,7 +334,9 @@ integration, which uses the same [denonavr](https://github.com/ol-iver/denonavr)
 pip3 install -r requirements.txt
 ```
 
-- Compile gettext translation files:
+- The integration is runnable without updating the language files or compiling the .po files!  
+  If a language file is missing, the language key is used which in most cases is identical to the English language text.
+- Optional: compile gettext translation files:
   - This requires `msgfmt` from the GNU gettext utilities.
   - See [docs/i18n.md](docs/i18n.md) for more information.
   - Helper Makefile:
