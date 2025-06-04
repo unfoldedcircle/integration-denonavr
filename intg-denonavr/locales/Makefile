@@ -9,7 +9,7 @@ all: $(MO_FILES)
 
 update_po:
 	xgettext -d intg-denonavr -o intg-denonavr.pot --from-code=UTF-8 --language=Python --keyword=_ --keyword=_n:1,2 --keyword=__ --keyword=_a --no-wrap --copyright-holder="Unfolded Circle ApS" --package-name "uc-integration-denon-avr" ../*.py
-	$(foreach po,$(PO_FILES),msgmerge --update $(po) intg-denonavr.pot;)
+	$(foreach po,$(PO_FILES),msgmerge --no-wrap --update $(po) intg-denonavr.pot;)
 
 clean:
 	rm -f */*/*.mo
