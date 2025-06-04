@@ -11,9 +11,12 @@ _Changes in the next release_
 
 ---
 
+## v0.8.3 - 2025-06-04
+- Make connection and request timeouts configurable. Contributed by @henrikwidlund, thanks! ([#70](https://github.com/unfoldedcircle/integration-denonavr/pull/70)).
+
 ## v0.8.2 - 2025-05-27
 ### Fixed
-- Temporary fix for HDMI output, ECO, dimmer and direct commands that don't work ([#69](https://github.com/unfoldedcircle/integration-denonavr/pull/69)).
+- Temporary fix for HDMI output, ECO, dimmer and dirac commands that don't work ([#69](https://github.com/unfoldedcircle/integration-denonavr/pull/69)).
 
 ## v0.8.1 - 2025-05-19
 ### Fixed
