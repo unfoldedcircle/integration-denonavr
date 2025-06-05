@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 08:38+0200\n"
-"PO-Revision-Date: 2025-06-03 16:09\n"
+"POT-Creation-Date: 2025-06-04 14:52+0200\n"
+"PO-Revision-Date: 2025-06-05 13:41\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -15,8 +15,8 @@ msgstr ""
 "X-Crowdin-Project: uc-integration-denon-avr\n"
 "X-Crowdin-Project-ID: 796252\n"
 "X-Crowdin-Language: de\n"
-"X-Crowdin-File: /feat.27-i18n_gettext/intg-denonavr/locales/en_US/LC_MESSAGES/intg-denonavr.po\n"
-"X-Crowdin-File-ID: 94\n"
+"X-Crowdin-File: /main/intg-denonavr/locales/en_US/LC_MESSAGES/intg-denonavr.po\n"
+"X-Crowdin-File-ID: 118\n"
 
 #: ../driver.py:370
 msgid "Control your Denon or Marantz AVRs with Remote Two/3."
@@ -34,95 +34,96 @@ msgstr "Setup Modus"
 msgid "The integration discovers Denon and Marantz Receivers on the network."
 msgstr "Die Integration findet Denon- und Marantz-Audio-Video-Receiver (AVR) im Netzwerk."
 
-#: ../setup_flow.py:66
+#. Translators: Make sure to include the support article link as Markdown. See English text
+#: ../setup_flow.py:67
 msgid "Please see our support article for requirements, features and restrictions."
 msgstr "Bitte beachte unseren [Support-Artikel](https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844) zu Anforderungen, unterstützten Funktionen und Einschränkungen."
 
-#: ../setup_flow.py:78
+#: ../setup_flow.py:79
 msgid "Setup mode"
 msgstr "Setup Modus"
 
-#: ../setup_flow.py:86
+#: ../setup_flow.py:87
 msgid "Leave blank to use auto-discovery and click _Next_."
 msgstr "Leer lassen, um automatische Erkennung zu verwenden und auf _Weiter_ klicken."
 
-#: ../setup_flow.py:88
+#: ../setup_flow.py:89
 msgid "The device must be on the same network as the remote."
 msgstr "Das Gerät muss sich im gleichen Netzwerk wie die Fernbedienung befinden."
 
-#: ../setup_flow.py:95
+#: ../setup_flow.py:96
 msgid "Manual IP address or hostname"
 msgstr "Manuelle IP-Adresse oder Hostname"
 
-#: ../setup_flow.py:105
+#: ../setup_flow.py:106
 msgid "Please note:"
 msgstr "Bitte beachten:"
 
-#: ../setup_flow.py:109
+#: ../setup_flow.py:110
 msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only!"
 msgstr "Die Verwendung von Telnet bietet Echtzeit-Updates für viele Werte, aber bestimmte Verstärker erlauben nur eine einzige Verbindung! Mit dieser Einstellung können andere Apps oder Systeme nicht mehr funktionieren."
 
-#: ../setup_flow.py:193
+#: ../setup_flow.py:194
 msgid "Add a new device"
 msgstr "Neues Gerät hinzufügen"
 
-#: ../setup_flow.py:204
+#: ../setup_flow.py:205
 msgid "Configure selected device"
 msgstr "Selektiertes Gerät konfigurieren"
 
-#: ../setup_flow.py:211
+#: ../setup_flow.py:212
 msgid "Delete selected device"
 msgstr "Selektiertes Gerät löschen"
 
-#: ../setup_flow.py:218
+#: ../setup_flow.py:219
 msgid "Reset configuration and reconfigure"
 msgstr "Konfiguration zurücksetzen und neu konfigurieren"
 
-#: ../setup_flow.py:226
+#: ../setup_flow.py:227
 msgid "Configuration mode"
 msgstr "Konfigurations-Modus"
 
-#: ../setup_flow.py:236
+#: ../setup_flow.py:237
 msgid "Configured devices"
 msgstr "Konfigurierte Geräte"
 
-#: ../setup_flow.py:246
+#: ../setup_flow.py:247
 msgid "Action"
 msgstr "Aktion"
 
-#: ../setup_flow.py:309
+#: ../setup_flow.py:310
 msgid "Configure your AVR"
 msgstr "Konfiguriere deinen Denon AVR"
 
-#: ../setup_flow.py:400
+#: ../setup_flow.py:401
 msgid "Please choose your Denon AVR"
 msgstr "Bitte Denon AVR auswählen"
 
-#: ../setup_flow.py:405
+#: ../setup_flow.py:406
 msgid "Choose your Denon AVR"
 msgstr "Wähle deinen Denon AVR"
 
-#: ../setup_flow.py:555
+#: ../setup_flow.py:556
 msgid "Show all sources"
 msgstr "Alle Quellen anzeigen"
 
-#: ../setup_flow.py:563
+#: ../setup_flow.py:564
 msgid "Connection mode"
 msgstr "Verbindungstyp"
 
-#: ../setup_flow.py:570
+#: ../setup_flow.py:571
 msgid "Use Telnet connection"
 msgstr "Telnet-Verbindung verwenden"
 
-#: ../setup_flow.py:574
+#: ../setup_flow.py:575
 msgid "Use HTTP connection"
 msgstr "HTTP-Verbindung verwenden"
 
-#: ../setup_flow.py:585
+#: ../setup_flow.py:586
 msgid "Volume step"
 msgstr "Lautstärkestufe"
 
-#: ../setup_flow.py:593
+#: ../setup_flow.py:594
 msgid "Connection and request timeout"
 msgstr "Verbindung und Anfrage-Timeout"
 
