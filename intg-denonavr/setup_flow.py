@@ -14,6 +14,7 @@ import config
 import discover
 from config import AvrDevice
 from denonavr.exceptions import AvrNetworkError, AvrTimoutError
+from i18n import __, _a, _am
 from receiver import ConnectDenonAVR
 from ucapi import (
     AbortDriverSetup,
@@ -44,73 +45,74 @@ _setup_step = SetupSteps.INIT
 _cfg_add_device: bool = False
 _reconfigured_device: AvrDevice | None = None
 
-# pylint: disable=line-too-long
-_user_input_discovery = RequestUserInput(
-    {"en": "Setup mode", "de": "Setup Modus", "fr": "Installation"},
-    [
-        {
-            "id": "info",
-            "label": {"en": ""},
-            "field": {
-                "label": {
-                    "value": {
-                        "en": (
-                            "Leave blank to use auto-discovery and click _Next_.\n\n"
-                            "The device must be on the same network as the remote."
-                        ),
-                        "de": (
-                            "Leer lassen, um automatische Erkennung zu verwenden und auf _Weiter_ klicken.\n\n"
-                            "Das Gerät muss sich im gleichen Netzwerk wie die Fernbedienung befinden."
-                        ),
-                        "fr": (
-                            "Laissez le champ vide pour utiliser la découverte automatique et cliquez sur _Suivant_.\n\n"  # noqa: E501
-                            "L'appareil doit être sur le même réseau que la télécommande"
-                        ),
-                    }
-                }
-            },
-        },
-        {
-            "id": "address",
-            "label": {
-                "en": "Manual IP address or hostname",
-                "de": "Manuelle IP-Adresse oder Hostname",
-                "fr": "Adresse IP manuelle ou nom d’hôte",
-            },
-            "field": {"text": {"value": ""}},
-        },
-    ],
-)
 
-_telnet_info = {
-    "id": "info",
-    "label": {"en": "Please note:", "de": "Bitte beachten:", "fr": "Veuillez noter:"},
-    "field": {
-        "label": {
-            "value": {
-                "en": "Using telnet provides realtime updates for many values but "
-                "certain receivers allow a single connection only! If you enable this "
-                "setting, other apps or systems may no longer work. "
-                "Using Telnet for events is faster for regular commands while still providing realtime"
-                " updates. Same limitations regarding Telnet apply.",
-                "de": "Die Verwendung von telnet bietet Echtzeit-Updates für viele "
-                "Werte, aber bestimmte Verstärker erlauben nur eine einzige "
-                "Verbindung! Mit dieser Einstellung können andere Apps oder Systeme "
-                "nicht mehr funktionieren. "
-                "Die Verwendung von Telnet für Ereignisse ist schneller für normale Befehle, "
-                "bietet aber immer noch Echtzeit-Updates. Die gleichen Einschränkungen in Bezug auf Telnet"
-                " gelten.",
-                "fr": "L'utilisation de telnet fournit des mises à jour en temps réel "
-                "pour de nombreuses valeurs, mais certains amplificateurs ne "
-                "permettent qu'une seule connexion! Avec ce paramètre, d'autres "
-                "applications ou systèmes ne peuvent plus fonctionner. "
-                "L'utilisation de Telnet pour les événements est plus rapide pour les commandes classiques "
-                "tout en fournissant des mises à jour en temps réel. Les mêmes limitations concernant"
-                " Telnet s'appliquent.",
+def setup_data_schema():
+    """
+    Get the JSON setup data structure for the driver.json file.
+
+    :return: ``setup_data_schema`` json object
+    """
+    return {
+        "title": _a("Integration setup"),
+        "settings": [
+            {
+                "id": "info",
+                "label": _a("Setup proces"),
+                "field": {
+                    "label": {
+                        "value": _am(
+                            __("The integration discovers Denon and Marantz Receivers on the network."),
+                            "\n\n",
+                            # Translators: Make sure to include the support article link as Markdown. See English text
+                            __("Please see our support article for requirements, features and restrictions."),
+                        )
+                    }
+                },
             }
-        }
-    },
-}
+        ],
+    }
+
+
+def __user_input_discovery():
+    # pylint: disable=line-too-long
+    return RequestUserInput(
+        _a("Setup mode"),
+        [
+            {
+                "id": "info",
+                "label": {"en": ""},
+                "field": {
+                    "label": {
+                        "value": _am(
+                            __("Leave blank to use auto-discovery and click _Next_."),
+                            "\n\n",
+                            __("The device must be on the same network as the remote."),
+                        )
+                    }
+                },
+            },
+            {
+                "id": "address",
+                "label": _a("Manual IP address or hostname"),
+                "field": {"text": {"value": ""}},
+            },
+        ],
+    )
+
+
+def __telnet_info():
+    return {
+        "id": "info",
+        "label": _a("Please note:"),
+        "field": {
+            "label": {
+                "value": _a(
+                    "Using telnet provides realtime updates for many values but "
+                    "certain receivers allow a single connection only!"
+                )
+            }
+        },
+    }
 
 
 async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
@@ -184,17 +186,12 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
                 }
             )
 
-        # TODO #27 externalize language texts
         # build user actions, based on available devices
         selected_action_index = 0
         dropdown_actions = [
             {
                 "id": "add",
-                "label": {
-                    "en": "Add a new device",
-                    "de": "Neues Gerät hinzufügen",
-                    "fr": "Ajouter un nouvel appareil",
-                },
+                "label": _a("Add a new device"),
             },
         ]
 
@@ -205,33 +202,21 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
             dropdown_actions.append(
                 {
                     "id": "configure",
-                    "label": {
-                        "en": "Configure selected device",
-                        "de": "Selektiertes Gerät konfigurieren",
-                        "fr": "Configurer l'appareil sélectionné",
-                    },
+                    "label": _a("Configure selected device"),
                 },
             )
 
             dropdown_actions.append(
                 {
                     "id": "remove",
-                    "label": {
-                        "en": "Delete selected device",
-                        "de": "Selektiertes Gerät löschen",
-                        "fr": "Supprimer l'appareil sélectionné",
-                    },
+                    "label": _a("Delete selected device"),
                 },
             )
 
             dropdown_actions.append(
                 {
                     "id": "reset",
-                    "label": {
-                        "en": "Reset configuration and reconfigure",
-                        "de": "Konfiguration zurücksetzen und neu konfigurieren",
-                        "fr": "Réinitialiser la configuration et reconfigurer",
-                    },
+                    "label": _a("Reset configuration and reconfigure"),
                 },
             )
         else:
@@ -239,7 +224,7 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
             dropdown_devices.append({"id": "", "label": {"en": "---"}})
 
         return RequestUserInput(
-            {"en": "Configuration mode", "de": "Konfigurations-Modus"},
+            _a("Configuration mode"),
             [
                 {
                     "field": {
@@ -249,11 +234,7 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
                         }
                     },
                     "id": "choice",
-                    "label": {
-                        "en": "Configured devices",
-                        "de": "Konfigurierte Geräte",
-                        "fr": "Appareils configurés",
-                    },
+                    "label": _a("Configured devices"),
                 },
                 {
                     "field": {
@@ -263,11 +244,7 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
                         }
                     },
                     "id": "action",
-                    "label": {
-                        "en": "Action",
-                        "de": "Aktion",
-                        "fr": "Appareils configurés",
-                    },
+                    "label": _a("Action"),
                 },
             ],
         )
@@ -275,7 +252,7 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
     # Initial setup, make sure we have a clean configuration
     config.devices.clear()  # triggers device instance removal
     _setup_step = SetupSteps.DISCOVER
-    return _user_input_discovery
+    return __user_input_discovery()
 
 
 async def handle_configuration_mode(
@@ -330,17 +307,13 @@ async def handle_configuration_mode(
             timeout = selected_device.timeout if selected_device.timeout else 2000
 
             return RequestUserInput(
-                {
-                    "en": "Configure your AVR",
-                    "de": "Konfiguriere deinen Denon AVR",
-                    "fr": "Configurez votre AVR",
-                },
+                _a("Configure your AVR"),
                 [
                     __show_all_inputs_cfg(show_all_inputs),
                     __connection_mode_cfg(connection_mode),
                     __volume_cfg(volume_step),
                     __timeout_cfg(timeout),
-                    _telnet_info,
+                    __telnet_info(),
                 ],
             )
         case "reset":
@@ -350,7 +323,7 @@ async def handle_configuration_mode(
             return SetupError(error_type=IntegrationSetupError.OTHER)
 
     _setup_step = SetupSteps.DISCOVER
-    return _user_input_discovery
+    return __user_input_discovery()
 
 
 async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupError:
@@ -425,16 +398,12 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
 
     _setup_step = SetupSteps.DEVICE_CHOICE
     return RequestUserInput(
-        {"en": "Please choose your Denon AVR", "de": "Bitte Denon AVR auswählen"},
+        _a("Please choose your Denon AVR"),
         [
             {
                 "field": {"dropdown": {"value": dropdown_items[0]["id"], "items": dropdown_items}},
                 "id": "choice",
-                "label": {
-                    "en": "Choose your Denon AVR",
-                    "de": "Wähle deinen Denon AVR",
-                    "fr": "Choisissez votre Denon AVR",
-                },
+                "label": _a("Choose your Denon AVR"),
             },
             __show_all_inputs_cfg(False),
             # TODO #21 support multiple zones
@@ -459,7 +428,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             __connection_mode_cfg("use_telnet"),
             __volume_cfg(1),
             __timeout_cfg(2000),
-            _telnet_info,
+            __telnet_info(),
         ],
     )
 
@@ -516,7 +485,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
 
     if receiver.serial_number is None:
         _LOG.error("Could not get serial number of host %s: required to create a unique device", host)
-        return SetupError
+        return SetupError(error_type=IntegrationSetupError.OTHER)
 
     device = AvrDevice(
         receiver.serial_number,
@@ -584,11 +553,7 @@ async def _handle_device_reconfigure(
 def __show_all_inputs_cfg(enabled: bool):
     return {
         "id": "show_all_inputs",
-        "label": {
-            "en": "Show all sources",
-            "de": "Alle Quellen anzeigen",
-            "fr": "Afficher tous les sources",
-        },
+        "label": _a("Show all sources"),
         "field": {"checkbox": {"value": enabled}},
     }
 
@@ -596,30 +561,18 @@ def __show_all_inputs_cfg(enabled: bool):
 def __connection_mode_cfg(mode: str):
     return {
         "id": "connection_mode",
-        "label": {
-            "en": "Connection mode",
-            "de": "Verbindungstyp",
-            "fr": "Mode de connexion",
-        },
+        "label": _a("Connection mode"),
         "field": {
             "dropdown": {
                 "value": mode,
                 "items": [
                     {
                         "id": "use_telnet",
-                        "label": {
-                            "en": "Use Telnet connection",
-                            "de": "Telnet-Verbindung verwenden",
-                            "fr": "Utilise une connexion Telnet",
-                        },
+                        "label": _a("Use Telnet connection"),
                     },
                     {
                         "id": "use_http",
-                        "label": {
-                            "en": "Use HTTP connection",
-                            "de": "HTTP-Verbindung verwenden",
-                            "fr": "Utilise une connexion HTTP",
-                        },
+                        "label": _a("Use HTTP connection"),
                     },
                 ],
             }
@@ -630,11 +583,7 @@ def __connection_mode_cfg(mode: str):
 def __volume_cfg(step: float):
     return {
         "id": "volume_step",
-        "label": {
-            "en": "Volume step",
-            "de": "Lautstärke-Schritt",
-            "fr": "Pallier de volume",
-        },
+        "label": _a("Volume step"),
         "field": {"number": {"value": step, "min": 0.5, "max": 10, "steps": 1, "decimals": 1, "unit": {"en": "dB"}}},
     }
 
@@ -642,11 +591,7 @@ def __volume_cfg(step: float):
 def __timeout_cfg(timeout: int):
     return {
         "id": "timeout",
-        "label": {
-            "en": "Connection and request timeout",
-            "de": "Verbindungs- und Anforderungszeitüberschreitung",
-            "fr": "Délai de connexion et de requête",
-        },
+        "label": _a("Connection and request timeout"),
         "field": {
             "number": {"value": timeout, "min": 250, "max": 10000, "steps": 1, "decimals": 0, "unit": {"en": "ms"}}
         },

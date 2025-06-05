@@ -17,6 +17,7 @@ import media_player
 import setup_flow
 import ucapi
 from config import avr_from_entity_id
+from i18n import _a
 from ucapi.media_player import Attributes as MediaAttr
 
 _LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
@@ -364,6 +365,10 @@ async def main():
     _LOOP.create_task(receiver_status_poller())
 
     await api.init("driver.json", setup_flow.driver_setup_handler)
+
+    # temporary hack to change driver.json language texts until supported by the wrapper lib # pylint: disable=W0212
+    api._driver_info["description"] = _a("Control your Denon or Marantz AVRs with Remote Two/3.")
+    api._driver_info["setup_data_schema"] = setup_flow.setup_data_schema()  # pylint: disable=W0212
 
 
 if __name__ == "__main__":

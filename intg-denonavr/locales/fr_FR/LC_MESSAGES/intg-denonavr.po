@@ -1,0 +1,128 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: uc-integration-denon-avr\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-03 08:38+0200\n"
+"PO-Revision-Date: 2025-06-03 14:38\n"
+"Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Crowdin-SourceKey: msgstr\n"
+"X-Crowdin-Project: uc-integration-denon-avr\n"
+"X-Crowdin-Project-ID: 796252\n"
+"X-Crowdin-Language: fr\n"
+"X-Crowdin-File: /feat.27-i18n_gettext/intg-denonavr/locales/en_US/LC_MESSAGES/intg-denonavr.po\n"
+"X-Crowdin-File-ID: 94\n"
+
+#: ../driver.py:370
+msgid "Control your Denon or Marantz AVRs with Remote Two/3."
+msgstr "Contrôler Denon ou Marantz AVRs avec Remote Two/3."
+
+#: ../setup_flow.py:56
+msgid "Integration setup"
+msgstr "Configuration de l'intégration"
+
+#: ../setup_flow.py:60
+msgid "Setup proces"
+msgstr "Installation"
+
+#: ../setup_flow.py:64
+msgid "The integration discovers Denon and Marantz Receivers on the network."
+msgstr "Cette intégration trouvera des AVR Denon et Marantz dans le réseau."
+
+#: ../setup_flow.py:66
+msgid "Please see our support article for requirements, features and restrictions."
+msgstr "Consulte [l’article de support](https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844) pour connaître les exigences, les fonctionnalités prises en charge et les restrictions."
+
+#: ../setup_flow.py:78
+msgid "Setup mode"
+msgstr "Installation"
+
+#: ../setup_flow.py:86
+msgid "Leave blank to use auto-discovery and click _Next_."
+msgstr "Laissez le champ vide pour utiliser la découverte automatique et cliquez sur _Suivant_."
+
+#: ../setup_flow.py:88
+msgid "The device must be on the same network as the remote."
+msgstr "L'appareil doit être sur le même réseau que la télécommande."
+
+#: ../setup_flow.py:95
+msgid "Manual IP address or hostname"
+msgstr "Adresse IP manuelle ou nom d'hôte"
+
+#: ../setup_flow.py:105
+msgid "Please note:"
+msgstr "Veuillez noter:"
+
+#: ../setup_flow.py:109
+msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only!"
+msgstr "L'utilisation de Telnet fournit des mises à jour en temps réel pour de nombreuses valeurs, mais certains amplificateurs ne permettent qu'une seule connexion ! Avec ce paramètre, d'autres applications ou systèmes ne peuvent plus fonctionner."
+
+#: ../setup_flow.py:193
+msgid "Add a new device"
+msgstr "Ajouter un nouvel appareil"
+
+#: ../setup_flow.py:204
+msgid "Configure selected device"
+msgstr "Configurer l'appareil sélectionné"
+
+#: ../setup_flow.py:211
+msgid "Delete selected device"
+msgstr "Supprimer l'appareil sélectionné"
+
+#: ../setup_flow.py:218
+msgid "Reset configuration and reconfigure"
+msgstr "Réinitialiser la configuration et reconfigurer"
+
+#: ../setup_flow.py:226
+msgid "Configuration mode"
+msgstr "Mode de configuration"
+
+#: ../setup_flow.py:236
+msgid "Configured devices"
+msgstr "Appareils configurés"
+
+#: ../setup_flow.py:246
+msgid "Action"
+msgstr "Action"
+
+#: ../setup_flow.py:309
+msgid "Configure your AVR"
+msgstr "Configurez votre AVR"
+
+#: ../setup_flow.py:400
+msgid "Please choose your Denon AVR"
+msgstr "Veuillez choisir votre Denon AVR"
+
+#: ../setup_flow.py:405
+msgid "Choose your Denon AVR"
+msgstr "Choisissez votre Denon AVR"
+
+#: ../setup_flow.py:555
+msgid "Show all sources"
+msgstr "Afficher tous les sources"
+
+#: ../setup_flow.py:563
+msgid "Connection mode"
+msgstr "Mode de connexion"
+
+#: ../setup_flow.py:570
+msgid "Use Telnet connection"
+msgstr "Utilise une connexion Telnet"
+
+#: ../setup_flow.py:574
+msgid "Use HTTP connection"
+msgstr "Utilise une connexion HTTP"
+
+#: ../setup_flow.py:585
+msgid "Volume step"
+msgstr "Incrémentation du volume"
+
+#: ../setup_flow.py:593
+msgid "Connection and request timeout"
+msgstr "Délai de connexion et de requête"
+

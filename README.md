@@ -1,7 +1,8 @@
 # Denon AVR integration for Remote Two/3
 
 Using [denonavr](https://github.com/ol-iver/denonavr)
-and [uc-integration-api](https://github.com/aitatoi/integration-python-library)
+and [uc-integration-api](https://github.com/aitatoi/integration-python-library),
+[Crowdin translations](https://crowdin.com/project/uc-integration-denon-avr).
 
 This integration is included in the Remote Two and Remote 3 firmware, and no external service must be run to connect
 with Denon AVR devices. It can be run as an external integration for development.
@@ -11,7 +12,7 @@ with Denon AVR devices. It can be run as an external integration for development
 - A [media player entity](https://github.com/unfoldedcircle/core-api/blob/main/doc/entities/entity_media_player.md)
 is exposed to the Remote to control the AVR.
 
-Receiver can be controlled by HTTP or Telnet. Using Telnet provides realtime updates for many values, but certain
+Receivers can be controlled by HTTP or Telnet. Using Telnet provides realtime updates for many values, but certain
 receivers are limited to a single connection only (see limitations below).
 
 ## Requirements
@@ -333,6 +334,18 @@ integration, which uses the same [denonavr](https://github.com/ol-iver/denonavr)
 pip3 install -r requirements.txt
 ```
 
+- The integration is runnable without updating the language files or compiling the .po files!  
+  If a language file is missing, the language key is used which in most cases is identical to the English language text.
+- Optional: compile gettext translation files:
+  - This requires `msgfmt` from the GNU gettext utilities.
+  - See [docs/i18n.md](docs/i18n.md) for more information.
+  - Helper Makefile:
+
+```shell
+cd intg-denonavr/locales
+make all
+```
+
 For running a separate integration driver on your network for Remote Two/3, the configuration in file
 [driver.json](driver.json) needs to be changed:
 
@@ -386,7 +399,8 @@ docker run --rm --name builder \
     docker.io/unfoldedcircle/r2-pyinstaller:3.11.12  \
     bash -c \
       "python -m pip install -r requirements.txt && \
-      pyinstaller --clean --onedir --name intg-denonavr intg-denonavr/driver.py"
+      pyinstaller --clean --onedir --name intg-denonavr \
+        --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
 ```
 
 ### aarch64 Linux / Mac
@@ -400,7 +414,8 @@ docker run --rm --name builder \
     docker.io/unfoldedcircle/r2-pyinstaller:3.11.12  \
     bash -c \
       "python -m pip install -r requirements.txt && \
-      pyinstaller --clean --onedir --name intg-denonavr intg-denonavr/driver.py"
+      pyinstaller --clean --onedir --name intg-denonavr \
+        --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
 ```
 
 ## Versioning
