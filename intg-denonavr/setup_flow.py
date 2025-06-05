@@ -593,6 +593,6 @@ def __timeout_cfg(timeout: int):
         "id": "timeout",
         "label": _a("Connection and request timeout"),
         "field": {
-            "number": {"value": timeout, "min": 250, "max": 10000, "steps": 1, "decimals": 0, "unit": {"en": "ms"}}
+            "number": {"value": timeout, "min": 250, "max": 10_000, "steps": 1, "decimals": 0, "unit": {"en": "ms"}}
         },
     }

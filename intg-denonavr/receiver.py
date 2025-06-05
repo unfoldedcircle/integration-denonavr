@@ -23,7 +23,7 @@ class ConnectDenonAVR:
     def __init__(
         self,
         host: str,
-        timeout: float,
+        timeout: int,
         show_all_inputs: bool,
         zone2: bool,
         zone3: bool,
@@ -86,7 +86,7 @@ class ConnectDenonAVR:
         receiver = DenonAVR(
             host=self._host,
             show_all_inputs=self._show_all_inputs,
-            timeout=self._timeout,
+            timeout=self._timeout / 1000.0,
             add_zones=self._zones,
         )
         await receiver.async_setup()

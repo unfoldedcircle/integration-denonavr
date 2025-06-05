@@ -38,7 +38,7 @@ from ucapi.media_player import Attributes as MediaAttr
 
 _LOG = logging.getLogger(__name__)
 
-SETUP_TIMEOUT = 5
+SETUP_TIMEOUT = 5000
 
 BACKOFF_MAX: float = 30
 MIN_RECONNECT_DELAY: float = 0.5
@@ -208,7 +208,10 @@ class DenonDevice:
         if device.zone3:
             self._zones["Zone3"] = None
         self._receiver: denonavr.DenonAVR = denonavr.DenonAVR(
-            host=device.address, show_all_inputs=device.show_all_inputs, timeout=device.timeout, add_zones=self._zones
+            host=device.address,
+            show_all_inputs=device.show_all_inputs,
+            timeout=device.timeout / 1000.0,
+            add_zones=self._zones,
         )
         self._update_audyssey = device.update_audyssey
         self._simple_command = SimpleCommand(self._receiver, self._send_command)
