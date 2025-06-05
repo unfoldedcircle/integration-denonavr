@@ -120,5 +120,5 @@ msgstr "Volume step"
 
 #: ../setup_flow.py:594
 msgid "Connection and request timeout"
-msgstr "Connection and request timeout"
+msgstr "Connection and request timeout (ms)"
 
