@@ -23,7 +23,7 @@ class ConnectDenonAVR:
     def __init__(
         self,
         host: str,
-        timeout: float,
+        timeout: int,
         show_all_inputs: bool,
         zone2: bool,
         zone3: bool,

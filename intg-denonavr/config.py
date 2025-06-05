@@ -50,7 +50,7 @@ class AvrDevice:
     zone2: bool
     zone3: bool
     volume_step: float
-    timeout: float
+    timeout: int
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
@@ -205,7 +205,7 @@ class Devices:
                     item.get("zone2", False),
                     item.get("zone3", False),
                     item.get("volume_step", 0.5),
-                    item.get("timeout", 2000.0),
+                    item.get("timeout", 2000),
                 )
                 needs_migration |= item.get("use_telnet_for_events") is not None
                 self._config.append(avr)
