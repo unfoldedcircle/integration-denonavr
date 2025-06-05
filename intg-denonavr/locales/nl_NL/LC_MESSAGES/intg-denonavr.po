@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-06-04 14:52+0200\n"
-"PO-Revision-Date: 2025-06-05 12:21\n"
+"PO-Revision-Date: 2025-06-05 14:07\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: Dutch\n"
 "Language: nl\n"
@@ -27,8 +27,8 @@ msgid "Integration setup"
 msgstr "Integration setup"
 
 #: ../setup_flow.py:60
-msgid "Setup proces"
-msgstr "Setup mode"
+msgid "Setup process"
+msgstr "Setup process"
 
 #: ../setup_flow.py:64
 msgid "The integration discovers Denon and Marantz Receivers on the network."
