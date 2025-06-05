@@ -11,6 +11,7 @@ _Changes in the next release_
 
 ### Changed
 - Externalize language strings for translations with Crowdin ([#27](https://github.com/unfoldedcircle/integration-denonavr/issues/27)))
+- Add Swedish translation. Contributed by @henrikwidlund, thanks!
 
 ---
 

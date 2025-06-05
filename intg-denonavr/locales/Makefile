@@ -1,4 +1,4 @@
-LOCALES = de_DE fr_FR en_US
+LOCALES = de_DE fr_FR en_US sv_SE
 PO_FILES = $(foreach loc,$(LOCALES),$(loc)/LC_MESSAGES/intg-denonavr.po)
 MO_FILES = $(PO_FILES:.po=.mo)
 
