@@ -27,8 +27,8 @@ msgstr "Integration setup"
 
 #: ../setup_flow.py:60
 #, fuzzy
-msgid "Setup proces"
-msgstr "Setup mode"
+msgid "Setup process"
+msgstr "Setup process"
 
 #: ../setup_flow.py:64
 msgid "The integration discovers Denon and Marantz Receivers on the network."

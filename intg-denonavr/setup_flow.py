@@ -57,7 +57,7 @@ def setup_data_schema():
         "settings": [
             {
                 "id": "info",
-                "label": _a("Setup proces"),
+                "label": _a("Setup process"),
                 "field": {
                     "label": {
                         "value": _am(
