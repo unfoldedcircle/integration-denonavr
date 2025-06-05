@@ -304,7 +304,7 @@ async def handle_configuration_mode(
             else:
                 connection_mode = "use_http"
             volume_step = selected_device.volume_step if selected_device.volume_step else 0.5
-            timeout = selected_device.timeout if selected_device.timeout else 2000
+            timeout = selected_device.timeout if selected_device.timeout else 2.0
 
             return RequestUserInput(
                 _a("Configure your AVR"),
@@ -427,7 +427,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             # },
             __connection_mode_cfg("use_telnet"),
             __volume_cfg(1),
-            __timeout_cfg(2000),
+            __timeout_cfg(2.0),
             __telnet_info(),
         ],
     )
@@ -458,7 +458,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     except ValueError:
         return SetupError(error_type=IntegrationSetupError.OTHER)
 
-    timeout = int(msg.input_values.get("timeout", 2000))
+    timeout = int(msg.input_values.get("timeout", 2.0))
 
     # Telnet connection isn't required for connection check and retrieving model information
     connect_denonavr = ConnectDenonAVR(
@@ -541,7 +541,7 @@ async def _handle_device_reconfigure(
     _reconfigured_device.zone3 = msg.input_values.get("zone3") == "true"
     _reconfigured_device.use_telnet = connection_mode == "use_telnet"
     _reconfigured_device.volume_step = volume_step
-    _reconfigured_device.timeout = int(msg.input_values.get("timeout", 2000))
+    _reconfigured_device.timeout = float(msg.input_values.get("timeout", 2.0))
 
     config.devices.update(_reconfigured_device)  # triggers receiver instance update
     await asyncio.sleep(1)
@@ -588,11 +588,11 @@ def __volume_cfg(step: float):
     }
 
 
-def __timeout_cfg(timeout: int):
+def __timeout_cfg(timeout: float):
     return {
         "id": "timeout",
         "label": _a("Connection and request timeout"),
         "field": {
-            "number": {"value": timeout, "min": 250, "max": 10000, "steps": 1, "decimals": 0, "unit": {"en": "ms"}}
+            "number": {"value": timeout, "min": 0.250, "max": 10.0, "steps": 1, "decimals": 0, "unit": {"en": "ms"}}
         },
     }
