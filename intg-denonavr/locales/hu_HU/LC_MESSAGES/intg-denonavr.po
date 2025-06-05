@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-06-04 14:52+0200\n"
-"PO-Revision-Date: 2025-06-05 14:07\n"
+"PO-Revision-Date: 2025-06-05 21:06\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: Hungarian\n"
 "Language: hu\n"
@@ -125,5 +125,5 @@ msgstr "Volume step"
 
 #: ../setup_flow.py:594
 msgid "Connection and request timeout"
-msgstr "Connection and request timeout"
+msgstr "Connection and request timeout (ms)"
 
