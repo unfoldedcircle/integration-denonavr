@@ -30,7 +30,17 @@ class ConnectDenonAVR:
         use_telnet: bool,
         update_audyssey: bool,
     ) -> None:
-        """Initialize the class."""
+        """
+        Initialize the class.
+
+        :param host: IP address or hostname of the DenonAVR receiver.
+        :param timeout: connection timeout in milliseconds.
+        :param show_all_inputs: show all inputs or only the enabled ones.
+        :param zone2: enable zone 2 (not yet supported).
+        :param zone3: enable zone 3 (not yet supported).
+        :param use_telnet: use telnet instead of http.
+        :param update_audyssey: get Audyssey settings.
+        """
         self._receiver: DenonAVR | None = None
         self._host = host
         self._show_all_inputs = show_all_inputs

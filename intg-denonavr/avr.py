@@ -39,6 +39,7 @@ from ucapi.media_player import Attributes as MediaAttr
 _LOG = logging.getLogger(__name__)
 
 SETUP_TIMEOUT = 5000
+"""AVR connection timeout to retrieve setup information in milliseconds."""
 
 BACKOFF_MAX: float = 30
 MIN_RECONNECT_DELAY: float = 0.5

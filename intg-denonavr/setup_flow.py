@@ -589,6 +589,12 @@ def __volume_cfg(step: float):
 
 
 def __timeout_cfg(timeout: int):
+    """
+    Create an input configuration for the timeout setting.
+
+    :param timeout: Connection and command timeout in milliseconds.
+    :return: Setup flow input field configuration.
+    """
     return {
         "id": "timeout",
         "label": _a("Connection and request timeout"),

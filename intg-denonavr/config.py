@@ -51,6 +51,7 @@ class AvrDevice:
     zone3: bool
     volume_step: float
     timeout: int
+    """Connection and command timeout in milliseconds."""
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
