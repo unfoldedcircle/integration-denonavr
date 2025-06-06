@@ -10,12 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 _Changes in the next release_
 
 ### Changed
-- Externalize language strings for translations with Crowdin ([#27](https://github.com/unfoldedcircle/integration-denonavr/issues/27)))
-- Add Swedish translation. Contributed by @henrikwidlund, thanks!
 
 ---
 
+## v0.8.4 - 2025-06-06
+### Fixed
+- Timeunits in connection and request timeouts ([#84](https://github.com/unfoldedcircle/integration-denonavr/pull/84)).
+
+### Added
+- Externalize language strings for translations with Crowdin ([#27](https://github.com/unfoldedcircle/integration-denonavr/issues/27)))
+- Add Swedish translation. Contributed by @henrikwidlund, thanks!
+
 ## v0.8.3 - 2025-06-04
+### Added
 - Make connection and request timeouts configurable. Contributed by @henrikwidlund, thanks! ([#70](https://github.com/unfoldedcircle/integration-denonavr/pull/70)).
 
 ## v0.8.2 - 2025-05-27
