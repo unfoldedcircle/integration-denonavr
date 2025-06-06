@@ -18,7 +18,6 @@ import discover
 import ucapi
 from config import AvrDevice
 from denonavr.const import (
-    ALL_TELNET_EVENTS,
     ALL_ZONES,
     STATE_OFF,
     STATE_ON,
@@ -235,6 +234,14 @@ class DenonDevice:
 
         _LOG.debug("Denon AVR created: %s", device.address)
 
+    _events_of_interest = [
+        "PW",
+        "MV",
+        "MU",
+        "SI",
+        "MS",
+    ]
+
     @property
     def active(self) -> bool:
         """Return true if device is active and should have an established connection."""
@@ -412,13 +419,16 @@ class DenonDevice:
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
 
-                    await self._receiver.async_update()
                     if self._use_telnet:
-                        if self._update_audyssey:
-                            await self._receiver.async_update_audyssey()
                         await self._receiver.async_telnet_connect()
-
-                        self._receiver.register_callback(ALL_TELNET_EVENTS, self._telnet_callback)
+                        await self._receiver.async_update()
+                        for event in self._events_of_interest:
+                            self._receiver.register_callback(event, self._telnet_callback)
+                        # TODO: Uncomment once we have use for Audyssey information
+                        # if self._update_audyssey:
+                        #     await self._receiver.async_update_audyssey()
+                    else:
+                        await self._receiver.async_update()
 
                     success = True
                     self._connection_attempts = 0
@@ -497,7 +507,8 @@ class DenonDevice:
         try:
             if self._use_telnet:
                 try:
-                    self._receiver.unregister_callback(ALL_TELNET_EVENTS, self._telnet_callback)
+                    for event in self._events_of_interest:
+                        self._receiver.unregister_callback(event, self._telnet_callback)
                 except ValueError:
                     pass
                 await self._receiver.async_telnet_disconnect()
@@ -552,8 +563,9 @@ class DenonDevice:
 
             self._telnet_was_healthy = telnet_is_healthy
 
-            if self._update_audyssey:
-                await receiver.async_update_audyssey()
+            # TODO: Uncomment once we have use for Audyssey information
+            # if self._update_audyssey:
+            #     await receiver.async_update_audyssey()
 
             self._notify_updated_data()
         finally:
@@ -576,14 +588,6 @@ class DenonDevice:
         if zone not in (self._receiver.zone, ALL_ZONES):
             return
         if event not in TELNET_EVENTS:
-            return
-        # Some updates trigger multiple events like one for artist and one for title for one change
-        # We skip every event except the last one
-        if event == "NSE" and not parameter.startswith("4"):
-            return
-        if event == "TA" and not parameter.startswith("ANNAME"):
-            return
-        if event == "HD" and not parameter.startswith("ALBUM"):
             return
         # *** End logic from HA
 
@@ -609,7 +613,7 @@ class DenonDevice:
             self._set_expected_state(States.ON)
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.SOUND_MODE: self._receiver.sound_mode})
         elif event == "PS":  # Parameter Setting
-            return  # reduce number of updates. TODO check if we need to handle certain parameters, likely Audyssey
+            return  # TODO check if we need to handle certain parameters, likely Audyssey
 
         self._notify_updated_data()
 
