@@ -102,9 +102,10 @@ class ConnectDenonAVR:
         await receiver.async_setup()
         # Do an initial update if telnet is used.
         if self._use_telnet:
-            await receiver.async_update()
-            if self._update_audyssey:
-                await receiver.async_update_audyssey()
             await receiver.async_telnet_connect()
+            await receiver.async_update()
+            # TODO: Uncomment once we have use for Audyssey information
+            # if self._update_audyssey:
+            #     await receiver.async_update_audyssey()
 
         self._receiver = receiver
