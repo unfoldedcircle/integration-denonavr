@@ -96,6 +96,14 @@ TELNET_EVENTS = {
     "Z3",  # Zone 3
 }
 
+SUBSCRIBED_TELNET_EVENTS = {
+    "PW",  # Power
+    "MV",  # Master Volume
+    "MU",  # Muted
+    "SI",  # Select Input source
+    "MS",  # surround Mode Setting
+}
+
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
 _P = ParamSpec("_P")
 
@@ -233,14 +241,6 @@ class DenonDevice:
         self._update_lock = Lock()
 
         _LOG.debug("Denon AVR created: %s", device.address)
-
-    _events_of_interest = [
-        "PW",
-        "MV",
-        "MU",
-        "SI",
-        "MS",
-    ]
 
     @property
     def active(self) -> bool:
@@ -422,7 +422,7 @@ class DenonDevice:
                     if self._use_telnet:
                         await self._receiver.async_telnet_connect()
                         await self._receiver.async_update()
-                        for event in self._events_of_interest:
+                        for event in SUBSCRIBED_TELNET_EVENTS:
                             self._receiver.register_callback(event, self._telnet_callback)
                         # TODO: Uncomment once we have use for Audyssey information
                         # if self._update_audyssey:
@@ -507,7 +507,7 @@ class DenonDevice:
         try:
             if self._use_telnet:
                 try:
-                    for event in self._events_of_interest:
+                    for event in SUBSCRIBED_TELNET_EVENTS:
                         self._receiver.unregister_callback(event, self._telnet_callback)
                 except ValueError:
                     pass
