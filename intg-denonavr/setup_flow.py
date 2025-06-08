@@ -1,5 +1,5 @@
 """
-Setup flow for Denon AVR integration.
+Setup flow for Denon/Marantz AVR integration.
 
 :copyright: (c) 2023 by Unfolded Circle ApS.
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
@@ -156,7 +156,7 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
     """
     Start driver setup.
 
-    Initiated by Remote Two to set up the driver. The reconfigure flag determines the setup flow:
+    Initiated by Remote Two/3 to set up the driver. The reconfigure flag determines the setup flow:
 
     - Reconfigure is True: show the configured devices and ask user what action to perform (add, delete, reset).
     - Reconfigure is False: clear the existing configuration and show device discovery screen.
@@ -398,12 +398,12 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
 
     _setup_step = SetupSteps.DEVICE_CHOICE
     return RequestUserInput(
-        _a("Please choose your Denon AVR"),
+        _a("Please choose your Denon or Marantz AVR"),
         [
             {
                 "field": {"dropdown": {"value": dropdown_items[0]["id"], "items": dropdown_items}},
                 "id": "choice",
-                "label": _a("Choose your Denon AVR"),
+                "label": _a("Choose your Denon or Marantz AVR"),
             },
             __show_all_inputs_cfg(False),
             # TODO #21 support multiple zones
@@ -443,7 +443,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     :return: the setup action on how to continue: SetupComplete if a valid AVR device was chosen.
     """
     host = msg.input_values["choice"]
-    _LOG.debug("Chosen Denon AVR: %s. Trying to connect and retrieve device information...", host)
+    _LOG.debug("Chosen Denon/Marantz AVR: %s. Trying to connect and retrieve device information...", host)
 
     show_all_inputs = msg.input_values.get("show_all_inputs") == "true"
     update_audyssey = False  # not yet supported
