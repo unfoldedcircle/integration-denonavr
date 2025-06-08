@@ -91,12 +91,12 @@ msgid "Configure your AVR"
 msgstr "Configure your AVR"
 
 #: ../setup_flow.py:401
-msgid "Please choose your Denon AVR"
-msgstr "Please choose your Denon AVR"
+msgid "Please choose your Denon or Marantz AVR"
+msgstr "Please choose your Denon or Marantz AVR"
 
 #: ../setup_flow.py:406
-msgid "Choose your Denon AVR"
-msgstr "Choose your Denon AVR"
+msgid "Choose your Denon or Marantz AVR"
+msgstr "Choose your Denon or Marantz AVR"
 
 #: ../setup_flow.py:556
 msgid "Show all sources"

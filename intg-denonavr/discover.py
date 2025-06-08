@@ -1,5 +1,5 @@
 """
-Denon AVR device discovery with SSDP.
+Denon/Marantz AVR device discovery with SSDP.
 
 :copyright: (c) 2023 by Unfolded Circle ApS.
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
@@ -14,9 +14,9 @@ _LOG = logging.getLogger(__name__)
 
 async def denon_avrs() -> list[dict]:
     """
-    Discover Denon AVRs on the network with SSDP.
+    Discover Denon/Marantz AVRs on the network with SSDP.
 
-    Returns a list of dictionaries which includes all discovered Denon AVR
+    Returns a list of dictionaries which includes all discovered Denon/Marantz AVR
     devices with keys "host", "modelName", "friendlyName", "presentationURL".
     By default, SSDP broadcasts are sent once with a 2 seconds timeout.
 

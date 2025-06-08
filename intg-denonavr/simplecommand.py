@@ -1,5 +1,5 @@
 """
-This module implements the Denon AVR receiver communication of the Remote Two integration driver.
+This module implements the Denon/Marantz AVR receiver communication of the Remote Two/3 integration driver.
 
 :copyright: (c) 2023 by Unfolded Circle ApS.
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
@@ -332,7 +332,7 @@ class SimpleCommand:
         """
         Create a SimpleCommand instance.
 
-        :param receiver: Denon receiver instance
+        :param receiver: Denon/Marantz receiver instance
         :param send_command: Function to send a raw command to the receiver
         """
         self._receiver = receiver

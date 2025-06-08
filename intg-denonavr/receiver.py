@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ConnectDenonAVR:
-    """Class to async connect to a DenonAVR receiver."""
+    """Class to async connect to a Denon/Marantz AVR receiver."""
 
     # pylint: disable=too-many-positional-arguments
     def __init__(
@@ -33,7 +33,7 @@ class ConnectDenonAVR:
         """
         Initialize the class.
 
-        :param host: IP address or hostname of the DenonAVR receiver.
+        :param host: IP address or hostname of the Denon/Marantz AVR receiver.
         :param timeout: connection timeout in milliseconds.
         :param show_all_inputs: show all inputs or only the enabled ones.
         :param zone2: enable zone 2 (not yet supported).
@@ -60,7 +60,7 @@ class ConnectDenonAVR:
         return self._receiver
 
     async def async_connect_receiver(self) -> bool:
-        """Connect to the DenonAVR receiver."""
+        """Connect to the Denon/Marantz AVR receiver."""
         await self.async_init_receiver_class()
         assert self._receiver
 

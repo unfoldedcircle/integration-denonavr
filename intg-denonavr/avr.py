@@ -1,5 +1,5 @@
 """
-This module implements the Denon AVR receiver communication of the Remote Two integration driver.
+This module implements the Denon/Marantz AVR receiver communication of the Remote Two/3 integration driver.
 
 :copyright: (c) 2023 by Unfolded Circle ApS.
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
@@ -106,7 +106,7 @@ _P = ParamSpec("_P")
 def async_handle_denonlib_errors(
     func: Callable[Concatenate[_DenonDeviceT, _P], Awaitable[ucapi.StatusCodes | None]],
 ) -> Callable[Concatenate[_DenonDeviceT, _P], Coroutine[Any, Any, ucapi.StatusCodes | None]]:
-    """Log errors occurred when calling a Denon AVR receiver.
+    """Log errors occurred when calling a Denon/Marantz AVR receiver.
 
     Decorates methods of DenonDevice class.
 
@@ -127,7 +127,7 @@ def async_handle_denonlib_errors(
             result = ucapi.StatusCodes.SERVICE_UNAVAILABLE
             if self.available:
                 _LOG.warning(
-                    "Timeout connecting to Denon AVR receiver at host %s. Device is unavailable. (%s%s)",
+                    "Timeout connecting to Denon/Marantz AVR receiver at host %s. Device is unavailable. (%s%s)",
                     self._receiver.host,
                     func.__name__,
                     args,
@@ -138,7 +138,7 @@ def async_handle_denonlib_errors(
             available = False
             if self.available:
                 _LOG.warning(
-                    "Network error connecting to Denon AVR receiver at host %s. Device is unavailable. (%s%s)",
+                    "Network error connecting to Denon/Marantz AVR receiver at host %s. Device is unavailable. (%s%s)",
                     self._receiver.host,
                     func.__name__,
                     args,
@@ -150,7 +150,7 @@ def async_handle_denonlib_errors(
             if self.available:
                 _LOG.warning(
                     (
-                        "Denon AVR receiver at host %s responded with HTTP 403 error. "
+                        "Denon/Marantz AVR receiver at host %s responded with HTTP 403 error. "
                         "Device is unavailable. Please consider power cycling your "
                         "receiver. (%s%s)"
                     ),
@@ -171,7 +171,7 @@ def async_handle_denonlib_errors(
         except DenonAvrError as err:
             available = False
             _LOG.exception(
-                "Error %s occurred in method %s%s for Denon AVR receiver",
+                "Error %s occurred in method %s%s for Denon/Marants AVR receiver",
                 err,
                 func.__name__,
                 args,
@@ -179,7 +179,7 @@ def async_handle_denonlib_errors(
         finally:
             if available and not self.available:
                 _LOG.info(
-                    "Denon AVR receiver at host %s is available again",
+                    "Denon/Marantz AVR receiver at host %s is available again",
                     self._receiver.host,
                 )
                 self.available = True
@@ -189,7 +189,7 @@ def async_handle_denonlib_errors(
 
 
 class DenonDevice:
-    """Representing a Denon AVR Device."""
+    """Representing a Denon/Marantz AVR Device."""
 
     def __init__(
         self,
@@ -233,7 +233,7 @@ class DenonDevice:
         self._volume_step = device.volume_step
         self._update_lock = Lock()
 
-        _LOG.debug("Denon AVR created: %s", device.address)
+        _LOG.debug("Denon/Marantz AVR created: %s", device.address)
 
     @property
     def active(self) -> bool:
@@ -432,7 +432,7 @@ class DenonDevice:
                 )
 
             _LOG.info(
-                "Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
+                "Denon/Marantz AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
                 self.manufacturer,
                 self.model_name,
                 self.name,
