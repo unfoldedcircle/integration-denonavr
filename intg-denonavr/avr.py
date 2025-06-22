@@ -526,7 +526,11 @@ class DenonDevice:
         if self._update_lock.locked() or not self._active or self._connecting:
             return
 
-        await self._update_lock.acquire()
+        try:
+            await asyncio.wait_for(self._update_lock.acquire(), timeout=2.0)
+        except asyncio.TimeoutError:
+            _LOG.info("[%s] Update lock timeout, skipping update", self.id)
+            return
 
         try:
             receiver = self._receiver
