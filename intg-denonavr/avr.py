@@ -844,7 +844,7 @@ class DenonDevice:
 
     def _increase_expected_volume(self):
         """Without telnet, increase expected volume and send update event."""
-        if not self._use_telnet or self._expected_volume is None:
+        if self._use_telnet or self._expected_volume is None:
             return
         self._expected_volume = min(self._expected_volume + self._volume_step, 100)
         # Send updated volume if no update task in progress
@@ -853,7 +853,7 @@ class DenonDevice:
 
     def _decrease_expected_volume(self):
         """Without telnet, decrease expected volume and send update event."""
-        if not self._use_telnet or self._expected_volume is None:
+        if self._use_telnet or self._expected_volume is None:
             return
         self._expected_volume = max(self._expected_volume - self._volume_step, 0)
         # Send updated volume if no update task in progress
