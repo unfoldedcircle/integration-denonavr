@@ -535,6 +535,7 @@ class DenonDevice:
             # the last update and is still healthy now to ensure that
             # we don't miss any state changes while telnet is down
             # or reconnecting.
+            # TODO: is this still needed?
             if (
                 telnet_is_healthy := receiver.telnet_connected and receiver.telnet_healthy
             ) and self._telnet_was_healthy:
@@ -678,6 +679,7 @@ class DenonDevice:
             volume_denon = float(18)
         await self._receiver.async_set_volume(volume_denon)
         self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
+        # TODO: is this still needed?
         if self._use_telnet and not self._update_lock.locked():
             await self._event_loop.create_task(self.async_update_receiver_data())
         else:
@@ -731,7 +733,7 @@ class DenonDevice:
         await self._receiver.async_mute(muted)
         if not self._use_telnet:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
-        else:
+        else:  # TODO: Is this still needed?
             await self.async_update_receiver_data()
         return ucapi.StatusCodes.OK
 
