@@ -40,6 +40,7 @@ async def receiver_status_poller(interval: float = 10.0) -> None:
                 tasks = [
                     receiver.async_update_receiver_data()
                     for receiver in _configured_avrs.values()
+                    # pylint: disable=W0212
                     if receiver.active and not (receiver._use_telnet and receiver._telnet_was_healthy)
                 ]
                 await asyncio.gather(*tasks)
