@@ -655,6 +655,9 @@ class DenonDevice:
         await self._receiver.async_power_on()
         if not self._use_telnet:
             self._set_expected_state(States.ON)
+
+        # kick off an update in case of http communication or if the telnet connection is not healthy
+        await self._event_loop.create_task(self.async_update_receiver_data())
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -663,6 +666,9 @@ class DenonDevice:
         await self._receiver.async_power_off()
         if not self._use_telnet:
             self._set_expected_state(States.OFF)
+
+        # kick off an update in case of http communication or if the telnet connection is not healthy
+        await self._event_loop.create_task(self.async_update_receiver_data())
         return ucapi.StatusCodes.OK
 
     async def power_toggle(self) -> ucapi.StatusCodes:
@@ -683,11 +689,11 @@ class DenonDevice:
             volume_denon = float(18)
         await self._receiver.async_set_volume(volume_denon)
         self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
-        # TODO: is this still needed?
-        if self._use_telnet and not self._update_lock.locked():
-            await self._event_loop.create_task(self.async_update_receiver_data())
-        else:
+        if not self._use_telnet or self._update_lock.locked():
             self._expected_volume = volume
+
+        # kick off an update in case of http communication or if the telnet connection is not healthy
+        await self._event_loop.create_task(self.async_update_receiver_data())
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -737,8 +743,9 @@ class DenonDevice:
         await self._receiver.async_mute(muted)
         if not self._use_telnet:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
-        else:  # TODO: Is this still needed?
-            await self.async_update_receiver_data()
+
+        # kick off an update in case of http communication or if the telnet connection is not healthy
+        await self._event_loop.create_task(self.async_update_receiver_data())
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
