@@ -652,8 +652,8 @@ class DenonDevice:
         if not self._use_telnet:
             self._set_expected_state(States.ON)
 
-        # kick off an update in case of http communication or if the telnet connection is not healthy
-        await self._event_loop.create_task(self.async_update_receiver_data())
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -663,8 +663,8 @@ class DenonDevice:
         if not self._use_telnet:
             self._set_expected_state(States.OFF)
 
-        # kick off an update in case of http communication or if the telnet connection is not healthy
-        await self._event_loop.create_task(self.async_update_receiver_data())
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     async def power_toggle(self) -> ucapi.StatusCodes:
@@ -688,8 +688,8 @@ class DenonDevice:
         if not self._use_telnet or self._update_lock.locked():
             self._expected_volume = volume
 
-        # kick off an update in case of http communication or if the telnet connection is not healthy
-        await self._event_loop.create_task(self.async_update_receiver_data())
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -740,8 +740,8 @@ class DenonDevice:
         if not self._use_telnet:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
 
-        # kick off an update in case of http communication or if the telnet connection is not healthy
-        await self._event_loop.create_task(self.async_update_receiver_data())
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -868,3 +868,8 @@ class DenonDevice:
         # Send updated volume if no update task in progress
         if not self._update_lock.locked():
             self._event_loop.create_task(self._receiver.async_update())
+
+    async def _start_update_task(self):
+        if not self._use_telnet or not self._telnet_was_healthy:
+            # kick off an update in case of http communication, or if the telnet connection is not healthy
+            await self._event_loop.create_task(self.async_update_receiver_data())
