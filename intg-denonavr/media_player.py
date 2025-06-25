@@ -53,6 +53,8 @@ class DenonMediaPlayer(MediaPlayer):
             Features.VOLUME,
             Features.VOLUME_UP_DOWN,
             Features.MUTE_TOGGLE,
+            Features.MUTE,
+            Features.UNMUTE,
             Features.PLAY_PAUSE,
             Features.NEXT,
             Features.PREVIOUS,
@@ -90,6 +92,7 @@ class DenonMediaPlayer(MediaPlayer):
                 self.simple_commands = [*ALL_COMMANDS_TELNET_DENON]
             else:
                 self.simple_commands = [*ALL_COMMANDS_DENON]
+            features.append(Features.STOP)
         else:
             if device.use_telnet:
                 self.simple_commands = [*ALL_COMMANDS_TELNET]
@@ -126,6 +129,8 @@ class DenonMediaPlayer(MediaPlayer):
         match cmd_id:
             case Commands.PLAY_PAUSE:
                 res = await self._receiver.play_pause()
+            case Commands.STOP:
+                res = await self._receiver.stop()
             case Commands.NEXT:
                 res = await self._receiver.next()
             case Commands.PREVIOUS:
@@ -138,6 +143,10 @@ class DenonMediaPlayer(MediaPlayer):
                 res = await self._receiver.volume_down()
             case Commands.MUTE_TOGGLE:
                 res = await self._receiver.mute(not self.attributes[Attributes.MUTED])
+            case Commands.MUTE:
+                res = await self._receiver.mute(True)
+            case Commands.UNMUTE:
+                res = await self._receiver.mute(False)
             case Commands.ON:
                 res = await self._receiver.power_on()
             case Commands.OFF:
