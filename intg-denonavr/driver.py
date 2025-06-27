@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-This module implements a Remote Two integration driver for Denon AVR receivers.
+This module implements a Remote Two/3 integration driver for Denon/Marantz AVR receivers.
 
 :copyright: (c) 2023 by Unfolded Circle ApS.
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
@@ -48,7 +48,7 @@ async def receiver_status_poller(interval: float = 10.0) -> None:
 
 @api.listens_to(ucapi.Events.CONNECT)
 async def on_r2_connect_cmd() -> None:
-    """Connect all configured receivers when the Remote Two sends the connect command."""
+    """Connect all configured receivers when the Remote Two/3 sends the connect command."""
     _LOG.debug("R2 connect command: connecting device(s)")
     await api.set_device_state(ucapi.DeviceStates.CONNECTED)  # just to make sure the device state is set
     for receiver in _configured_avrs.values():
@@ -58,7 +58,7 @@ async def on_r2_connect_cmd() -> None:
 
 @api.listens_to(ucapi.Events.DISCONNECT)
 async def on_r2_disconnect_cmd():
-    """Disconnect all configured receivers when the Remote Two sends the disconnect command."""
+    """Disconnect all configured receivers when the Remote Two/3 sends the disconnect command."""
     for receiver in _configured_avrs.values():
         # start background task
         _LOOP.create_task(receiver.disconnect())
@@ -67,9 +67,9 @@ async def on_r2_disconnect_cmd():
 @api.listens_to(ucapi.Events.ENTER_STANDBY)
 async def on_r2_enter_standby() -> None:
     """
-    Enter standby notification from Remote Two.
+    Enter standby notification from Remote Two/3.
 
-    Disconnect every Denon AVR instances.
+    Disconnect every Denon/Marantz AVR instances.
     """
     global _R2_IN_STANDBY
 
@@ -82,9 +82,9 @@ async def on_r2_enter_standby() -> None:
 @api.listens_to(ucapi.Events.EXIT_STANDBY)
 async def on_r2_exit_standby() -> None:
     """
-    Exit standby notification from Remote Two.
+    Exit standby notification from Remote Two/3.
 
-    Connect all Denon AVR instances.
+    Connect all Denon/Marantz AVR instances.
     """
     global _R2_IN_STANDBY
 
@@ -340,7 +340,7 @@ async def _async_remove(receiver: avr.DenonDevice) -> None:
 
 
 async def main():
-    """Start the Remote Two integration driver."""
+    """Start the Remote Two/3 integration driver."""
     logging.basicConfig()  # when running on the device: timestamps are added by the journal
     # logging.basicConfig(
     #     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",

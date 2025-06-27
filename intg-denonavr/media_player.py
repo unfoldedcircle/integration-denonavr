@@ -40,7 +40,7 @@ MEDIA_PLAYER_STATE_MAPPING = {
 
 
 class DenonMediaPlayer(MediaPlayer):
-    """Representation of a Denon Media Player entity."""
+    """Representation of a Denon/Marantz Media Player entity."""
 
     def __init__(self, device: AvrDevice, receiver: avr.DenonDevice):
         """Initialize the class."""
@@ -240,7 +240,7 @@ def state_from_avr(avr_state: avr.States) -> States:
     """
     Convert AVR state to UC API media-player state.
 
-    :param avr_state: Denon AVR state
+    :param avr_state: Denon/Marantz AVR state
     :return: UC API media_player state
     """
     if avr_state in MEDIA_PLAYER_STATE_MAPPING:

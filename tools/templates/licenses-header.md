@@ -1,5 +1,5 @@
-# Denon integration for Remote Two
-The Unfolded Circle Denon integration for Remote Two is part of the firmware.
+# Denon/Marantz integration for Remote Two/3
+The Unfolded Circle Denon/Marantz integration for Remote Two/3 is part of the firmware.
 
 ## Licenses
 These are the licenses for the libraries we use in the shipped product as well as for development.
