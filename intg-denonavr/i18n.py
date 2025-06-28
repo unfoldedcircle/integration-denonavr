@@ -1,5 +1,5 @@
 """
-Internationalization support for the Denon AVR integration.
+Internationalization support for the Denon/Marantz AVR integration.
 
 This module provides functions for translating strings in the integration.
 It uses gettext for internationalization and proper pluralization support.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-This module implements a Remote Two integration driver for Denon AVR receivers.
+This module implements a Remote Two/3 integration driver for Denon/Marantz AVR receivers.
 
 :copyright: (c) 2023 by Unfolded Circle ApS.
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
@@ -32,23 +32,27 @@ _R2_IN_STANDBY = False
 
 async def receiver_status_poller(interval: float = 10.0) -> None:
     """Receiver data poller."""
+    # TODO: is it important to delay the first call?
     while True:
-        await asyncio.sleep(interval)
-        if _R2_IN_STANDBY:
-            continue
-        try:
-            for receiver in _configured_avrs.values():
-                if not receiver.active:
-                    continue
-                # TODO #20  run in parallel, join, adjust interval duration based on execution time for next update
-                await receiver.async_update_receiver_data()
-        except (KeyError, ValueError):  # TODO check parallel access / modification while iterating a dict
-            pass
+        start_time = asyncio.get_event_loop().time()
+        if not _R2_IN_STANDBY:
+            try:
+                tasks = [
+                    receiver.async_update_receiver_data()
+                    for receiver in _configured_avrs.values()
+                    # pylint: disable=W0212
+                    if receiver.active and not (receiver._use_telnet and receiver._telnet_was_healthy)
+                ]
+                await asyncio.gather(*tasks)
+            except (KeyError, ValueError):  # TODO check parallel access / modification while iterating a dict
+                pass
+        elapsed_time = asyncio.get_event_loop().time() - start_time
+        await asyncio.sleep(min(10.0, max(1.0, interval - elapsed_time)))
 
 
 @api.listens_to(ucapi.Events.CONNECT)
 async def on_r2_connect_cmd() -> None:
-    """Connect all configured receivers when the Remote Two sends the connect command."""
+    """Connect all configured receivers when the Remote Two/3 sends the connect command."""
     _LOG.debug("R2 connect command: connecting device(s)")
     await api.set_device_state(ucapi.DeviceStates.CONNECTED)  # just to make sure the device state is set
     for receiver in _configured_avrs.values():
@@ -58,7 +62,7 @@ async def on_r2_connect_cmd() -> None:
 
 @api.listens_to(ucapi.Events.DISCONNECT)
 async def on_r2_disconnect_cmd():
-    """Disconnect all configured receivers when the Remote Two sends the disconnect command."""
+    """Disconnect all configured receivers when the Remote Two/3 sends the disconnect command."""
     for receiver in _configured_avrs.values():
         # start background task
         _LOOP.create_task(receiver.disconnect())
@@ -67,9 +71,9 @@ async def on_r2_disconnect_cmd():
 @api.listens_to(ucapi.Events.ENTER_STANDBY)
 async def on_r2_enter_standby() -> None:
     """
-    Enter standby notification from Remote Two.
+    Enter standby notification from Remote Two/3.
 
-    Disconnect every Denon AVR instances.
+    Disconnect every Denon/Marantz AVR instances.
     """
     global _R2_IN_STANDBY
 
@@ -82,9 +86,9 @@ async def on_r2_enter_standby() -> None:
 @api.listens_to(ucapi.Events.EXIT_STANDBY)
 async def on_r2_exit_standby() -> None:
     """
-    Exit standby notification from Remote Two.
+    Exit standby notification from Remote Two/3.
 
-    Connect all Denon AVR instances.
+    Connect all Denon/Marantz AVR instances.
     """
     global _R2_IN_STANDBY
 
@@ -340,7 +344,7 @@ async def _async_remove(receiver: avr.DenonDevice) -> None:
 
 
 async def main():
-    """Start the Remote Two integration driver."""
+    """Start the Remote Two/3 integration driver."""
     logging.basicConfig()  # when running on the device: timestamps are added by the journal
     # logging.basicConfig(
     #     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
@@ -362,6 +366,7 @@ async def main():
     for device in config.devices.all():
         _configure_new_avr(device, connect=False)
 
+    # TODO: is this still needed for telnet?
     _LOOP.create_task(receiver_status_poller())
 
     await api.init("driver.json", setup_flow.driver_setup_handler)

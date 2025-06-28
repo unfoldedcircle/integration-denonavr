@@ -38,7 +38,7 @@ def avr_from_entity_id(entity_id: str) -> str | None:
 
 @dataclass
 class AvrDevice:
-    """Denon device configuration."""
+    """Denon/Marantz device configuration."""
 
     id: str
     name: str
@@ -64,7 +64,7 @@ class _EnhancedJSONEncoder(json.JSONEncoder):
 
 
 class Devices:
-    """Integration driver configuration class. Manages all configured Denon devices."""
+    """Integration driver configuration class. Manages all configured Denon/Marantz devices."""
 
     def __init__(self, data_path: str, add_handler, remove_handler):
         """
@@ -126,7 +126,7 @@ class Devices:
         return None
 
     def update(self, avr: AvrDevice) -> bool:
-        """Update a configured Denon device and persist configuration."""
+        """Update a configured Denon/Marantz device and persist configuration."""
         for item in self._config:
             if item.id == avr.id:
                 item.address = avr.address

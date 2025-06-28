@@ -1,5 +1,5 @@
 """
-This module implements the Denon AVR receiver communication of the Remote Two integration driver.
+This module implements the Denon/Marantz AVR receiver communication of the Remote Two/3 integration driver.
 
 :copyright: (c) 2023 by Unfolded Circle ApS.
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
@@ -18,7 +18,6 @@ import discover
 import ucapi
 from config import AvrDevice
 from denonavr.const import (
-    ALL_TELNET_EVENTS,
     ALL_ZONES,
     STATE_OFF,
     STATE_ON,
@@ -97,6 +96,14 @@ TELNET_EVENTS = {
     "Z3",  # Zone 3
 }
 
+SUBSCRIBED_TELNET_EVENTS = {
+    "PW",  # Power
+    "MV",  # Master Volume
+    "MU",  # Muted
+    "SI",  # Select Input source
+    "MS",  # surround Mode Setting
+}
+
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
 _P = ParamSpec("_P")
 
@@ -106,7 +113,7 @@ _P = ParamSpec("_P")
 def async_handle_denonlib_errors(
     func: Callable[Concatenate[_DenonDeviceT, _P], Awaitable[ucapi.StatusCodes | None]],
 ) -> Callable[Concatenate[_DenonDeviceT, _P], Coroutine[Any, Any, ucapi.StatusCodes | None]]:
-    """Log errors occurred when calling a Denon AVR receiver.
+    """Log errors occurred when calling a Denon/Marantz AVR receiver.
 
     Decorates methods of DenonDevice class.
 
@@ -127,7 +134,7 @@ def async_handle_denonlib_errors(
             result = ucapi.StatusCodes.SERVICE_UNAVAILABLE
             if self.available:
                 _LOG.warning(
-                    "Timeout connecting to Denon AVR receiver at host %s. Device is unavailable. (%s%s)",
+                    "Timeout connecting to Denon/Marantz AVR receiver at host %s. Device is unavailable. (%s%s)",
                     self._receiver.host,
                     func.__name__,
                     args,
@@ -138,7 +145,7 @@ def async_handle_denonlib_errors(
             available = False
             if self.available:
                 _LOG.warning(
-                    "Network error connecting to Denon AVR receiver at host %s. Device is unavailable. (%s%s)",
+                    "Network error connecting to Denon/Marantz AVR receiver at host %s. Device is unavailable. (%s%s)",
                     self._receiver.host,
                     func.__name__,
                     args,
@@ -150,7 +157,7 @@ def async_handle_denonlib_errors(
             if self.available:
                 _LOG.warning(
                     (
-                        "Denon AVR receiver at host %s responded with HTTP 403 error. "
+                        "Denon/Marantz AVR receiver at host %s responded with HTTP 403 error. "
                         "Device is unavailable. Please consider power cycling your "
                         "receiver. (%s%s)"
                     ),
@@ -171,7 +178,7 @@ def async_handle_denonlib_errors(
         except DenonAvrError as err:
             available = False
             _LOG.exception(
-                "Error %s occurred in method %s%s for Denon AVR receiver",
+                "Error %s occurred in method %s%s for Denon/Marants AVR receiver",
                 err,
                 func.__name__,
                 args,
@@ -179,7 +186,7 @@ def async_handle_denonlib_errors(
         finally:
             if available and not self.available:
                 _LOG.info(
-                    "Denon AVR receiver at host %s is available again",
+                    "Denon/Marantz AVR receiver at host %s is available again",
                     self._receiver.host,
                 )
                 self.available = True
@@ -189,7 +196,7 @@ def async_handle_denonlib_errors(
 
 
 class DenonDevice:
-    """Representing a Denon AVR Device."""
+    """Representing a Denon/Marantz AVR Device."""
 
     def __init__(
         self,
@@ -232,7 +239,7 @@ class DenonDevice:
         self._volume_step = device.volume_step
         self._update_lock = Lock()
 
-        _LOG.debug("Denon AVR created: %s", device.address)
+        _LOG.debug("Denon/Marantz AVR created: %s", device.address)
 
     @property
     def active(self) -> bool:
@@ -411,13 +418,16 @@ class DenonDevice:
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
 
-                    await self._receiver.async_update()
                     if self._use_telnet:
-                        if self._update_audyssey:
-                            await self._receiver.async_update_audyssey()
                         await self._receiver.async_telnet_connect()
-
-                        self._receiver.register_callback(ALL_TELNET_EVENTS, self._telnet_callback)
+                        await self._receiver.async_update()
+                        for event in SUBSCRIBED_TELNET_EVENTS:
+                            self._receiver.register_callback(event, self._telnet_callback)
+                        # TODO: Uncomment once we have use for Audyssey information
+                        # if self._update_audyssey:
+                        #     await self._receiver.async_update_audyssey()
+                    else:
+                        await self._receiver.async_update()
 
                     success = True
                     self._connection_attempts = 0
@@ -431,7 +441,7 @@ class DenonDevice:
                 )
 
             _LOG.info(
-                "Denon AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
+                "Denon/Marantz AVR connected. Manufacturer=%s, Model=%s, Name=%s, Id=%s, State=%s",
                 self.manufacturer,
                 self.model_name,
                 self.name,
@@ -496,7 +506,8 @@ class DenonDevice:
         try:
             if self._use_telnet:
                 try:
-                    self._receiver.unregister_callback(ALL_TELNET_EVENTS, self._telnet_callback)
+                    for event in SUBSCRIBED_TELNET_EVENTS:
+                        self._receiver.unregister_callback(event, self._telnet_callback)
                 except ValueError:
                     pass
                 await self._receiver.async_telnet_disconnect()
@@ -534,6 +545,7 @@ class DenonDevice:
             # the last update and is still healthy now to ensure that
             # we don't miss any state changes while telnet is down
             # or reconnecting.
+            # TODO: is this still needed?
             if self._telnet_healthy:
                 self._notify_updated_data()
                 return
@@ -542,8 +554,9 @@ class DenonDevice:
 
             await receiver.async_update()
 
-            if self._update_audyssey:
-                await receiver.async_update_audyssey()
+            # TODO: Uncomment once we have use for Audyssey information
+            # if self._update_audyssey:
+            #     await receiver.async_update_audyssey()
 
             self._notify_updated_data()
         finally:
@@ -566,14 +579,6 @@ class DenonDevice:
         if zone not in (self._receiver.zone, ALL_ZONES):
             return
         if event not in TELNET_EVENTS:
-            return
-        # Some updates trigger multiple events like one for artist and one for title for one change
-        # We skip every event except the last one
-        if event == "NSE" and not parameter.startswith("4"):
-            return
-        if event == "TA" and not parameter.startswith("ANNAME"):
-            return
-        if event == "HD" and not parameter.startswith("ALBUM"):
             return
         # *** End logic from HA
 
@@ -599,7 +604,7 @@ class DenonDevice:
             self._set_expected_state(States.ON)
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.SOUND_MODE: self._receiver.sound_mode})
         elif event == "PS":  # Parameter Setting
-            return  # reduce number of updates. TODO check if we need to handle certain parameters, likely Audyssey
+            return  # TODO check if we need to handle certain parameters, likely Audyssey
 
         self._notify_updated_data()
 
@@ -640,6 +645,9 @@ class DenonDevice:
         await self._receiver.async_power_on()
         if not self._use_telnet:
             self._set_expected_state(States.ON)
+
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -648,6 +656,9 @@ class DenonDevice:
         await self._receiver.async_power_off()
         if not self._use_telnet:
             self._set_expected_state(States.OFF)
+
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     async def power_toggle(self) -> ucapi.StatusCodes:
@@ -668,10 +679,11 @@ class DenonDevice:
             volume_denon = float(18)
         await self._receiver.async_set_volume(volume_denon)
         self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
-        if self._use_telnet and not self._update_lock.locked():
-            await self._event_loop.create_task(self.async_update_receiver_data())
-        else:
+        if not self._use_telnet or self._update_lock.locked():
             self._expected_volume = volume
+
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -727,8 +739,9 @@ class DenonDevice:
         await self._receiver.async_mute(muted)
         if not self._use_telnet:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
-        else:
-            await self.async_update_receiver_data()
+
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -842,3 +855,8 @@ class DenonDevice:
     def _telnet_healthy(self) -> bool:
         """Return True if telnet connection is enabled and healthy."""
         return self._use_telnet and self._receiver.telnet_connected and self._receiver.telnet_healthy
+
+    async def _start_update_task(self):
+        if not self._use_telnet or not self._telnet_was_healthy:
+            # kick off an update in case of http communication, or if the telnet connection is not healthy
+            await self._event_loop.create_task(self.async_update_receiver_data())
