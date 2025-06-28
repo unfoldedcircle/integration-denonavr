@@ -219,7 +219,6 @@ class DenonDevice:
 
         self._active: bool = False
         self._use_telnet = device.use_telnet
-        self._telnet_was_healthy: bool | None = None
         self._attr_available: bool = True
         # expected volume feedback value if telnet isn't used
         self._expected_volume: float | None = None
@@ -535,22 +534,13 @@ class DenonDevice:
             # the last update and is still healthy now to ensure that
             # we don't miss any state changes while telnet is down
             # or reconnecting.
-            if (
-                telnet_is_healthy := receiver.telnet_connected and receiver.telnet_healthy
-            ) and self._telnet_was_healthy:
+            if self._telnet_healthy:
                 self._notify_updated_data()
                 return
 
             _LOG.debug("[%s] Fetching status", self.id)
 
-            # if async_update raises an exception, we don't want to skip the next update
-            # so we set _telnet_was_healthy to None here and only set it to the value
-            # before the update if the update was successful
-            self._telnet_was_healthy = None
-
             await receiver.async_update()
-
-            self._telnet_was_healthy = telnet_is_healthy
 
             if self._update_audyssey:
                 await receiver.async_update_audyssey()
@@ -687,23 +677,29 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def volume_up(self) -> ucapi.StatusCodes:
         """Send volume-up command to AVR."""
-        if self._use_telnet and self._expected_volume is not None and self._volume_step != 0.5:
+        if self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
             self._expected_volume = min(self._expected_volume + self._volume_step, 100)
             await self.set_volume_level(self._expected_volume)
         else:
             await self._receiver.async_volume_up()
-            self._increase_expected_volume()
+            self._expected_volume = min(self._expected_volume + self._volume_step, 100)
+            # Send updated volume if no update task in progress
+            if not self._update_lock.locked():
+                self._event_loop.create_task(self._receiver.async_update())
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def volume_down(self) -> ucapi.StatusCodes:
         """Send volume-down command to AVR."""
-        if self._use_telnet and self._expected_volume is not None and self._volume_step != 0.5:
+        if self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
             self._expected_volume = max(self._expected_volume - self._volume_step, 0)
             await self.set_volume_level(self._expected_volume)
         else:
             await self._receiver.async_volume_down()
-            self._decrease_expected_volume()
+            self._expected_volume = max(self._expected_volume - self._volume_step, 0)
+            # Send updated volume if no update task in progress
+            if not self._update_lock.locked():
+                self._event_loop.create_task(self._receiver.async_update())
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -841,24 +837,6 @@ class DenonDevice:
             if not res.is_success:
                 return ucapi.StatusCodes.SERVER_ERROR
         return ucapi.StatusCodes.OK
-
-    def _increase_expected_volume(self):
-        """Without telnet, increase expected volume and send update event."""
-        if self._telnet_healthy or self._expected_volume is None:
-            return
-        self._expected_volume = min(self._expected_volume + self._volume_step, 100)
-        # Send updated volume if no update task in progress
-        if not self._update_lock.locked():
-            self._event_loop.create_task(self._receiver.async_update())
-
-    def _decrease_expected_volume(self):
-        """Without telnet, decrease expected volume and send update event."""
-        if self._telnet_healthy or self._expected_volume is None:
-            return
-        self._expected_volume = max(self._expected_volume - self._volume_step, 0)
-        # Send updated volume if no update task in progress
-        if not self._update_lock.locked():
-            self._event_loop.create_task(self._receiver.async_update())
 
     @property
     def _telnet_healthy(self) -> bool:
