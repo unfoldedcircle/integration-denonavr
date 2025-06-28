@@ -214,7 +214,7 @@ class DenonDevice:
             timeout=device.timeout / 1000.0,
             add_zones=self._zones,
         )
-        self._is_denon = "denon" in device.name.lower()
+        self._is_denon = device.is_denon
         self._update_audyssey = device.update_audyssey
         self._simple_command = SimpleCommand(self._receiver, self._send_command)
 

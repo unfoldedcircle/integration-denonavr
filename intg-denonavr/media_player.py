@@ -87,7 +87,7 @@ class DenonMediaPlayer(MediaPlayer):
             attributes[Attributes.SOUND_MODE_LIST] = []
 
         # Denon has additional simple commands
-        if "denon" in device.name.lower():
+        if device.is_denon:
             if device.use_telnet:
                 self.simple_commands = [*ALL_COMMANDS_TELNET_DENON]
             else:
