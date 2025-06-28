@@ -857,6 +857,6 @@ class DenonDevice:
         return self._use_telnet and self._receiver.telnet_connected and self._receiver.telnet_healthy
 
     async def _start_update_task(self):
-        if not self._use_telnet or not self._telnet_was_healthy:
+        if not self._telnet_healthy:
             # kick off an update in case of http communication, or if the telnet connection is not healthy
             await self._event_loop.create_task(self.async_update_receiver_data())
