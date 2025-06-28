@@ -546,6 +546,7 @@ class DenonDevice:
             # the last update and is still healthy now to ensure that
             # we don't miss any state changes while telnet is down
             # or reconnecting.
+            # TODO: is this still needed?
             if (
                 telnet_is_healthy := receiver.telnet_connected and receiver.telnet_healthy
             ) and self._telnet_was_healthy:
@@ -654,6 +655,9 @@ class DenonDevice:
         await self._receiver.async_power_on()
         if not self._use_telnet:
             self._set_expected_state(States.ON)
+
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -662,6 +666,9 @@ class DenonDevice:
         await self._receiver.async_power_off()
         if not self._use_telnet:
             self._set_expected_state(States.OFF)
+
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     async def power_toggle(self) -> ucapi.StatusCodes:
@@ -682,10 +689,11 @@ class DenonDevice:
             volume_denon = float(18)
         await self._receiver.async_set_volume(volume_denon)
         self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
-        if self._use_telnet and not self._update_lock.locked():
-            await self._event_loop.create_task(self.async_update_receiver_data())
-        else:
+        if not self._use_telnet or self._update_lock.locked():
             self._expected_volume = volume
+
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -735,8 +743,9 @@ class DenonDevice:
         await self._receiver.async_mute(muted)
         if not self._use_telnet:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
-        else:
-            await self.async_update_receiver_data()
+
+        await self._start_update_task()
+
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -863,3 +872,8 @@ class DenonDevice:
         # Send updated volume if no update task in progress
         if not self._update_lock.locked():
             self._event_loop.create_task(self._receiver.async_update())
+
+    async def _start_update_task(self):
+        if not self._use_telnet or not self._telnet_was_healthy:
+            # kick off an update in case of http communication, or if the telnet connection is not healthy
+            await self._event_loop.create_task(self.async_update_receiver_data())

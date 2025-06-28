@@ -32,18 +32,22 @@ _R2_IN_STANDBY = False
 
 async def receiver_status_poller(interval: float = 10.0) -> None:
     """Receiver data poller."""
+    # TODO: is it important to delay the first call?
     while True:
-        await asyncio.sleep(interval)
-        if _R2_IN_STANDBY:
-            continue
-        try:
-            for receiver in _configured_avrs.values():
-                if not receiver.active:
-                    continue
-                # TODO #20  run in parallel, join, adjust interval duration based on execution time for next update
-                await receiver.async_update_receiver_data()
-        except (KeyError, ValueError):  # TODO check parallel access / modification while iterating a dict
-            pass
+        start_time = asyncio.get_event_loop().time()
+        if not _R2_IN_STANDBY:
+            try:
+                tasks = [
+                    receiver.async_update_receiver_data()
+                    for receiver in _configured_avrs.values()
+                    # pylint: disable=W0212
+                    if receiver.active and not (receiver._use_telnet and receiver._telnet_was_healthy)
+                ]
+                await asyncio.gather(*tasks)
+            except (KeyError, ValueError):  # TODO check parallel access / modification while iterating a dict
+                pass
+        elapsed_time = asyncio.get_event_loop().time() - start_time
+        await asyncio.sleep(min(10.0, max(1.0, interval - elapsed_time)))
 
 
 @api.listens_to(ucapi.Events.CONNECT)
@@ -362,6 +366,7 @@ async def main():
     for device in config.devices.all():
         _configure_new_avr(device, connect=False)
 
+    # TODO: is this still needed for telnet?
     _LOOP.create_task(receiver_status_poller())
 
     await api.init("driver.json", setup_flow.driver_setup_handler)
