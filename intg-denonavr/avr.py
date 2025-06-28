@@ -226,6 +226,7 @@ class DenonDevice:
 
         self._active: bool = False
         self._use_telnet = device.use_telnet
+        self._telnet_was_healthy: bool | None = None
         self._attr_available: bool = True
         # expected volume feedback value if telnet isn't used
         self._expected_volume: float | None = None
@@ -546,13 +547,20 @@ class DenonDevice:
             # we don't miss any state changes while telnet is down
             # or reconnecting.
             # TODO: is this still needed?
-            if self._telnet_healthy:
+            if (telnet_is_healthy := self._telnet_healthy) and self._telnet_was_healthy:
                 self._notify_updated_data()
                 return
 
             _LOG.debug("[%s] Fetching status", self.id)
 
+            # if async_update raises an exception, we don't want to skip the next update
+            # so we set _telnet_was_healthy to None here and only set it to the value
+            # before the update if the update was successful
+            self._telnet_was_healthy = None
+
             await receiver.async_update()
+
+            self._telnet_was_healthy = telnet_is_healthy
 
             # TODO: Uncomment once we have use for Audyssey information
             # if self._update_audyssey:
