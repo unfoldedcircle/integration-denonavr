@@ -288,7 +288,7 @@ class DenonDevice:
         reported_state = self._map_denonavr_state(self._receiver.state)
         # Dirty workaround for state reporting issue. Couldn't be reproduced yet.
         if self._use_telnet and reported_state == States.OFF and self._expected_state != States.OFF:
-            _LOG.info("State mismatch! Reported: %s. Using expected: %s", reported_state, self._expected_state)
+            _LOG.info("State mismatch! Using reported: %s. Expected: %s", reported_state, self._expected_state)
             # Force update because of state mismatch
             self._event_loop.create_task(self.async_update_receiver_data(True))
         return reported_state
