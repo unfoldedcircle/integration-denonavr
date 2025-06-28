@@ -295,8 +295,9 @@ class DenonDevice:
         reported_state = self._map_denonavr_state(self._receiver.state)
         # Dirty workaround for state reporting issue. Couldn't be reproduced yet.
         if self._use_telnet and reported_state == States.OFF and self._expected_state != States.OFF:
-            _LOG.warning("State mismatch! Reported: %s. Using expected: %s", reported_state, self._expected_state)
-            return self._expected_state
+            _LOG.info("State mismatch! Using reported: %s. Expected: %s", reported_state, self._expected_state)
+            # Force update because of state mismatch
+            self._event_loop.create_task(self.async_update_receiver_data(True))
         return reported_state
 
     def _set_expected_state(self, state: States):
@@ -525,7 +526,7 @@ class DenonDevice:
         return States.UNKNOWN
 
     @async_handle_denonlib_errors
-    async def async_update_receiver_data(self):
+    async def async_update_receiver_data(self, force: bool = False) -> None:
         """
         Get the latest status information from device.
 
@@ -548,6 +549,8 @@ class DenonDevice:
             # or reconnecting.
             # TODO: is this still needed?
             if (telnet_is_healthy := self._telnet_healthy) and self._telnet_was_healthy:
+                if force:
+                    await receiver.async_update()
                 self._notify_updated_data()
                 return
 

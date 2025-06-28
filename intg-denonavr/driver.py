@@ -366,7 +366,8 @@ async def main():
     for device in config.devices.all():
         _configure_new_avr(device, connect=False)
 
-    # TODO: is this still needed for telnet?
+    # Note: this is useful when using telnet in case the connection is unhealthy
+    # and changes are made from another source
     _LOOP.create_task(receiver_status_poller())
 
     await api.init("driver.json", setup_flow.driver_setup_handler)
