@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-06-04 14:52+0200\n"
-"PO-Revision-Date: 2025-06-05 21:06\n"
+"PO-Revision-Date: 2025-06-27 18:45\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -96,12 +96,12 @@ msgid "Configure your AVR"
 msgstr "Konfiguriere deinen Denon AVR"
 
 #: ../setup_flow.py:401
-msgid "Please choose your Denon AVR"
-msgstr "Bitte Denon AVR auswählen"
+msgid "Please choose your Denon or Marantz AVR"
+msgstr "Please choose your Denon or Marantz AVR"
 
 #: ../setup_flow.py:406
-msgid "Choose your Denon AVR"
-msgstr "Wähle deinen Denon AVR"
+msgid "Choose your Denon or Marantz AVR"
+msgstr "Choose your Denon or Marantz AVR"
 
 #: ../setup_flow.py:556
 msgid "Show all sources"
