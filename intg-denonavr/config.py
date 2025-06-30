@@ -53,6 +53,11 @@ class AvrDevice:
     timeout: int
     """Connection and command timeout in milliseconds."""
 
+    @property
+    def is_denon(self) -> bool:
+        """Check if the device is a Denon AVR."""
+        return "denon" in self.name.lower()
+
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
     """Python dataclass json encoder."""
