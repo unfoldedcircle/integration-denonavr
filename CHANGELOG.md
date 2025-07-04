@@ -13,6 +13,21 @@ _Changes in the next release_
 
 ---
 
+## v0.9.0 - 2025-07-04
+Lots of contributions by @henrikwidlund, thanks!
+### Fixed
+- Fix power state mismatch by @henrikwidlund ([#89](https://github.com/unfoldedcircle/integration-denonavr/pull/89)).
+- Fix update of volume when using HTTP by @henrikwidlund ([#90](https://github.com/unfoldedcircle/integration-denonavr/pull/90)).
+
+### Added
+- Add HEOS playback control support for Denon and discrete mute control by @henrikwidlund ([#91](https://github.com/unfoldedcircle/integration-denonavr/pull/91)).
+
+### Changed
+- Only subscribe to events we're interested in by @henrikwidlund ([#85](https://github.com/unfoldedcircle/integration-denonavr/pull/85)).
+- Include Marantz in the driver name by @henrikwidlund ([#86](https://github.com/unfoldedcircle/integration-denonavr/pull/86)).
+- Decrease the polling interval to keep state up to date by @henrikwidlund ([#88](https://github.com/unfoldedcircle/integration-denonavr/pull/88)).
+- Update denonavr library to 1.1.1
+
 ## v0.8.4 - 2025-06-06
 ### Fixed
 - Timeunits in connection and request timeouts ([#84](https://github.com/unfoldedcircle/integration-denonavr/pull/84)).
