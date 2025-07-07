@@ -297,7 +297,9 @@ class DenonDevice:
         reported_state = self._map_denonavr_state(self._receiver.state)
         # Dirty workaround for state reporting issue. Couldn't be reproduced yet.
         if self._use_telnet and reported_state == States.OFF and self._expected_state != States.OFF:
-            _LOG.info("State mismatch! Using reported: %s. Expected: %s", reported_state, self._expected_state)
+            _LOG.info(
+                "[%s] State mismatch! Using reported: %s. Expected: %s", self.id, reported_state, self._expected_state
+            )
             # Force update because of state mismatch
             self._event_loop.create_task(self.async_update_receiver_data(True))
         return reported_state
@@ -762,7 +764,7 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def mute(self, muted: bool) -> ucapi.StatusCodes:
         """Send mute command to AVR."""
-        _LOG.debug("Sending mute: %s", muted)
+        _LOG.debug("[%s] Sending mute: %s", self.id, muted)
         await self._receiver.async_mute(muted)
         if not self._use_telnet:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
@@ -776,7 +778,7 @@ class DenonDevice:
         """Send input_source command to AVR."""
         if not source:
             return ucapi.StatusCodes.BAD_REQUEST
-        _LOG.debug("Set input: %s", source)
+        _LOG.debug("[%s] Set input: %s", self.id, source)
         # Ensure that the AVR is turned on, which is necessary for input
         # switch to work.
         await self.power_on()
