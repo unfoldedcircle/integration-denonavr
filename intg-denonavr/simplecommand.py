@@ -9,283 +9,292 @@ from typing import Awaitable, Callable
 
 import denonavr
 import ucapi
+from command_constants import (
+    AudysseyCommands,
+    CoreCommands,
+    DiracCommands,
+    SoundModeCommands,
+    VolumeCommands,
+)
+from config import AvrDevice
 
 CORE_COMMANDS = {
-    "OUTPUT_1",
-    "OUTPUT_2",
-    "OUTPUT_AUTO",
-    "DIMMER_TOGGLE",
-    "DIMMER_BRIGHT",
-    "DIMMER_DIM",
-    "DIMMER_DARK",
-    "DIMMER_OFF",
-    "TRIGGER1_ON",
-    "TRIGGER1_OFF",
-    "TRIGGER2_ON",
-    "TRIGGER2_OFF",
-    "TRIGGER3_ON",
-    "TRIGGER3_OFF",
-    "DELAY_UP",
-    "DELAY_DOWN",
-    "ECO_ON",
-    "ECO_AUTO",
-    "ECO_OFF",
-    "INFO_MENU",
-    "OPTIONS_MENU",
-    "CHANNEL_LEVEL_ADJUST_MENU",
-    "AUTO_STANDBY_OFF",
-    "AUTO_STANDBY_15MIN",
-    "AUTO_STANDBY_30MIN",
-    "AUTO_STANDBY_60MIN",
-    "DELAY_TIME_UP",
-    "DELAY_TIME_DOWN",
-    "HDMI_AUDIO_DECODE_AMP",
-    "HDMI_AUDIO_DECODE_TV",
-    "VIDEO_PROCESSING_MODE_AUTO",
-    "VIDEO_PROCESSING_MODE_GAME",
-    "VIDEO_PROCESSING_MODE_MOVIE",
-    "VIDEO_PROCESSING_MODE_BYPASS",
-    "NETWORK_RESTART",
-    "SPEAKER_PRESET_1",
-    "SPEAKER_PRESET_2",
-    "BT_TRANSMITTER_ON",
-    "BT_TRANSMITTER_OFF",
-    "BT_OUTPUT_MODE_BT_SPEAKER",
-    "BT_OUTPUT_MODE_BT_ONLY",
-    "AUDIO_RESTORER_OFF",
-    "AUDIO_RESTORER_LOW",
-    "AUDIO_RESTORER_MEDIUM",
-    "AUDIO_RESTORER_HIGH",
-    "REMOTE_CONTROL_LOCK_ON",
-    "REMOTE_CONTROL_LOCK_OFF",
-    "PANEL_LOCK_PANEL",
-    "PANEL_LOCK_PANEL_VOLUME",
-    "PANEL_LOCK_OFF",
-    "GRAPHIC_EQ_ON",
-    "GRAPHIC_EQ_OFF",
-    "HEADPHONE_EQ_ON",
-    "HEADPHONE_EQ_OFF",
+    CoreCommands.OUTPUT_1,
+    CoreCommands.OUTPUT_2,
+    CoreCommands.OUTPUT_AUTO,
+    CoreCommands.DIMMER_TOGGLE,
+    CoreCommands.DIMMER_BRIGHT,
+    CoreCommands.DIMMER_DIM,
+    CoreCommands.DIMMER_DARK,
+    CoreCommands.DIMMER_OFF,
+    CoreCommands.TRIGGER1_ON,
+    CoreCommands.TRIGGER1_OFF,
+    CoreCommands.TRIGGER2_ON,
+    CoreCommands.TRIGGER2_OFF,
+    CoreCommands.TRIGGER3_ON,
+    CoreCommands.TRIGGER3_OFF,
+    CoreCommands.DELAY_UP,
+    CoreCommands.DELAY_DOWN,
+    CoreCommands.ECO_ON,
+    CoreCommands.ECO_AUTO,
+    CoreCommands.ECO_OFF,
+    CoreCommands.INFO_MENU,
+    CoreCommands.CHANNEL_LEVEL_ADJUST_MENU,
+    CoreCommands.AUTO_STANDBY_OFF,
+    CoreCommands.AUTO_STANDBY_15MIN,
+    CoreCommands.AUTO_STANDBY_30MIN,
+    CoreCommands.AUTO_STANDBY_60MIN,
+    CoreCommands.DELAY_TIME_UP,
+    CoreCommands.DELAY_TIME_DOWN,
+    CoreCommands.HDMI_AUDIO_DECODE_AMP,
+    CoreCommands.HDMI_AUDIO_DECODE_TV,
+    CoreCommands.VIDEO_PROCESSING_MODE_AUTO,
+    CoreCommands.VIDEO_PROCESSING_MODE_GAME,
+    CoreCommands.VIDEO_PROCESSING_MODE_MOVIE,
+    CoreCommands.VIDEO_PROCESSING_MODE_BYPASS,
+    CoreCommands.NETWORK_RESTART,
+    CoreCommands.SPEAKER_PRESET_1,
+    CoreCommands.SPEAKER_PRESET_2,
+    CoreCommands.BT_TRANSMITTER_ON,
+    CoreCommands.BT_TRANSMITTER_OFF,
+    CoreCommands.BT_OUTPUT_MODE_BT_SPEAKER,
+    CoreCommands.BT_OUTPUT_MODE_BT_ONLY,
+    CoreCommands.AUDIO_RESTORER_OFF,
+    CoreCommands.AUDIO_RESTORER_LOW,
+    CoreCommands.AUDIO_RESTORER_MEDIUM,
+    CoreCommands.AUDIO_RESTORER_HIGH,
+    CoreCommands.REMOTE_CONTROL_LOCK_ON,
+    CoreCommands.REMOTE_CONTROL_LOCK_OFF,
+    CoreCommands.PANEL_LOCK_PANEL,
+    CoreCommands.PANEL_LOCK_PANEL_VOLUME,
+    CoreCommands.PANEL_LOCK_OFF,
+    CoreCommands.GRAPHIC_EQ_ON,
+    CoreCommands.GRAPHIC_EQ_OFF,
+    CoreCommands.HEADPHONE_EQ_ON,
+    CoreCommands.HEADPHONE_EQ_OFF,
 }
 
 CORE_COMMANDS_TELNET = {
     *CORE_COMMANDS,
-    "SPEAKER_PRESET_TOGGLE",
-    "BT_TRANSMITTER_TOGGLE",
-    "BT_OUTPUT_MODE_TOGGLE",
-    "GRAPHIC_EQ_TOGGLE",
-    "HEADPHONE_EQ_TOGGLE",
+    CoreCommands.SPEAKER_PRESET_TOGGLE,
+    CoreCommands.BT_TRANSMITTER_TOGGLE,
+    CoreCommands.BT_OUTPUT_MODE_TOGGLE,
+    CoreCommands.GRAPHIC_EQ_TOGGLE,
+    CoreCommands.HEADPHONE_EQ_TOGGLE,
 }
 
 CORE_COMMANDS_DENON = {
     *CORE_COMMANDS,
-    "STATUS",
+    CoreCommands.STATUS,
 }
 
-CORE_COMMANDS_DENON_TELNET = {*CORE_COMMANDS_TELNET, "STATUS"}
+CORE_COMMANDS_DENON_TELNET = {*CORE_COMMANDS_TELNET, CoreCommands.STATUS}
+
 
 SOUND_MODE_COMMANDS = {
-    "SURROUND_MODE_AUTO",
-    "SURROUND_MODE_DIRECT",
-    "SURROUND_MODE_PURE_DIRECT",
-    "SURROUND_MODE_DOLBY_DIGITAL",
-    "SURROUND_MODE_DTS_SURROUND",
-    "SURROUND_MODE_AURO3D",
-    "SURROUND_MODE_AURO2DSURR",
-    "SURROUND_MODE_MCH_STEREO",
-    "SURROUND_MODE_NEXT",
-    "SURROUND_MODE_PREVIOUS",
-    "SOUND_MODE_NEURAL_X_ON",
-    "SOUND_MODE_NEURAL_X_OFF",
-    "SOUND_MODE_IMAX_AUTO",
-    "SOUND_MODE_IMAX_OFF",
-    "IMAX_AUDIO_SETTINGS_AUTO",
-    "IMAX_AUDIO_SETTINGS_MANUAL",
-    "IMAX_HPF_40HZ",
-    "IMAX_HPF_60HZ",
-    "IMAX_HPF_80HZ",
-    "IMAX_HPF_90HZ",
-    "IMAX_HPF_100HZ",
-    "IMAX_HPF_110HZ",
-    "IMAX_HPF_120HZ",
-    "IMAX_HPF_150HZ",
-    "IMAX_HPF_180HZ",
-    "IMAX_HPF_200HZ",
-    "IMAX_HPF_250HZ",
-    "IMAX_LPF_80HZ",
-    "IMAX_LPF_90HZ",
-    "IMAX_LPF_100HZ",
-    "IMAX_LPF_110HZ",
-    "IMAX_LPF_120HZ",
-    "IMAX_LPF_150HZ",
-    "IMAX_LPF_180HZ",
-    "IMAX_LPF_200HZ",
-    "IMAX_LPF_250HZ",
-    "IMAX_SUBWOOFER_ON",
-    "IMAX_SUBWOOFER_OFF",
-    "IMAX_SUBWOOFER_OUTPUT_LFE_MAIN",
-    "IMAX_SUBWOOFER_OUTPUT_LFE",
-    "CINEMA_EQ_ON",
-    "CINEMA_EQ_OFF",
-    "CENTER_SPREAD_ON",
-    "CENTER_SPREAD_OFF",
-    "LOUDNESS_MANAGEMENT_ON",
-    "LOUDNESS_MANAGEMENT_OFF",
-    "DIALOG_ENHANCER_OFF",
-    "DIALOG_ENHANCER_LOW",
-    "DIALOG_ENHANCER_MEDIUM",
-    "DIALOG_ENHANCER_HIGH",
-    "AUROMATIC_3D_PRESET_SMALL",
-    "AUROMATIC_3D_PRESET_MEDIUM",
-    "AUROMATIC_3D_PRESET_LARGE",
-    "AUROMATIC_3D_PRESET_SPEECH",
-    "AUROMATIC_3D_PRESET_MOVIE",
-    "AUROMATIC_3D_STRENGTH_UP",
-    "AUROMATIC_3D_STRENGTH_DOWN",
-    "AURO_3D_MODE_DIRECT",
-    "AURO_3D_MODE_CHANNEL_EXPANSION",
-    "DIALOG_CONTROL_UP",
-    "DIALOG_CONTROL_DOWN",
-    "SPEAKER_VIRTUALIZER_ON",
-    "SPEAKER_VIRTUALIZER_OFF",
-    "EFFECT_SPEAKER_SELECTION_FLOOR",
-    "EFFECT_SPEAKER_SELECTION_FRONT",
-    "EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT",
-    "EFFECT_SPEAKER_SELECTION_FRONT_WIDE",
-    "EFFECT_SPEAKER_SELECTION_HEIGHT_FLOOR",
-    "EFFECT_SPEAKER_SELECTION_SURROUND_BACK",
-    "EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_HEIGHT",
-    "EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_WIDE",
-    "DRC_AUTO",
-    "DRC_LOW",
-    "DRC_MID",
-    "DRC_HI",
-    "DRC_OFF",
+    SoundModeCommands.SURROUND_MODE_AUTO,
+    SoundModeCommands.SURROUND_MODE_DIRECT,
+    SoundModeCommands.SURROUND_MODE_PURE_DIRECT,
+    SoundModeCommands.SURROUND_MODE_DOLBY_DIGITAL,
+    SoundModeCommands.SURROUND_MODE_DTS_SURROUND,
+    SoundModeCommands.SURROUND_MODE_AURO3D,
+    SoundModeCommands.SURROUND_MODE_AURO2DSURR,
+    SoundModeCommands.SURROUND_MODE_MCH_STEREO,
+    SoundModeCommands.SURROUND_MODE_NEXT,
+    SoundModeCommands.SURROUND_MODE_PREVIOUS,
+    SoundModeCommands.SOUND_MODE_NEURAL_X_ON,
+    SoundModeCommands.SOUND_MODE_NEURAL_X_OFF,
+    SoundModeCommands.SOUND_MODE_IMAX_AUTO,
+    SoundModeCommands.SOUND_MODE_IMAX_OFF,
+    SoundModeCommands.IMAX_AUDIO_SETTINGS_AUTO,
+    SoundModeCommands.IMAX_AUDIO_SETTINGS_MANUAL,
+    SoundModeCommands.IMAX_HPF_40HZ,
+    SoundModeCommands.IMAX_HPF_60HZ,
+    SoundModeCommands.IMAX_HPF_80HZ,
+    SoundModeCommands.IMAX_HPF_90HZ,
+    SoundModeCommands.IMAX_HPF_100HZ,
+    SoundModeCommands.IMAX_HPF_110HZ,
+    SoundModeCommands.IMAX_HPF_120HZ,
+    SoundModeCommands.IMAX_HPF_150HZ,
+    SoundModeCommands.IMAX_HPF_180HZ,
+    SoundModeCommands.IMAX_HPF_200HZ,
+    SoundModeCommands.IMAX_HPF_250HZ,
+    SoundModeCommands.IMAX_LPF_80HZ,
+    SoundModeCommands.IMAX_LPF_90HZ,
+    SoundModeCommands.IMAX_LPF_100HZ,
+    SoundModeCommands.IMAX_LPF_110HZ,
+    SoundModeCommands.IMAX_LPF_120HZ,
+    SoundModeCommands.IMAX_LPF_150HZ,
+    SoundModeCommands.IMAX_LPF_180HZ,
+    SoundModeCommands.IMAX_LPF_200HZ,
+    SoundModeCommands.IMAX_LPF_250HZ,
+    SoundModeCommands.IMAX_SUBWOOFER_ON,
+    SoundModeCommands.IMAX_SUBWOOFER_OFF,
+    SoundModeCommands.IMAX_SUBWOOFER_OUTPUT_LFE_MAIN,
+    SoundModeCommands.IMAX_SUBWOOFER_OUTPUT_LFE,
+    SoundModeCommands.CINEMA_EQ_ON,
+    SoundModeCommands.CINEMA_EQ_OFF,
+    SoundModeCommands.CENTER_SPREAD_ON,
+    SoundModeCommands.CENTER_SPREAD_OFF,
+    SoundModeCommands.LOUDNESS_MANAGEMENT_ON,
+    SoundModeCommands.LOUDNESS_MANAGEMENT_OFF,
+    SoundModeCommands.DIALOG_ENHANCER_OFF,
+    SoundModeCommands.DIALOG_ENHANCER_LOW,
+    SoundModeCommands.DIALOG_ENHANCER_MEDIUM,
+    SoundModeCommands.DIALOG_ENHANCER_HIGH,
+    SoundModeCommands.AUROMATIC_3D_PRESET_SMALL,
+    SoundModeCommands.AUROMATIC_3D_PRESET_MEDIUM,
+    SoundModeCommands.AUROMATIC_3D_PRESET_LARGE,
+    SoundModeCommands.AUROMATIC_3D_PRESET_SPEECH,
+    SoundModeCommands.AUROMATIC_3D_PRESET_MOVIE,
+    SoundModeCommands.AUROMATIC_3D_STRENGTH_UP,
+    SoundModeCommands.AUROMATIC_3D_STRENGTH_DOWN,
+    SoundModeCommands.AURO_3D_MODE_DIRECT,
+    SoundModeCommands.AURO_3D_MODE_CHANNEL_EXPANSION,
+    SoundModeCommands.DIALOG_CONTROL_UP,
+    SoundModeCommands.DIALOG_CONTROL_DOWN,
+    SoundModeCommands.SPEAKER_VIRTUALIZER_ON,
+    SoundModeCommands.SPEAKER_VIRTUALIZER_OFF,
+    SoundModeCommands.EFFECT_SPEAKER_SELECTION_FLOOR,
+    SoundModeCommands.EFFECT_SPEAKER_SELECTION_FRONT,
+    SoundModeCommands.EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT,
+    SoundModeCommands.EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT_WIDE,
+    SoundModeCommands.EFFECT_SPEAKER_SELECTION_FRONT_WIDE,
+    SoundModeCommands.EFFECT_SPEAKER_SELECTION_HEIGHT_FLOOR,
+    SoundModeCommands.EFFECT_SPEAKER_SELECTION_SURROUND_BACK,
+    SoundModeCommands.EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_HEIGHT,
+    SoundModeCommands.EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_WIDE,
+    SoundModeCommands.DRC_AUTO,
+    SoundModeCommands.DRC_LOW,
+    SoundModeCommands.DRC_MID,
+    SoundModeCommands.DRC_HI,
+    SoundModeCommands.DRC_OFF,
 }
 
 SOUND_MODE_COMMANDS_TELNET = {
     *SOUND_MODE_COMMANDS,
-    "SOUND_MODE_NEURAL_X_TOGGLE",
-    "SOUND_MODE_IMAX_TOGGLE",
-    "IMAX_AUDIO_SETTINGS_TOGGLE",
-    "CINEMA_EQ_TOGGLE",
-    "CENTER_SPREAD_TOGGLE",
-    "LOUDNESS_MANAGEMENT_TOGGLE",
-    "SPEAKER_VIRTUALIZER_TOGGLE",
+    SoundModeCommands.SOUND_MODE_NEURAL_X_TOGGLE,
+    SoundModeCommands.SOUND_MODE_IMAX_TOGGLE,
+    SoundModeCommands.IMAX_AUDIO_SETTINGS_TOGGLE,
+    SoundModeCommands.CINEMA_EQ_TOGGLE,
+    SoundModeCommands.CENTER_SPREAD_TOGGLE,
+    SoundModeCommands.LOUDNESS_MANAGEMENT_TOGGLE,
+    SoundModeCommands.SPEAKER_VIRTUALIZER_TOGGLE,
 }
 
 AUDYSSEY_COMMANDS = {
-    "MULTIEQ_REFERENCE",
-    "MULTIEQ_BYPASS_LR",
-    "MULTIEQ_FLAT",
-    "MULTIEQ_OFF",
-    "DYNAMIC_EQ_ON",
-    "DYNAMIC_EQ_OFF",
-    "DYNAMIC_EQ_TOGGLE",
-    "AUDYSSEY_LFC",
-    "AUDYSSEY_LFC_OFF",
-    "AUDYSSEY_LFC_TOGGLE",
-    "DYNAMIC_VOLUME_OFF",
-    "DYNAMIC_VOLUME_LIGHT",
-    "DYNAMIC_VOLUME_MEDIUM",
-    "DYNAMIC_VOLUME_HEAVY",
-    "CONTAINMENT_AMOUNT_UP",
-    "CONTAINMENT_AMOUNT_DOWN",
+    AudysseyCommands.MULTIEQ_REFERENCE,
+    AudysseyCommands.MULTIEQ_BYPASS_LR,
+    AudysseyCommands.MULTIEQ_FLAT,
+    AudysseyCommands.MULTIEQ_OFF,
+    AudysseyCommands.DYNAMIC_EQ_ON,
+    AudysseyCommands.DYNAMIC_EQ_OFF,
+    AudysseyCommands.DYNAMIC_EQ_TOGGLE,
+    AudysseyCommands.AUDYSSEY_LFC,
+    AudysseyCommands.AUDYSSEY_LFC_OFF,
+    AudysseyCommands.AUDYSSEY_LFC_TOGGLE,
+    AudysseyCommands.DYNAMIC_VOLUME_OFF,
+    AudysseyCommands.DYNAMIC_VOLUME_LIGHT,
+    AudysseyCommands.DYNAMIC_VOLUME_MEDIUM,
+    AudysseyCommands.DYNAMIC_VOLUME_HEAVY,
+    AudysseyCommands.CONTAINMENT_AMOUNT_UP,
+    AudysseyCommands.CONTAINMENT_AMOUNT_DOWN,
 }
 
 DIRAC_COMMANDS = {
-    "DIRAC_LIVE_FILTER_SLOT1",
-    "DIRAC_LIVE_FILTER_SLOT2",
-    "DIRAC_LIVE_FILTER_SLOT3",
-    "DIRAC_LIVE_FILTER_OFF",
+    DiracCommands.DIRAC_LIVE_FILTER_SLOT1,
+    DiracCommands.DIRAC_LIVE_FILTER_SLOT2,
+    DiracCommands.DIRAC_LIVE_FILTER_SLOT3,
+    DiracCommands.DIRAC_LIVE_FILTER_OFF,
 }
 
 VOLUME_COMMANDS = {
-    "FRONT_LEFT_UP",
-    "FRONT_LEFT_DOWN",
-    "FRONT_RIGHT_UP",
-    "FRONT_RIGHT_DOWN",
-    "CENTER_UP",
-    "CENTER_DOWN",
-    "SUB1_UP",
-    "SUB1_DOWN",
-    "SUB2_UP",
-    "SUB2_DOWN",
-    "SUB3_UP",
-    "SUB3_DOWN",
-    "SUB4_UP",
-    "SUB4_DOWN",
-    "SURROUND_LEFT_UP",
-    "SURROUND_LEFT_DOWN",
-    "SURROUND_RIGHT_UP",
-    "SURROUND_RIGHT_DOWN",
-    "SURROUND_BACK_LEFT_UP",
-    "SURROUND_BACK_LEFT_DOWN",
-    "SURROUND_BACK_RIGHT_UP",
-    "SURROUND_BACK_RIGHT_DOWN",
-    "FRONT_HEIGHT_LEFT_UP",
-    "FRONT_HEIGHT_LEFT_DOWN",
-    "FRONT_HEIGHT_RIGHT_UP",
-    "FRONT_HEIGHT_RIGHT_DOWN",
-    "FRONT_WIDE_LEFT_UP",
-    "FRONT_WIDE_LEFT_DOWN",
-    "FRONT_WIDE_RIGHT_UP",
-    "FRONT_WIDE_RIGHT_DOWN",
-    "TOP_FRONT_LEFT_UP",
-    "TOP_FRONT_LEFT_DOWN",
-    "TOP_FRONT_RIGHT_UP",
-    "TOP_FRONT_RIGHT_DOWN",
-    "TOP_MIDDLE_LEFT_UP",
-    "TOP_MIDDLE_LEFT_DOWN",
-    "TOP_MIDDLE_RIGHT_UP",
-    "TOP_MIDDLE_RIGHT_DOWN",
-    "TOP_REAR_LEFT_UP",
-    "TOP_REAR_LEFT_DOWN",
-    "TOP_REAR_RIGHT_UP",
-    "TOP_REAR_RIGHT_DOWN",
-    "REAR_HEIGHT_LEFT_UP",
-    "REAR_HEIGHT_LEFT_DOWN",
-    "REAR_HEIGHT_RIGHT_UP",
-    "REAR_HEIGHT_RIGHT_DOWN",
-    "FRONT_DOLBY_LEFT_UP",
-    "FRONT_DOLBY_LEFT_DOWN",
-    "FRONT_DOLBY_RIGHT_UP",
-    "FRONT_DOLBY_RIGHT_DOWN",
-    "SURROUND_DOLBY_LEFT_UP",
-    "SURROUND_DOLBY_LEFT_DOWN",
-    "SURROUND_DOLBY_RIGHT_UP",
-    "SURROUND_DOLBY_RIGHT_DOWN",
-    "BACK_DOLBY_LEFT_UP",
-    "BACK_DOLBY_LEFT_DOWN",
-    "BACK_DOLBY_RIGHT_UP",
-    "BACK_DOLBY_RIGHT_DOWN",
-    "SURROUND_HEIGHT_LEFT_UP",
-    "SURROUND_HEIGHT_LEFT_DOWN",
-    "SURROUND_HEIGHT_RIGHT_UP",
-    "SURROUND_HEIGHT_RIGHT_DOWN",
-    "TOP_SURROUND_UP",
-    "TOP_SURROUND_DOWN",
-    "CENTER_HEIGHT_UP",
-    "CENTER_HEIGHT_DOWN",
-    "CHANNEL_VOLUMES_RESET",
-    "SUBWOOFER_ON",
-    "SUBWOOFER_OFF",
-    "SUBWOOFER1_LEVEL_UP",
-    "SUBWOOFER1_LEVEL_DOWN",
-    "SUBWOOFER2_LEVEL_UP",
-    "SUBWOOFER2_LEVEL_DOWN",
-    "SUBWOOFER3_LEVEL_UP",
-    "SUBWOOFER3_LEVEL_DOWN",
-    "SUBWOOFER4_LEVEL_UP",
-    "SUBWOOFER4_LEVEL_DOWN",
-    "LFE_UP",
-    "LFE_DOWN",
-    "BASS_SYNC_UP",
-    "BASS_SYNC_DOWN",
+    VolumeCommands.FRONT_LEFT_UP,
+    VolumeCommands.FRONT_LEFT_DOWN,
+    VolumeCommands.FRONT_RIGHT_UP,
+    VolumeCommands.FRONT_RIGHT_DOWN,
+    VolumeCommands.CENTER_UP,
+    VolumeCommands.CENTER_DOWN,
+    VolumeCommands.SUB1_UP,
+    VolumeCommands.SUB1_DOWN,
+    VolumeCommands.SUB2_UP,
+    VolumeCommands.SUB2_DOWN,
+    VolumeCommands.SUB3_UP,
+    VolumeCommands.SUB3_DOWN,
+    VolumeCommands.SUB4_UP,
+    VolumeCommands.SUB4_DOWN,
+    VolumeCommands.SURROUND_LEFT_UP,
+    VolumeCommands.SURROUND_LEFT_DOWN,
+    VolumeCommands.SURROUND_RIGHT_UP,
+    VolumeCommands.SURROUND_RIGHT_DOWN,
+    VolumeCommands.SURROUND_BACK_LEFT_UP,
+    VolumeCommands.SURROUND_BACK_LEFT_DOWN,
+    VolumeCommands.SURROUND_BACK_RIGHT_UP,
+    VolumeCommands.SURROUND_BACK_RIGHT_DOWN,
+    VolumeCommands.FRONT_HEIGHT_LEFT_UP,
+    VolumeCommands.FRONT_HEIGHT_LEFT_DOWN,
+    VolumeCommands.FRONT_HEIGHT_RIGHT_UP,
+    VolumeCommands.FRONT_HEIGHT_RIGHT_DOWN,
+    VolumeCommands.FRONT_WIDE_LEFT_UP,
+    VolumeCommands.FRONT_WIDE_LEFT_DOWN,
+    VolumeCommands.FRONT_WIDE_RIGHT_UP,
+    VolumeCommands.FRONT_WIDE_RIGHT_DOWN,
+    VolumeCommands.TOP_FRONT_LEFT_UP,
+    VolumeCommands.TOP_FRONT_LEFT_DOWN,
+    VolumeCommands.TOP_FRONT_RIGHT_UP,
+    VolumeCommands.TOP_FRONT_RIGHT_DOWN,
+    VolumeCommands.TOP_MIDDLE_LEFT_UP,
+    VolumeCommands.TOP_MIDDLE_LEFT_DOWN,
+    VolumeCommands.TOP_MIDDLE_RIGHT_UP,
+    VolumeCommands.TOP_MIDDLE_RIGHT_DOWN,
+    VolumeCommands.TOP_REAR_LEFT_UP,
+    VolumeCommands.TOP_REAR_LEFT_DOWN,
+    VolumeCommands.TOP_REAR_RIGHT_UP,
+    VolumeCommands.TOP_REAR_RIGHT_DOWN,
+    VolumeCommands.REAR_HEIGHT_LEFT_UP,
+    VolumeCommands.REAR_HEIGHT_LEFT_DOWN,
+    VolumeCommands.REAR_HEIGHT_RIGHT_UP,
+    VolumeCommands.REAR_HEIGHT_RIGHT_DOWN,
+    VolumeCommands.FRONT_DOLBY_LEFT_UP,
+    VolumeCommands.FRONT_DOLBY_LEFT_DOWN,
+    VolumeCommands.FRONT_DOLBY_RIGHT_UP,
+    VolumeCommands.FRONT_DOLBY_RIGHT_DOWN,
+    VolumeCommands.SURROUND_DOLBY_LEFT_UP,
+    VolumeCommands.SURROUND_DOLBY_LEFT_DOWN,
+    VolumeCommands.SURROUND_DOLBY_RIGHT_UP,
+    VolumeCommands.SURROUND_DOLBY_RIGHT_DOWN,
+    VolumeCommands.BACK_DOLBY_LEFT_UP,
+    VolumeCommands.BACK_DOLBY_LEFT_DOWN,
+    VolumeCommands.BACK_DOLBY_RIGHT_UP,
+    VolumeCommands.BACK_DOLBY_RIGHT_DOWN,
+    VolumeCommands.SURROUND_HEIGHT_LEFT_UP,
+    VolumeCommands.SURROUND_HEIGHT_LEFT_DOWN,
+    VolumeCommands.SURROUND_HEIGHT_RIGHT_UP,
+    VolumeCommands.SURROUND_HEIGHT_RIGHT_DOWN,
+    VolumeCommands.TOP_SURROUND_UP,
+    VolumeCommands.TOP_SURROUND_DOWN,
+    VolumeCommands.CENTER_HEIGHT_UP,
+    VolumeCommands.CENTER_HEIGHT_DOWN,
+    VolumeCommands.CHANNEL_VOLUMES_RESET,
+    VolumeCommands.SUBWOOFER_ON,
+    VolumeCommands.SUBWOOFER_OFF,
+    VolumeCommands.SUBWOOFER1_LEVEL_UP,
+    VolumeCommands.SUBWOOFER1_LEVEL_DOWN,
+    VolumeCommands.SUBWOOFER2_LEVEL_UP,
+    VolumeCommands.SUBWOOFER2_LEVEL_DOWN,
+    VolumeCommands.SUBWOOFER3_LEVEL_UP,
+    VolumeCommands.SUBWOOFER3_LEVEL_DOWN,
+    VolumeCommands.SUBWOOFER4_LEVEL_UP,
+    VolumeCommands.SUBWOOFER4_LEVEL_DOWN,
+    VolumeCommands.LFE_UP,
+    VolumeCommands.LFE_DOWN,
+    VolumeCommands.BASS_SYNC_UP,
+    VolumeCommands.BASS_SYNC_DOWN,
 }
 
 VOLUME_COMMANDS_TELNET = {
     *VOLUME_COMMANDS,
-    "SUBWOOFER_TOGGLE",
+    VolumeCommands.SUBWOOFER_TOGGLE,
 }
 
 ALL_COMMANDS = {
@@ -324,6 +333,18 @@ ALL_COMMANDS_TELNET_DENON = {
 }
 
 
+def get_simple_commands(device: AvrDevice):
+    """Get the list of simple commands for the given device."""
+    # Denon has additional simple commands
+    if "denon" in device.name.lower():
+        if device.use_telnet:
+            return [*ALL_COMMANDS_TELNET_DENON]
+        return [*ALL_COMMANDS_DENON]
+    if device.use_telnet:
+        return [*ALL_COMMANDS_TELNET]
+    return [*ALL_COMMANDS]
+
+
 # pylint: disable=R0903
 class SimpleCommand:
     """Handles mapping and sending of Simple Commands to the receiver."""
@@ -355,145 +376,143 @@ class SimpleCommand:
     async def _handle_core_command(self, cmd: str) -> ucapi.StatusCodes:
         # pylint: disable=R0915
         match cmd:
-            case "OUTPUT_1":
+            case CoreCommands.OUTPUT_1:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("VSMONI1")
                 # await self._receiver.async_hdmi_output("HDMI1")
-            case "OUTPUT_2":
+            case CoreCommands.OUTPUT_2:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("VSMONI2")
                 # await self._receiver.async_hdmi_output("HDMI2")
-            case "OUTPUT_AUTO":
+            case CoreCommands.OUTPUT_AUTO:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("VSMONIAUTO")
                 # await self._receiver.async_hdmi_output("Auto")
-            case "DIMMER_TOGGLE":
+            case CoreCommands.DIMMER_TOGGLE:
                 await self._receiver.async_dimmer_toggle()
-            case "DIMMER_BRIGHT":
+            case CoreCommands.DIMMER_BRIGHT:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("DIM BRI")
                 # await self._receiver.async_dimmer("Bright")
-            case "DIMMER_DIM":
+            case CoreCommands.DIMMER_DIM:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("DIM DIM")
                 # await self._receiver.async_dimmer("Dim")
-            case "DIMMER_DARK":
+            case CoreCommands.DIMMER_DARK:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("DIM DAR")
                 # await self._receiver.async_dimmer("Dark")
-            case "DIMMER_OFF":
+            case CoreCommands.DIMMER_OFF:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("DIM OFF")
                 # await self._receiver.async_dimmer("Off")
-            case "TRIGGER1_ON":
+            case CoreCommands.TRIGGER1_ON:
                 await self._receiver.async_trigger_on(1)
-            case "TRIGGER1_OFF":
+            case CoreCommands.TRIGGER1_OFF:
                 await self._receiver.async_trigger_off(1)
-            case "TRIGGER2_ON":
+            case CoreCommands.TRIGGER2_ON:
                 await self._receiver.async_trigger_on(2)
-            case "TRIGGER2_OFF":
+            case CoreCommands.TRIGGER2_OFF:
                 await self._receiver.async_trigger_off(2)
-            case "TRIGGER3_ON":
+            case CoreCommands.TRIGGER3_ON:
                 await self._receiver.async_trigger_on(3)
-            case "TRIGGER3_OFF":
+            case CoreCommands.TRIGGER3_OFF:
                 await self._receiver.async_trigger_off(3)
-            case "DELAY_UP":
+            case CoreCommands.DELAY_UP:
                 await self._receiver.async_delay_up()
-            case "DELAY_DOWN":
+            case CoreCommands.DELAY_DOWN:
                 await self._receiver.async_delay_down()
-            case "ECO_AUTO":
+            case CoreCommands.ECO_AUTO:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("ECOAUTO")
                 # await self._receiver.async_eco_mode("Auto")
-            case "ECO_ON":
+            case CoreCommands.ECO_ON:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("ECOON")
                 # await self._receiver.async_eco_mode("On")
-            case "ECO_OFF":
+            case CoreCommands.ECO_OFF:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("ECOOFF")
                 # await self._receiver.async_eco_mode("Off")
-            case "INFO_MENU":
+            case CoreCommands.INFO_MENU:
                 await self._receiver.async_info()
-            case "OPTIONS_MENU":
-                await self._receiver.async_options()
-            case "CHANNEL_LEVEL_ADJUST_MENU":
+            case CoreCommands.CHANNEL_LEVEL_ADJUST_MENU:
                 await self._receiver.async_channel_level_adjust()
-            case "AUTO_STANDBY_OFF":
+            case CoreCommands.AUTO_STANDBY_OFF:
                 await self._receiver.async_auto_standby("OFF")
-            case "AUTO_STANDBY_15MIN":
+            case CoreCommands.AUTO_STANDBY_15MIN:
                 await self._receiver.async_auto_standby("15M")
-            case "AUTO_STANDBY_30MIN":
+            case CoreCommands.AUTO_STANDBY_30MIN:
                 await self._receiver.async_auto_standby("30M")
-            case "AUTO_STANDBY_60MIN":
+            case CoreCommands.AUTO_STANDBY_60MIN:
                 await self._receiver.async_auto_standby("60M")
-            case "DELAY_TIME_UP":
+            case CoreCommands.DELAY_TIME_UP:
                 await self._receiver.async_delay_time_up()
-            case "DELAY_TIME_DOWN":
+            case CoreCommands.DELAY_TIME_DOWN:
                 await self._receiver.async_delay_time_down()
-            case "HDMI_AUDIO_DECODE_AMP":
+            case CoreCommands.HDMI_AUDIO_DECODE_AMP:
                 await self._receiver.async_hdmi_audio_decode("AMP")
-            case "HDMI_AUDIO_DECODE_TV":
+            case CoreCommands.HDMI_AUDIO_DECODE_TV:
                 await self._receiver.async_hdmi_audio_decode("TV")
-            case "VIDEO_PROCESSING_MODE_AUTO":
+            case CoreCommands.VIDEO_PROCESSING_MODE_AUTO:
                 await self._receiver.async_video_processing_mode("Auto")
-            case "VIDEO_PROCESSING_MODE_GAME":
+            case CoreCommands.VIDEO_PROCESSING_MODE_GAME:
                 await self._receiver.async_video_processing_mode("Game")
-            case "VIDEO_PROCESSING_MODE_MOVIE":
+            case CoreCommands.VIDEO_PROCESSING_MODE_MOVIE:
                 await self._receiver.async_video_processing_mode("Movie")
-            case "VIDEO_PROCESSING_MODE_BYPASS":
+            case CoreCommands.VIDEO_PROCESSING_MODE_BYPASS:
                 await self._receiver.async_video_processing_mode("Bypass")
-            case "NETWORK_RESTART":
+            case CoreCommands.NETWORK_RESTART:
                 await self._receiver.async_network_restart()
-            case "SPEAKER_PRESET_1":
+            case CoreCommands.SPEAKER_PRESET_1:
                 await self._receiver.async_speaker_preset(1)
-            case "SPEAKER_PRESET_2":
+            case CoreCommands.SPEAKER_PRESET_2:
                 await self._receiver.async_speaker_preset(2)
-            case "SPEAKER_PRESET_TOGGLE":
+            case CoreCommands.SPEAKER_PRESET_TOGGLE:
                 await self._receiver.async_speaker_preset_toggle()
-            case "BT_TRANSMITTER_ON":
+            case CoreCommands.BT_TRANSMITTER_ON:
                 await self._receiver.async_bt_transmitter_on()
-            case "BT_TRANSMITTER_OFF":
+            case CoreCommands.BT_TRANSMITTER_OFF:
                 await self._receiver.async_bt_transmitter_off()
-            case "BT_TRANSMITTER_TOGGLE":
+            case CoreCommands.BT_TRANSMITTER_TOGGLE:
                 await self._receiver.async_bt_transmitter_toggle()
-            case "BT_OUTPUT_MODE_BT_SPEAKER":
+            case CoreCommands.BT_OUTPUT_MODE_BT_SPEAKER:
                 await self._receiver.async_bt_output_mode("Bluetooth + Speakers")
-            case "BT_OUTPUT_MODE_BT_ONLY":
+            case CoreCommands.BT_OUTPUT_MODE_BT_ONLY:
                 await self._receiver.async_bt_output_mode("Bluetooth Only")
-            case "BT_OUTPUT_MODE_TOGGLE":
+            case CoreCommands.BT_OUTPUT_MODE_TOGGLE:
                 await self._receiver.async_bt_output_mode_toggle()
-            case "AUDIO_RESTORER_OFF":
+            case CoreCommands.AUDIO_RESTORER_OFF:
                 await self._receiver.async_audio_restorer("Off")
-            case "AUDIO_RESTORER_LOW":
+            case CoreCommands.AUDIO_RESTORER_LOW:
                 await self._receiver.async_audio_restorer("Low")
-            case "AUDIO_RESTORER_MEDIUM":
+            case CoreCommands.AUDIO_RESTORER_MEDIUM:
                 await self._receiver.async_audio_restorer("Medium")
-            case "AUDIO_RESTORER_HIGH":
+            case CoreCommands.AUDIO_RESTORER_HIGH:
                 await self._receiver.async_audio_restorer("High")
-            case "REMOTE_CONTROL_LOCK_ON":
+            case CoreCommands.REMOTE_CONTROL_LOCK_ON:
                 await self._receiver.async_remote_control_lock()
-            case "REMOTE_CONTROL_LOCK_OFF":
+            case CoreCommands.REMOTE_CONTROL_LOCK_OFF:
                 await self._receiver.async_remote_control_unlock()
-            case "PANEL_LOCK_PANEL":
+            case CoreCommands.PANEL_LOCK_PANEL:
                 await self._receiver.async_panel_lock("Panel")
-            case "PANEL_LOCK_PANEL_VOLUME":
+            case CoreCommands.PANEL_LOCK_PANEL_VOLUME:
                 await self._receiver.async_panel_lock("Panel + Master Volume")
-            case "PANEL_LOCK_OFF":
+            case CoreCommands.PANEL_LOCK_OFF:
                 await self._receiver.async_panel_unlock()
-            case "GRAPHIC_EQ_ON":
+            case CoreCommands.GRAPHIC_EQ_ON:
                 await self._receiver.async_graphic_eq_on()
-            case "GRAPHIC_EQ_OFF":
+            case CoreCommands.GRAPHIC_EQ_OFF:
                 await self._receiver.async_graphic_eq_off()
-            case "GRAPHIC_EQ_TOGGLE":
+            case CoreCommands.GRAPHIC_EQ_TOGGLE:
                 await self._receiver.async_graphic_eq_toggle()
-            case "HEADPHONE_EQ_ON":
+            case CoreCommands.HEADPHONE_EQ_ON:
                 await self._receiver.async_headphone_eq_on()
-            case "HEADPHONE_EQ_OFF":
+            case CoreCommands.HEADPHONE_EQ_OFF:
                 await self._receiver.async_headphone_eq_off()
-            case "HEADPHONE_EQ_TOGGLE":
+            case CoreCommands.HEADPHONE_EQ_TOGGLE:
                 await self._receiver.async_headphone_eq_toggle()
-            case "STATUS":
+            case CoreCommands.STATUS:
                 await self._receiver.async_status()
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
@@ -503,167 +522,167 @@ class SimpleCommand:
     async def _handle_volume_command(self, cmd: str) -> ucapi.StatusCodes:
         # pylint: disable=R0915
         match cmd:
-            case "FRONT_LEFT_UP":
+            case VolumeCommands.FRONT_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Front Left")
-            case "FRONT_LEFT_DOWN":
+            case VolumeCommands.FRONT_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Front Left")
-            case "FRONT_RIGHT_UP":
+            case VolumeCommands.FRONT_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Front Right")
-            case "FRONT_RIGHT_DOWN":
+            case VolumeCommands.FRONT_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Front Right")
-            case "CENTER_UP":
+            case VolumeCommands.CENTER_UP:
                 await self._receiver.vol.async_channel_volume_up("Center")
-            case "CENTER_DOWN":
+            case VolumeCommands.CENTER_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Center")
-            case "SUB1_UP":
+            case VolumeCommands.SUB1_UP:
                 await self._receiver.vol.async_channel_volume_up("Subwoofer")
-            case "SUB1_DOWN":
+            case VolumeCommands.SUB1_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Subwoofer")
-            case "SUB2_UP":
+            case VolumeCommands.SUB2_UP:
                 await self._receiver.vol.async_channel_volume_up("Subwoofer 2")
-            case "SUB2_DOWN":
+            case VolumeCommands.SUB2_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Subwoofer 2")
-            case "SUB3_UP":
+            case VolumeCommands.SUB3_UP:
                 await self._receiver.vol.async_channel_volume_up("Subwoofer 3")
-            case "SUB3_DOWN":
+            case VolumeCommands.SUB3_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Subwoofer 3")
-            case "SUB4_UP":
+            case VolumeCommands.SUB4_UP:
                 await self._receiver.vol.async_channel_volume_up("Subwoofer 4")
-            case "SUB4_DOWN":
+            case VolumeCommands.SUB4_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Subwoofer 4")
-            case "SURROUND_LEFT_UP":
+            case VolumeCommands.SURROUND_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Surround Left")
-            case "SURROUND_LEFT_DOWN":
+            case VolumeCommands.SURROUND_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Surround Left")
-            case "SURROUND_RIGHT_UP":
+            case VolumeCommands.SURROUND_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Surround Right")
-            case "SURROUND_RIGHT_DOWN":
+            case VolumeCommands.SURROUND_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Surround Right")
-            case "SURROUND_BACK_LEFT_UP":
+            case VolumeCommands.SURROUND_BACK_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Surround Back Left")
-            case "SURROUND_BACK_LEFT_DOWN":
+            case VolumeCommands.SURROUND_BACK_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Surround Back Left")
-            case "SURROUND_BACK_RIGHT_UP":
+            case VolumeCommands.SURROUND_BACK_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Surround Back Right")
-            case "SURROUND_BACK_RIGHT_DOWN":
+            case VolumeCommands.SURROUND_BACK_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Surround Back Right")
-            case "FRONT_HEIGHT_LEFT_UP":
+            case VolumeCommands.FRONT_HEIGHT_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Front Height Left")
-            case "FRONT_HEIGHT_LEFT_DOWN":
+            case VolumeCommands.FRONT_HEIGHT_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Front Height Left")
-            case "FRONT_HEIGHT_RIGHT_UP":
+            case VolumeCommands.FRONT_HEIGHT_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Front Height Right")
-            case "FRONT_HEIGHT_RIGHT_DOWN":
+            case VolumeCommands.FRONT_HEIGHT_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Front Height Right")
-            case "FRONT_WIDE_LEFT_UP":
+            case VolumeCommands.FRONT_WIDE_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Front Wide Left")
-            case "FRONT_WIDE_LEFT_DOWN":
+            case VolumeCommands.FRONT_WIDE_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Front Wide Left")
-            case "FRONT_WIDE_RIGHT_UP":
+            case VolumeCommands.FRONT_WIDE_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Front Wide Right")
-            case "FRONT_WIDE_RIGHT_DOWN":
+            case VolumeCommands.FRONT_WIDE_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Front Wide Right")
-            case "TOP_FRONT_LEFT_UP":
+            case VolumeCommands.TOP_FRONT_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Top Front Left")
-            case "TOP_FRONT_LEFT_DOWN":
+            case VolumeCommands.TOP_FRONT_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Top Front Left")
-            case "TOP_FRONT_RIGHT_UP":
+            case VolumeCommands.TOP_FRONT_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Top Front Right")
-            case "TOP_FRONT_RIGHT_DOWN":
+            case VolumeCommands.TOP_FRONT_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Top Front Right")
-            case "TOP_MIDDLE_LEFT_UP":
+            case VolumeCommands.TOP_MIDDLE_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Top Middle Left")
-            case "TOP_MIDDLE_LEFT_DOWN":
+            case VolumeCommands.TOP_MIDDLE_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Top Middle Left")
-            case "TOP_MIDDLE_RIGHT_UP":
+            case VolumeCommands.TOP_MIDDLE_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Top Middle Right")
-            case "TOP_MIDDLE_RIGHT_DOWN":
+            case VolumeCommands.TOP_MIDDLE_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Top Middle Right")
-            case "TOP_REAR_LEFT_UP":
+            case VolumeCommands.TOP_REAR_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Top Rear Left")
-            case "TOP_REAR_LEFT_DOWN":
+            case VolumeCommands.TOP_REAR_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Top Rear Left")
-            case "TOP_REAR_RIGHT_UP":
+            case VolumeCommands.TOP_REAR_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Top Rear Right")
-            case "TOP_REAR_RIGHT_DOWN":
+            case VolumeCommands.TOP_REAR_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Top Rear Right")
-            case "REAR_HEIGHT_LEFT_UP":
+            case VolumeCommands.REAR_HEIGHT_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Rear Height Left")
-            case "REAR_HEIGHT_LEFT_DOWN":
+            case VolumeCommands.REAR_HEIGHT_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Rear Height Left")
-            case "REAR_HEIGHT_RIGHT_UP":
+            case VolumeCommands.REAR_HEIGHT_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Rear Height Right")
-            case "REAR_HEIGHT_RIGHT_DOWN":
+            case VolumeCommands.REAR_HEIGHT_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Rear Height Right")
-            case "FRONT_DOLBY_LEFT_UP":
+            case VolumeCommands.FRONT_DOLBY_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Front Dolby Left")
-            case "FRONT_DOLBY_LEFT_DOWN":
+            case VolumeCommands.FRONT_DOLBY_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Front Dolby Left")
-            case "FRONT_DOLBY_RIGHT_UP":
+            case VolumeCommands.FRONT_DOLBY_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Front Dolby Right")
-            case "FRONT_DOLBY_RIGHT_DOWN":
+            case VolumeCommands.FRONT_DOLBY_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Front Dolby Right")
-            case "SURROUND_DOLBY_LEFT_UP":
+            case VolumeCommands.SURROUND_DOLBY_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Surround Dolby Left")
-            case "SURROUND_DOLBY_LEFT_DOWN":
+            case VolumeCommands.SURROUND_DOLBY_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Surround Dolby Left")
-            case "SURROUND_DOLBY_RIGHT_UP":
+            case VolumeCommands.SURROUND_DOLBY_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Surround Dolby Right")
-            case "BACK_DOLBY_LEFT_UP":
+            case VolumeCommands.BACK_DOLBY_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Back Dolby Left")
-            case "BACK_DOLBY_LEFT_DOWN":
+            case VolumeCommands.BACK_DOLBY_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Back Dolby Left")
-            case "BACK_DOLBY_RIGHT_UP":
+            case VolumeCommands.BACK_DOLBY_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Back Dolby Right")
-            case "BACK_DOLBY_RIGHT_DOWN":
+            case VolumeCommands.BACK_DOLBY_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Back Dolby Right")
-            case "SURROUND_HEIGHT_LEFT_UP":
+            case VolumeCommands.SURROUND_HEIGHT_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Surround Height Left")
-            case "SURROUND_HEIGHT_LEFT_DOWN":
+            case VolumeCommands.SURROUND_HEIGHT_LEFT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Surround Height Left")
-            case "SURROUND_HEIGHT_RIGHT_UP":
+            case VolumeCommands.SURROUND_HEIGHT_RIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Surround Height Right")
-            case "SURROUND_HEIGHT_RIGHT_DOWN":
+            case VolumeCommands.SURROUND_HEIGHT_RIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Surround Height Right")
-            case "TOP_SURROUND_UP":
+            case VolumeCommands.TOP_SURROUND_UP:
                 await self._receiver.vol.async_channel_volume_up("Top Surround")
-            case "TOP_SURROUND_DOWN":
+            case VolumeCommands.TOP_SURROUND_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Top Surround")
-            case "CENTER_HEIGHT_UP":
+            case VolumeCommands.CENTER_HEIGHT_UP:
                 await self._receiver.vol.async_channel_volume_up("Center Height")
-            case "CENTER_HEIGHT_DOWN":
+            case VolumeCommands.CENTER_HEIGHT_DOWN:
                 await self._receiver.vol.async_channel_volume_down("Center Height")
-            case "CHANNEL_VOLUMES_RESET":
+            case VolumeCommands.CHANNEL_VOLUMES_RESET:
                 await self._receiver.vol.async_channel_volumes_reset()
-            case "SUBWOOFER_ON":
+            case VolumeCommands.SUBWOOFER_ON:
                 await self._receiver.vol.async_subwoofer_on()
-            case "SUBWOOFER_OFF":
+            case VolumeCommands.SUBWOOFER_OFF:
                 await self._receiver.vol.async_subwoofer_off()
-            case "SUBWOOFER_TOGGLE":
+            case VolumeCommands.SUBWOOFER_TOGGLE:
                 await self._receiver.vol.async_subwoofer_toggle()
-            case "SUBWOOFER1_LEVEL_UP":
+            case VolumeCommands.SUBWOOFER1_LEVEL_UP:
                 await self._receiver.vol.async_subwoofer_level_up("Subwoofer")
-            case "SUBWOOFER1_LEVEL_DOWN":
+            case VolumeCommands.SUBWOOFER1_LEVEL_DOWN:
                 await self._receiver.vol.async_subwoofer_level_down("Subwoofer")
-            case "SUBWOOFER2_LEVEL_UP":
+            case VolumeCommands.SUBWOOFER2_LEVEL_UP:
                 await self._receiver.vol.async_subwoofer_level_up("Subwoofer 2")
-            case "SUBWOOFER2_LEVEL_DOWN":
+            case VolumeCommands.SUBWOOFER2_LEVEL_DOWN:
                 await self._receiver.vol.async_subwoofer_level_down("Subwoofer 2")
-            case "SUBWOOFER3_LEVEL_UP":
+            case VolumeCommands.SUBWOOFER3_LEVEL_UP:
                 await self._receiver.vol.async_subwoofer_level_up("Subwoofer 3")
-            case "SUBWOOFER3_LEVEL_DOWN":
+            case VolumeCommands.SUBWOOFER3_LEVEL_DOWN:
                 await self._receiver.vol.async_subwoofer_level_down("Subwoofer 3")
-            case "SUBWOOFER4_LEVEL_UP":
+            case VolumeCommands.SUBWOOFER4_LEVEL_UP:
                 await self._receiver.vol.async_subwoofer_level_up("Subwoofer 4")
-            case "SUBWOOFER4_LEVEL_DOWN":
+            case VolumeCommands.SUBWOOFER4_LEVEL_DOWN:
                 await self._receiver.vol.async_subwoofer_level_down("Subwoofer 4")
-            case "LFE_UP":
+            case VolumeCommands.LFE_UP:
                 await self._receiver.vol.async_lfe_up()
-            case "LFE_DOWN":
+            case VolumeCommands.LFE_DOWN:
                 await self._receiver.vol.async_lfe_down()
-            case "BASS_SYNC_UP":
+            case VolumeCommands.BASS_SYNC_UP:
                 await self._receiver.vol.async_bass_sync_up()
-            case "BASS_SYNC_DOWN":
+            case VolumeCommands.BASS_SYNC_DOWN:
                 await self._receiver.vol.async_bass_sync_down()
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
@@ -673,173 +692,173 @@ class SimpleCommand:
     async def _handle_sound_mode_command(self, cmd: str) -> ucapi.StatusCodes:
         # pylint: disable=R0915, R0911
         match cmd:
-            case "SURROUND_MODE_AUTO":
+            case SoundModeCommands.SURROUND_MODE_AUTO:
                 return await self._send_command("MSAUTO")
-            case "SURROUND_MODE_DIRECT":
+            case SoundModeCommands.SURROUND_MODE_DIRECT:
                 return await self._send_command("MSDIRECT")
-            case "SURROUND_MODE_PURE_DIRECT":
+            case SoundModeCommands.SURROUND_MODE_PURE_DIRECT:
                 return await self._send_command("MSPURE DIRECT")
-            case "SURROUND_MODE_DOLBY_DIGITAL":
+            case SoundModeCommands.SURROUND_MODE_DOLBY_DIGITAL:
                 return await self._send_command("MSDOLBY DIGITAL")
-            case "SURROUND_MODE_DTS_SURROUND":
+            case SoundModeCommands.SURROUND_MODE_DTS_SURROUND:
                 return await self._send_command("MSDTS SURROUND")
-            case "SURROUND_MODE_AURO3D":
+            case SoundModeCommands.SURROUND_MODE_AURO3D:
                 return await self._send_command("MSAURO3D")
-            case "SURROUND_MODE_AURO2DSURR":
+            case SoundModeCommands.SURROUND_MODE_AURO2DSURR:
                 return await self._send_command("MSAURO2DSURR")
-            case "SURROUND_MODE_MCH_STEREO":
+            case SoundModeCommands.SURROUND_MODE_MCH_STEREO:
                 return await self._send_command("MSMCH STEREO")
-            case "SURROUND_MODE_NEXT":
+            case SoundModeCommands.SURROUND_MODE_NEXT:
                 await self._receiver.soundmode.async_sound_mode_next()
-            case "SURROUND_MODE_PREVIOUS":
+            case SoundModeCommands.SURROUND_MODE_PREVIOUS:
                 await self._receiver.soundmode.async_sound_mode_previous()
-            case "SOUND_MODE_NEURAL_X_ON":
+            case SoundModeCommands.SOUND_MODE_NEURAL_X_ON:
                 await self._receiver.soundmode.async_neural_x_on()
-            case "SOUND_MODE_NEURAL_X_OFF":
+            case SoundModeCommands.SOUND_MODE_NEURAL_X_OFF:
                 await self._receiver.soundmode.async_neural_x_off()
-            case "SOUND_MODE_NEURAL_X_TOGGLE":
+            case SoundModeCommands.SOUND_MODE_NEURAL_X_TOGGLE:
                 await self._receiver.soundmode.async_neural_x_toggle()
-            case "SOUND_MODE_IMAX_AUTO":
+            case SoundModeCommands.SOUND_MODE_IMAX_AUTO:
                 await self._receiver.soundmode.async_imax_auto()
-            case "SOUND_MODE_IMAX_OFF":
+            case SoundModeCommands.SOUND_MODE_IMAX_OFF:
                 await self._receiver.soundmode.async_imax_off()
-            case "SOUND_MODE_IMAX_TOGGLE":
+            case SoundModeCommands.SOUND_MODE_IMAX_TOGGLE:
                 await self._receiver.soundmode.async_imax_toggle()
-            case "IMAX_AUDIO_SETTINGS_AUTO":
+            case SoundModeCommands.IMAX_AUDIO_SETTINGS_AUTO:
                 await self._receiver.soundmode.async_imax_audio_settings("AUTO")
-            case "IMAX_AUDIO_SETTINGS_MANUAL":
+            case SoundModeCommands.IMAX_AUDIO_SETTINGS_MANUAL:
                 await self._receiver.soundmode.async_imax_audio_settings("MANUAL")
-            case "IMAX_AUDIO_SETTINGS_TOGGLE":
+            case SoundModeCommands.IMAX_AUDIO_SETTINGS_TOGGLE:
                 await self._receiver.soundmode.async_imax_audio_settings_toggle()
-            case "IMAX_HPF_40HZ":
+            case SoundModeCommands.IMAX_HPF_40HZ:
                 await self._receiver.soundmode.async_imax_hpf("40")
-            case "IMAX_HPF_60HZ":
+            case SoundModeCommands.IMAX_HPF_60HZ:
                 await self._receiver.soundmode.async_imax_hpf("60")
-            case "IMAX_HPF_80HZ":
+            case SoundModeCommands.IMAX_HPF_80HZ:
                 await self._receiver.soundmode.async_imax_hpf("80")
-            case "IMAX_HPF_90HZ":
+            case SoundModeCommands.IMAX_HPF_90HZ:
                 await self._receiver.soundmode.async_imax_hpf("90")
-            case "IMAX_HPF_100HZ":
+            case SoundModeCommands.IMAX_HPF_100HZ:
                 await self._receiver.soundmode.async_imax_hpf("100")
-            case "IMAX_HPF_110HZ":
+            case SoundModeCommands.IMAX_HPF_110HZ:
                 await self._receiver.soundmode.async_imax_hpf("110")
-            case "IMAX_HPF_120HZ":
+            case SoundModeCommands.IMAX_HPF_120HZ:
                 await self._receiver.soundmode.async_imax_hpf("120")
-            case "IMAX_HPF_150HZ":
+            case SoundModeCommands.IMAX_HPF_150HZ:
                 await self._receiver.soundmode.async_imax_hpf("150")
-            case "IMAX_HPF_180HZ":
+            case SoundModeCommands.IMAX_HPF_180HZ:
                 await self._receiver.soundmode.async_imax_hpf("180")
-            case "IMAX_HPF_200HZ":
+            case SoundModeCommands.IMAX_HPF_200HZ:
                 await self._receiver.soundmode.async_imax_hpf("200")
-            case "IMAX_HPF_250HZ":
+            case SoundModeCommands.IMAX_HPF_250HZ:
                 await self._receiver.soundmode.async_imax_hpf("250")
-            case "IMAX_LPF_80HZ":
+            case SoundModeCommands.IMAX_LPF_80HZ:
                 await self._receiver.soundmode.async_imax_lpf("80")
-            case "IMAX_LPF_90HZ":
+            case SoundModeCommands.IMAX_LPF_90HZ:
                 await self._receiver.soundmode.async_imax_lpf("90")
-            case "IMAX_LPF_100HZ":
+            case SoundModeCommands.IMAX_LPF_100HZ:
                 await self._receiver.soundmode.async_imax_lpf("100")
-            case "IMAX_LPF_110HZ":
+            case SoundModeCommands.IMAX_LPF_110HZ:
                 await self._receiver.soundmode.async_imax_lpf("110")
-            case "IMAX_LPF_120HZ":
+            case SoundModeCommands.IMAX_LPF_120HZ:
                 await self._receiver.soundmode.async_imax_lpf("120")
-            case "IMAX_LPF_150HZ":
+            case SoundModeCommands.IMAX_LPF_150HZ:
                 await self._receiver.soundmode.async_imax_lpf("150")
-            case "IMAX_LPF_180HZ":
+            case SoundModeCommands.IMAX_LPF_180HZ:
                 await self._receiver.soundmode.async_imax_lpf("180")
-            case "IMAX_LPF_200HZ":
+            case SoundModeCommands.IMAX_LPF_200HZ:
                 await self._receiver.soundmode.async_imax_lpf("200")
-            case "IMAX_LPF_250HZ":
+            case SoundModeCommands.IMAX_LPF_250HZ:
                 await self._receiver.soundmode.async_imax_lpf("250")
-            case "IMAX_SUBWOOFER_ON":
+            case SoundModeCommands.IMAX_SUBWOOFER_ON:
                 await self._receiver.soundmode.async_imax_subwoofer_mode("ON")
-            case "IMAX_SUBWOOFER_OFF":
+            case SoundModeCommands.IMAX_SUBWOOFER_OFF:
                 await self._receiver.soundmode.async_imax_subwoofer_mode("OFF")
-            case "IMAX_SUBWOOFER_OUTPUT_LFE_MAIN":
+            case SoundModeCommands.IMAX_SUBWOOFER_OUTPUT_LFE_MAIN:
                 await self._receiver.soundmode.async_imax_subwoofer_output("L+M")
-            case "IMAX_SUBWOOFER_OUTPUT_LFE":
+            case SoundModeCommands.IMAX_SUBWOOFER_OUTPUT_LFE:
                 await self._receiver.soundmode.async_imax_subwoofer_output("LFE")
-            case "CINEMA_EQ_ON":
+            case SoundModeCommands.CINEMA_EQ_ON:
                 await self._receiver.soundmode.async_cinema_eq_on()
-            case "CINEMA_EQ_OFF":
+            case SoundModeCommands.CINEMA_EQ_OFF:
                 await self._receiver.soundmode.async_cinema_eq_off()
-            case "CINEMA_EQ_TOGGLE":
+            case SoundModeCommands.CINEMA_EQ_TOGGLE:
                 await self._receiver.soundmode.async_cinema_eq_toggle()
-            case "CENTER_SPREAD_ON":
+            case SoundModeCommands.CENTER_SPREAD_ON:
                 await self._receiver.soundmode.async_center_spread_on()
-            case "CENTER_SPREAD_OFF":
+            case SoundModeCommands.CENTER_SPREAD_OFF:
                 await self._receiver.soundmode.async_center_spread_off()
-            case "CENTER_SPREAD_TOGGLE":
+            case SoundModeCommands.CENTER_SPREAD_TOGGLE:
                 await self._receiver.soundmode.async_center_spread_toggle()
-            case "LOUDNESS_MANAGEMENT_ON":
+            case SoundModeCommands.LOUDNESS_MANAGEMENT_ON:
                 await self._receiver.soundmode.async_loudness_management_on()
-            case "LOUDNESS_MANAGEMENT_OFF":
+            case SoundModeCommands.LOUDNESS_MANAGEMENT_OFF:
                 await self._receiver.soundmode.async_loudness_management_off()
-            case "LOUDNESS_MANAGEMENT_TOGGLE":
+            case SoundModeCommands.LOUDNESS_MANAGEMENT_TOGGLE:
                 await self._receiver.soundmode.async_loudness_management_toggle()
-            case "DIALOG_ENHANCER_OFF":
+            case SoundModeCommands.DIALOG_ENHANCER_OFF:
                 await self._receiver.soundmode.async_dialog_enhancer("Off")
-            case "DIALOG_ENHANCER_LOW":
+            case SoundModeCommands.DIALOG_ENHANCER_LOW:
                 await self._receiver.soundmode.async_dialog_enhancer("Low")
-            case "DIALOG_ENHANCER_MEDIUM":
+            case SoundModeCommands.DIALOG_ENHANCER_MEDIUM:
                 await self._receiver.soundmode.async_dialog_enhancer("Medium")
-            case "DIALOG_ENHANCER_HIGH":
+            case SoundModeCommands.DIALOG_ENHANCER_HIGH:
                 await self._receiver.soundmode.async_dialog_enhancer("High")
-            case "AUROMATIC_3D_PRESET_SMALL":
+            case SoundModeCommands.AUROMATIC_3D_PRESET_SMALL:
                 await self._receiver.soundmode.async_auromatic_3d_preset("Small")
-            case "AUROMATIC_3D_PRESET_MEDIUM":
+            case SoundModeCommands.AUROMATIC_3D_PRESET_MEDIUM:
                 await self._receiver.soundmode.async_auromatic_3d_preset("Medium")
-            case "AUROMATIC_3D_PRESET_LARGE":
+            case SoundModeCommands.AUROMATIC_3D_PRESET_LARGE:
                 await self._receiver.soundmode.async_auromatic_3d_preset("Large")
-            case "AUROMATIC_3D_PRESET_SPEECH":
+            case SoundModeCommands.AUROMATIC_3D_PRESET_SPEECH:
                 await self._receiver.soundmode.async_auromatic_3d_preset("Speech")
-            case "AUROMATIC_3D_PRESET_MOVIE":
+            case SoundModeCommands.AUROMATIC_3D_PRESET_MOVIE:
                 await self._receiver.soundmode.async_auromatic_3d_preset("Movie")
-            case "AUROMATIC_3D_STRENGTH_UP":
+            case SoundModeCommands.AUROMATIC_3D_STRENGTH_UP:
                 await self._receiver.soundmode.async_auromatic_3d_strength_up()
-            case "AUROMATIC_3D_STRENGTH_DOWN":
+            case SoundModeCommands.AUROMATIC_3D_STRENGTH_DOWN:
                 await self._receiver.soundmode.async_auromatic_3d_strength_down()
-            case "AURO_3D_MODE_DIRECT":
+            case SoundModeCommands.AURO_3D_MODE_DIRECT:
                 await self._receiver.soundmode.async_auro_3d_mode("Direct")
-            case "AURO_3D_MODE_CHANNEL_EXPANSION":
+            case SoundModeCommands.AURO_3D_MODE_CHANNEL_EXPANSION:
                 await self._receiver.soundmode.async_auro_3d_mode("Channel Expansion")
-            case "DIALOG_CONTROL_UP":
+            case SoundModeCommands.DIALOG_CONTROL_UP:
                 await self._receiver.soundmode.async_dialog_control_up()
-            case "DIALOG_CONTROL_DOWN":
+            case SoundModeCommands.DIALOG_CONTROL_DOWN:
                 await self._receiver.soundmode.async_dialog_control_down()
-            case "SPEAKER_VIRTUALIZER_ON":
+            case SoundModeCommands.SPEAKER_VIRTUALIZER_ON:
                 await self._receiver.soundmode.async_speaker_virtualizer_on()
-            case "SPEAKER_VIRTUALIZER_OFF":
+            case SoundModeCommands.SPEAKER_VIRTUALIZER_OFF:
                 await self._receiver.soundmode.async_speaker_virtualizer_off()
-            case "SPEAKER_VIRTUALIZER_TOGGLE":
+            case SoundModeCommands.SPEAKER_VIRTUALIZER_TOGGLE:
                 await self._receiver.soundmode.async_speaker_virtualizer_toggle()
-            case "EFFECT_SPEAKER_SELECTION_FLOOR":
+            case SoundModeCommands.EFFECT_SPEAKER_SELECTION_FLOOR:
                 await self._receiver.soundmode.async_effect_speaker_selection("Floor")
-            case "EFFECT_SPEAKER_SELECTION_FRONT":
+            case SoundModeCommands.EFFECT_SPEAKER_SELECTION_FRONT:
                 await self._receiver.soundmode.async_effect_speaker_selection("Front")
-            case "EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT":
+            case SoundModeCommands.EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT:
                 await self._receiver.soundmode.async_effect_speaker_selection("Front Height")
-            case "EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT_WIDE":
+            case SoundModeCommands.EFFECT_SPEAKER_SELECTION_FRONT_HEIGHT_WIDE:
                 await self._receiver.soundmode.async_effect_speaker_selection("Front Height + Front Wide")
-            case "EFFECT_SPEAKER_SELECTION_FRONT_WIDE":
+            case SoundModeCommands.EFFECT_SPEAKER_SELECTION_FRONT_WIDE:
                 await self._receiver.soundmode.async_effect_speaker_selection("Front Wide")
-            case "EFFECT_SPEAKER_SELECTION_HEIGHT_FLOOR":
+            case SoundModeCommands.EFFECT_SPEAKER_SELECTION_HEIGHT_FLOOR:
                 await self._receiver.soundmode.async_effect_speaker_selection("Height + Floor")
-            case "EFFECT_SPEAKER_SELECTION_SURROUND_BACK":
+            case SoundModeCommands.EFFECT_SPEAKER_SELECTION_SURROUND_BACK:
                 await self._receiver.soundmode.async_effect_speaker_selection("Surround Back")
-            case "EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_HEIGHT":
+            case SoundModeCommands.EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_HEIGHT:
                 await self._receiver.soundmode.async_effect_speaker_selection("Surround Back + Front Height")
-            case "EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_WIDE":
+            case SoundModeCommands.EFFECT_SPEAKER_SELECTION_SURROUND_BACK_FRONT_WIDE:
                 await self._receiver.soundmode.async_effect_speaker_selection("Surround Back + Front Wide")
-            case "DRC_AUTO":
+            case SoundModeCommands.DRC_AUTO:
                 await self._receiver.soundmode.async_drc("AUTO")
-            case "DRC_LOW":
+            case SoundModeCommands.DRC_LOW:
                 await self._receiver.soundmode.async_drc("LOW")
-            case "DRC_MID":
+            case SoundModeCommands.DRC_MID:
                 await self._receiver.soundmode.async_drc("MID")
-            case "DRC_HI":
+            case SoundModeCommands.DRC_HI:
                 await self._receiver.soundmode.async_drc("HI")
-            case "DRC_OFF":
+            case SoundModeCommands.DRC_OFF:
                 await self._receiver.soundmode.async_drc("OFF")
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
@@ -849,35 +868,35 @@ class SimpleCommand:
     async def _handle_audyssey_command(self, cmd: str) -> ucapi.StatusCodes:
         # pylint: disable=R0911
         match cmd:
-            case "MULTIEQ_REFERENCE":
+            case AudysseyCommands.MULTIEQ_REFERENCE:
                 return await self._send_command("PSMULTEQ:AUDYSSEY")
-            case "MULTIEQ_BYPASS_LR":
+            case AudysseyCommands.MULTIEQ_BYPASS_LR:
                 return await self._send_command("PSMULTEQ:BYP.LR")
-            case "MULTIEQ_FLAT":
+            case AudysseyCommands.MULTIEQ_FLAT:
                 return await self._send_command("PSMULTEQ:FLAT")
-            case "MULTIEQ_OFF":
+            case AudysseyCommands.MULTIEQ_OFF:
                 return await self._send_command("PSMULTEQ:OFF")
-            case "DYNAMIC_EQ_ON":
+            case AudysseyCommands.DYNAMIC_EQ_ON:
                 await self._receiver.audyssey.async_dynamiceq_on()
-            case "DYNAMIC_EQ_OFF":
+            case AudysseyCommands.DYNAMIC_EQ_OFF:
                 await self._receiver.audyssey.async_dynamiceq_off()
-            case "DYNAMIC_EQ_TOGGLE":
+            case AudysseyCommands.DYNAMIC_EQ_TOGGLE:
                 await self._receiver.audyssey.async_toggle_dynamic_eq()
-            case "AUDYSSEY_LFC":
+            case AudysseyCommands.AUDYSSEY_LFC:
                 await self._receiver.audyssey.async_lfc_on()
-            case "AUDYSSEY_LFC_OFF":
+            case AudysseyCommands.AUDYSSEY_LFC_OFF:
                 await self._receiver.audyssey.async_lfc_off()
-            case "DYNAMIC_VOLUME_OFF":
+            case AudysseyCommands.DYNAMIC_VOLUME_OFF:
                 await self._receiver.audyssey.async_set_dynamicvol("Off")
-            case "DYNAMIC_VOLUME_LIGHT":
+            case AudysseyCommands.DYNAMIC_VOLUME_LIGHT:
                 await self._receiver.audyssey.async_set_dynamicvol("Light")
-            case "DYNAMIC_VOLUME_MEDIUM":
+            case AudysseyCommands.DYNAMIC_VOLUME_MEDIUM:
                 await self._receiver.audyssey.async_set_dynamicvol("Medium")
-            case "DYNAMIC_VOLUME_HEAVY":
+            case AudysseyCommands.DYNAMIC_VOLUME_HEAVY:
                 await self._receiver.audyssey.async_set_dynamicvol("Heavy")
-            case "CONTAINMENT_AMOUNT_UP":
+            case AudysseyCommands.CONTAINMENT_AMOUNT_UP:
                 await self._receiver.audyssey.async_containment_amount_up()
-            case "CONTAINMENT_AMOUNT_DOWN":
+            case AudysseyCommands.CONTAINMENT_AMOUNT_DOWN:
                 await self._receiver.audyssey.async_containment_amount_down()
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
@@ -887,19 +906,19 @@ class SimpleCommand:
     async def _handle_dirac_command(self, cmd: str) -> ucapi.StatusCodes:
         # pylint: disable=R0911
         match cmd:
-            case "DIRAC_LIVE_FILTER_SLOT1":
+            case DiracCommands.DIRAC_LIVE_FILTER_SLOT1:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("PSDIRAC 1")
                 # await self._receiver.dirac.async_dirac_filter("Slot 1")
-            case "DIRAC_LIVE_FILTER_SLOT2":
+            case DiracCommands.DIRAC_LIVE_FILTER_SLOT2:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("PSDIRAC 2")
                 # await self._receiver.dirac.async_dirac_filter("Slot 2")
-            case "DIRAC_LIVE_FILTER_SLOT3":
+            case DiracCommands.DIRAC_LIVE_FILTER_SLOT3:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("PSDIRAC 3")
                 # await self._receiver.dirac.async_dirac_filter("Slot 3")
-            case "DIRAC_LIVE_FILTER_OFF":
+            case DiracCommands.DIRAC_LIVE_FILTER_OFF:
                 # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
                 await self._send_command("PSDIRAC OFF")
                 # await self._receiver.dirac.async_dirac_filter("Off")

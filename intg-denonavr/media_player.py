@@ -9,11 +9,9 @@ import logging
 from typing import Any
 
 import avr
+import simplecommand
 from config import AvrDevice, create_entity_id
 from simplecommand import (
-    ALL_COMMANDS,
-    ALL_COMMANDS_DENON,
-    ALL_COMMANDS_TELNET,
     ALL_COMMANDS_TELNET_DENON,
 )
 from ucapi import EntityTypes, MediaPlayer, StatusCodes
@@ -86,18 +84,10 @@ class DenonMediaPlayer(MediaPlayer):
             attributes[Attributes.SOUND_MODE] = ""
             attributes[Attributes.SOUND_MODE_LIST] = []
 
+        self.simple_commands = simplecommand.get_simple_commands(device)
         # Denon has additional simple commands
         if device.is_denon:
-            if device.use_telnet:
-                self.simple_commands = [*ALL_COMMANDS_TELNET_DENON]
-            else:
-                self.simple_commands = [*ALL_COMMANDS_DENON]
             features.append(Features.STOP)
-        else:
-            if device.use_telnet:
-                self.simple_commands = [*ALL_COMMANDS_TELNET]
-            else:
-                self.simple_commands = [*ALL_COMMANDS]
 
         options = {Options.SIMPLE_COMMANDS: self.simple_commands}
 

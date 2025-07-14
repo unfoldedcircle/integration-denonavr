@@ -13,6 +13,7 @@ from typing import Any
 
 import avr
 import config
+import denon_remote
 import media_player
 import setup_flow
 import ucapi
@@ -304,11 +305,16 @@ def _register_available_entities(device: config.AvrDevice, receiver: avr.DenonDe
     """
     # plain and simple for now: only one media_player per AVR device
     # entity = media_player.create_entity(device)
-    entity = media_player.DenonMediaPlayer(device, receiver)
+    denon_media_player = media_player.DenonMediaPlayer(device, receiver)
+    entities = [
+        denon_media_player,
+        denon_remote.DenonRemote(device, receiver, denon_media_player),
+    ]
 
-    if api.available_entities.contains(entity.id):
-        api.available_entities.remove(entity.id)
-    api.available_entities.add(entity)
+    for entity in entities:
+        if api.available_entities.contains(entity.id):
+            api.available_entities.remove(entity.id)
+        api.available_entities.add(entity)
 
 
 def on_device_added(device: config.AvrDevice) -> None:

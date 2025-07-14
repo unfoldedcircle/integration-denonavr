@@ -91,7 +91,6 @@ Note that the toggle commands only are available when using Telnet.
 | ECO_ON                                              | ECOON                 |
 | ECO_OFF                                             | ECOOFF                |
 | INFO_MENU                                           | MNINF                 |
-| OPTIONS_MENU                                        | MNOPT                 |
 | CHANNEL_LEVEL_ADJUST_MENU                           | MNCHL                 |
 | AUTO_STANDBY_OFF                                    | STBYOFF               |
 | AUTO_STANDBY_15MIN                                  | STBY15M               |
