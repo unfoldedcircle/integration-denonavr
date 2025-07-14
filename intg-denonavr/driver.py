@@ -279,7 +279,7 @@ def _entities_from_avr(avr_id: str) -> list[str]:
     """
     # dead simple for now: one media_player entity per device!
     # TODO #21 support multiple zones: one media-player per zone
-    return [f"media_player.{avr_id}"]
+    return [f"media_player.{avr_id}", f"remote.{avr_id}"]
 
 
 def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> None:
