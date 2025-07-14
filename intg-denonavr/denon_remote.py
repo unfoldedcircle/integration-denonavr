@@ -8,7 +8,9 @@ Remote entity functions.
 from typing import Any
 
 import avr
+import helpers
 import simplecommand
+import ucapi.remote
 from command_constants import (
     AudysseyCommands,
     CoreCommands,
@@ -21,6 +23,16 @@ from media_player import DenonMediaPlayer
 from ucapi import EntityTypes, Remote, StatusCodes, media_player
 from ucapi.remote import Attributes, Commands, Features
 from ucapi.ui import Buttons
+
+# Mapping of an AVR state to a remote entity state
+REMOTE_STATE_MAPPING = {
+    avr.States.ON: ucapi.remote.States.ON,
+    avr.States.OFF: ucapi.remote.States.OFF,
+    avr.States.PAUSED: ucapi.remote.States.ON,
+    avr.States.PLAYING: ucapi.remote.States.ON,
+    avr.States.UNAVAILABLE: ucapi.remote.States.UNAVAILABLE,
+    avr.States.UNKNOWN: ucapi.remote.States.UNKNOWN,
+}
 
 
 # pylint: disable=R0903
@@ -55,10 +67,36 @@ class DenonRemote(Remote):
         :param params: optional command parameters
         :return: status code of the command request
         """
-        return await self.handle_command(cmd_id, params)
+        return await self._handle_command(cmd_id, params)
 
-    async def handle_command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
-        """Handle command."""
+    @staticmethod
+    def state_from_avr(avr_state: avr.States) -> ucapi.remote.States:
+        """
+        Convert AVR state to UC API remote state.
+
+        :param avr_state: Denon/Marantz AVR state
+        :return: UC API remote state
+        """
+        if avr_state in REMOTE_STATE_MAPPING:
+            return REMOTE_STATE_MAPPING[avr_state]
+        return ucapi.remote.States.UNKNOWN
+
+    def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
+        """
+        Filter the given attributes and return only the changed values.
+
+        :param update: dictionary with attributes.
+        :return: filtered entity attributes containing changed attributes only.
+        """
+        attributes = {}
+
+        if Attributes.STATE in update:
+            state = DenonRemote.state_from_avr(update[Attributes.STATE])
+            attributes = helpers.key_update_helper(Attributes.STATE, state, attributes, self.attributes)
+
+        return attributes
+
+    async def _handle_command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
         command = ""
         if params:
             command = params.get("command", "")

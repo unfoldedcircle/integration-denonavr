@@ -116,8 +116,13 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
         avr_id = avr_from_entity_id(entity_id)
         if avr_id in _configured_avrs:
             receiver = _configured_avrs[avr_id]
-            state = media_player.state_from_avr(receiver.state)
-            api.configured_entities.update_attributes(entity_id, {ucapi.media_player.Attributes.STATE: state})
+            configured_entity = api.configured_entities.get(entity_id)
+            if isinstance(configured_entity, media_player.DenonMediaPlayer):
+                state = media_player.state_from_avr(receiver.state)
+                api.configured_entities.update_attributes(entity_id, {ucapi.media_player.Attributes.STATE: state})
+            elif isinstance(configured_entity, denon_remote.DenonRemote):
+                state = denon_remote.DenonRemote.state_from_avr(receiver.state)
+                api.configured_entities.update_attributes(entity_id, {ucapi.remote.Attributes.STATE: state})
             continue
 
         device = config.devices.get(avr_id)
@@ -161,14 +166,16 @@ async def on_avr_connected(avr_id: str):
         if configured_entity is None:
             continue
 
+        state = configured_entity.attributes[ucapi.media_player.Attributes.STATE]
         if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
-            if (
-                configured_entity.attributes[ucapi.media_player.Attributes.STATE]
-                == ucapi.media_player.States.UNAVAILABLE
-            ):
-                # TODO why STANDBY?
+            if state == ucapi.media_player.States.UNAVAILABLE:
                 api.configured_entities.update_attributes(
-                    entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.STANDBY}
+                    entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
+                )
+        elif configured_entity.entity_type == ucapi.EntityTypes.REMOTE:
+            if state == ucapi.remote.States.UNAVAILABLE:
+                api.configured_entities.update_attributes(
+                    entity_id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNAVAILABLE}
                 )
 
 
@@ -185,6 +192,10 @@ async def on_avr_disconnected(avr_id: str):
             api.configured_entities.update_attributes(
                 entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
             )
+        elif configured_entity.entity_type == ucapi.EntityTypes.REMOTE:
+            api.configured_entities.update_attributes(
+                entity_id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNAVAILABLE}
+            )
 
 
 async def on_avr_connection_error(avr_id: str, message):
@@ -199,6 +210,10 @@ async def on_avr_connection_error(avr_id: str, message):
         if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
             api.configured_entities.update_attributes(
                 entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
+            )
+        elif configured_entity.entity_type == ucapi.EntityTypes.REMOTE:
+            api.configured_entities.update_attributes(
+                entity_id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNAVAILABLE}
             )
 
 
@@ -247,6 +262,8 @@ async def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             return
 
         if isinstance(configured_entity, media_player.DenonMediaPlayer):
+            attributes = configured_entity.filter_changed_attributes(update)
+        elif isinstance(configured_entity, denon_remote.DenonRemote):
             attributes = configured_entity.filter_changed_attributes(update)
 
         if attributes:

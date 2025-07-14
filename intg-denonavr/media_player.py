@@ -9,6 +9,7 @@ import logging
 from typing import Any
 
 import avr
+import helpers
 import simplecommand
 from config import AvrDevice, create_entity_id
 from simplecommand import (
@@ -184,7 +185,7 @@ class DenonMediaPlayer(MediaPlayer):
 
         if Attributes.STATE in update:
             state = state_from_avr(update[Attributes.STATE])
-            attributes = self._key_update_helper(Attributes.STATE, state, attributes)
+            attributes = helpers.key_update_helper(Attributes.STATE, state, attributes, self.attributes)
 
         for attr in [
             Attributes.MEDIA_ARTIST,
@@ -196,7 +197,7 @@ class DenonMediaPlayer(MediaPlayer):
             Attributes.VOLUME,
         ]:
             if attr in update:
-                attributes = self._key_update_helper(attr, update[attr], attributes)
+                attributes = helpers.key_update_helper(attr, update[attr], attributes, self.attributes)
 
         if Attributes.SOURCE_LIST in update:
             if Attributes.SOURCE_LIST in self.attributes:
@@ -205,7 +206,9 @@ class DenonMediaPlayer(MediaPlayer):
 
         if Features.SELECT_SOUND_MODE in self.features:
             if Attributes.SOUND_MODE in update:
-                attributes = self._key_update_helper(Attributes.SOUND_MODE, update[Attributes.SOUND_MODE], attributes)
+                attributes = helpers.key_update_helper(
+                    Attributes.SOUND_MODE, update[Attributes.SOUND_MODE], attributes, self.attributes
+                )
             if Attributes.SOUND_MODE_LIST in update:
                 if Attributes.SOUND_MODE_LIST in self.attributes:
                     if update[Attributes.SOUND_MODE_LIST] != self.attributes[Attributes.SOUND_MODE_LIST]:
@@ -219,18 +222,6 @@ class DenonMediaPlayer(MediaPlayer):
                 attributes[Attributes.MEDIA_TITLE] = ""
                 attributes[Attributes.MEDIA_TYPE] = ""
                 attributes[Attributes.SOURCE] = ""
-
-        return attributes
-
-    def _key_update_helper(self, key: str, value: str | None, attributes):
-        if value is None:
-            return attributes
-
-        if key in self.attributes:
-            if self.attributes[key] != value:
-                attributes[key] = value
-        else:
-            attributes[key] = value
 
         return attributes
 
