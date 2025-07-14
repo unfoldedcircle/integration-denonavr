@@ -41,8 +41,8 @@ class DenonRemote(Remote):
                 Attributes.STATE: receiver.state,
             },
             simple_commands=simplecommand.get_simple_commands(device),
-            button_mapping=DENON_REMOTE_BUTTONS_MAPPING,
-            ui_pages=DENON_REMOTE_UI_PAGES,
+            button_mapping=REMOTE_BUTTONS_MAPPING,
+            ui_pages=DenonRemote._get_remote_ui_pages(),
         )
 
     async def command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
@@ -79,8 +79,1075 @@ class DenonRemote(Remote):
 
         return StatusCodes.NOT_IMPLEMENTED
 
+    @staticmethod
+    def _get_remote_ui_pages():
+        return [
+            DenonRemote._get_main_page(),
+            DenonRemote._get_sound_modes_page(),
+            DenonRemote._get_standby_page(),
+            DenonRemote._get_triggers_page(),
+            DenonRemote._get_dirac_page(),
+            DenonRemote._get_audyssey_page(),
+            DenonRemote._get_channel_levels_page(),
+            DenonRemote._get_eco_page(),
+        ]
 
-DENON_REMOTE_BUTTONS_MAPPING: list[dict[str, Any]] = [
+    @staticmethod
+    def _get_main_page():
+        return {
+            "page_id": "denon_avr_commands_main",
+            "name": "Main",
+            "grid": {"width": 4, "height": 7},
+            "items": [
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {"command": CoreCommands.SPEAKER_PRESET_1, "repeat": 1},
+                    },
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Speaker Preset 1",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {"command": CoreCommands.SPEAKER_PRESET_1, "repeat": 1},
+                    },
+                    "location": {"x": 2, "y": 0},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Speaker Preset 2",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {"command": CoreCommands.OUTPUT_AUTO, "repeat": 1},
+                    },
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 2},
+                    "text": "HDMI Auto",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {"command": CoreCommands.OUTPUT_1, "repeat": 1},
+                    },
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 2},
+                    "text": "HDMI 1",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {"command": CoreCommands.OUTPUT_2, "repeat": 1},
+                    },
+                    "location": {"x": 2, "y": 2},
+                    "size": {"height": 1, "width": 2},
+                    "text": "HDMI 2",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {"command": CoreCommands.DELAY_DOWN, "repeat": 1},
+                    },
+                    "text": "Delay Down",
+                    "location": {"x": 0, "y": 4},
+                    "size": {"height": 1, "width": 2},
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {"command": CoreCommands.DELAY_UP, "repeat": 1},
+                    },
+                    "text": "Delay Up",
+                    "location": {"x": 2, "y": 4},
+                    "size": {"height": 1, "width": 2},
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.DIMMER_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "text": "Dimmer Off",
+                    "location": {"x": 0, "y": 5},
+                    "size": {"height": 1, "width": 2},
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.DIMMER_BRIGHT,
+                            "repeat": 1,
+                        },
+                    },
+                    "text": "Dimmer On",
+                    "location": {"x": 2, "y": 5},
+                    "size": {"height": 1, "width": 2},
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": media_player.Commands.CONTEXT_MENU,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 6},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Option",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {"command": media_player.Commands.MENU, "repeat": 1},
+                    },
+                    "location": {"x": 1, "y": 6},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Setup",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {"command": media_player.Commands.INFO, "repeat": 1},
+                    },
+                    "location": {"x": 3, "y": 6},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Info",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_sound_modes_page():
+        return {
+            "page_id": "denon_avr_commands_sound_modes",
+            "name": "Sound Modes",
+            "grid": {"height": 7, "width": 4},
+            "items": [
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_AUTO,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Auto",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_DOLBY_DIGITAL,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 2, "y": 0},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Dolby",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_DIRECT,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Direct",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_DTS_SURROUND,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 2, "y": 1},
+                    "size": {"height": 1, "width": 2},
+                    "text": "DTS",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_PURE_DIRECT,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Pure Direct",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_AURO3D,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 2, "y": 2},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Auro-3D",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_MCH_STEREO,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 3},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Multi Channel Stereo",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_AURO3D,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 2, "y": 2},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Auro-3D",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_MCH_STEREO,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 3},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Multi Channel Stereo",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_AURO2DSURR,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 2, "y": 3},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Auro-2D Surround",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SOUND_MODE_IMAX_AUTO,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 4},
+                    "size": {"height": 1, "width": 2},
+                    "text": "IMAX Auto",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SOUND_MODE_NEURAL_X_ON,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 2, "y": 4},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Neural X On",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SOUND_MODE_IMAX_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 5},
+                    "size": {"height": 1, "width": 2},
+                    "text": "IMAX Off",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SOUND_MODE_NEURAL_X_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 2, "y": 5},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Neural X Off",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_PREVIOUS,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 6},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Previous",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": SoundModeCommands.SURROUND_MODE_NEXT,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 2, "y": 6},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Next",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_standby_page():
+        return {
+            "page_id": "denon_avr_commands_standby",
+            "name": "Standby",
+            "grid": {"height": 4, "width": 1},
+            "items": [
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.AUTO_STANDBY_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Auto Standby Off",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.AUTO_STANDBY_15MIN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Auto Standby 15min",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.AUTO_STANDBY_30MIN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Auto Standby 30min",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.AUTO_STANDBY_60MIN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Auto Standby 60min",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_triggers_page():
+        return {
+            "page_id": "denon_avr_commands_triggers",
+            "name": "Triggers",
+            "grid": {"height": 3, "width": 2},
+            "items": [
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.TRIGGER1_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Trigger 1 Off",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.TRIGGER1_ON,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Trigger 1 On",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.TRIGGER2_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Trigger 2 Off",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.TRIGGER2_ON,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Trigger 2 On",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.TRIGGER3_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Trigger 3 Off",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.TRIGGER3_ON,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Trigger 3 On",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_dirac_page():
+        return {
+            "page_id": "denon_avr_commands_dirac",
+            "name": "Triggers",
+            "grid": {"height": 4, "width": 1},
+            "items": [
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": DiracCommands.DIRAC_LIVE_FILTER_SLOT1,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dirac Slot 1",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": DiracCommands.DIRAC_LIVE_FILTER_SLOT2,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dirac Slot 2",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": DiracCommands.DIRAC_LIVE_FILTER_SLOT3,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dirac Slot 3",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": DiracCommands.DIRAC_LIVE_FILTER_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dirac Off",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_audyssey_page():
+        return {
+            "page_id": "denon_avr_commands_audyssey",
+            "name": "Triggers",
+            "grid": {"height": 7, "width": 2},
+            "items": [
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.MULTIEQ_REFERENCE,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "MultiEQ Reference",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.MULTIEQ_BYPASS_LR,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "MultiEQ Bypass LR",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.MULTIEQ_FLAT,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "MultiEQ Flat",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.MULTIEQ_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "MultiEQ Off",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.DYNAMIC_EQ_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dynamic EQ Off",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.DYNAMIC_EQ_ON,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dynamic EQ On",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.AUDYSSEY_LFC_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "LFC Off",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.AUDYSSEY_LFC,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "LFC On",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.DYNAMIC_VOLUME_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 4},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dyn. Vol. Off",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.DYNAMIC_VOLUME_LIGHT,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 4},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dyn. Vol. Light",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.DYNAMIC_VOLUME_MEDIUM,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 5},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dyn. Vol. Medium",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.DYNAMIC_VOLUME_HEAVY,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 5},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dyn. Vol. Heavy",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.CONTAINMENT_AMOUNT_DOWN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 6},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Containment Down",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": AudysseyCommands.CONTAINMENT_AMOUNT_UP,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 6},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Containment Up",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_channel_levels_page():
+        return {
+            "page_id": "denon_avr_commands_channel_levels",
+            "name": "Channel Levels",
+            "grid": {"height": 9, "width": 2},
+            "items": [
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.FRONT_LEFT_DOWN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Front L Down",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.FRONT_LEFT_UP,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Front L Up",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.FRONT_RIGHT_DOWN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Front R Down",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.FRONT_RIGHT_UP,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Front R Up",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.CENTER_DOWN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Center Down",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.CENTER_UP,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Center Up",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SURROUND_LEFT_DOWN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. L Down",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SURROUND_LEFT_UP,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. L Up",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SURROUND_RIGHT_DOWN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 4},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. R Down",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SURROUND_RIGHT_UP,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 4},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. R Up",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SURROUND_BACK_LEFT_DOWN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 5},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. Back L Down",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SURROUND_BACK_LEFT_UP,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 5},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. Back L Up",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SURROUND_BACK_RIGHT_DOWN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 6},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. Back R Down",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SURROUND_BACK_RIGHT_UP,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 6},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. Back R Up",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SUB1_DOWN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 7},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Sub 1 Down",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SUB1_UP,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 7},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Sub 1 Up",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SUB2_DOWN,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 8},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Sub 2 Down",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": VolumeCommands.SUB2_UP,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 1, "y": 8},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Sub 2 Up",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_eco_page():
+        return {
+            "page_id": "denon_avr_commands_eco",
+            "name": "ECO",
+            "grid": {"height": 3, "width": 1},
+            "items": [
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.ECO_AUTO,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "ECO Auto",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.ECO_ON,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "ECO On",
+                    "type": "text",
+                },
+                {
+                    "command": {
+                        "cmd_id": "remote.send",
+                        "params": {
+                            "command": CoreCommands.ECO_OFF,
+                            "repeat": 1,
+                        },
+                    },
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "ECO On",
+                    "type": "text",
+                },
+            ],
+        }
+
+
+REMOTE_BUTTONS_MAPPING: list[dict[str, Any]] = [
     {"button": Buttons.BACK, "short_press": {"cmd_id": media_player.Commands.BACK}},
     {
         "button": Buttons.DPAD_DOWN,
@@ -118,1037 +1185,4 @@ DENON_REMOTE_BUTTONS_MAPPING: list[dict[str, Any]] = [
     {"button": Buttons.PREV, "short_press": {"cmd_id": media_player.Commands.PREVIOUS}},
     {"button": Buttons.PLAY, "short_press": {"cmd_id": media_player.Commands.PLAY_PAUSE}},
     {"button": Buttons.NEXT, "short_press": {"cmd_id": media_player.Commands.NEXT}},
-]
-
-DENON_REMOTE_UI_PAGES = [
-    {
-        "page_id": "denon_avr_commands_main",
-        "name": "Main",
-        "grid": {"width": 4, "height": 7},
-        "items": [
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {"command": CoreCommands.SPEAKER_PRESET_1, "repeat": 1},
-                },
-                "location": {"x": 0, "y": 0},
-                "size": {"height": 1, "width": 2},
-                "text": "Speaker Preset 1",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {"command": CoreCommands.SPEAKER_PRESET_1, "repeat": 1},
-                },
-                "location": {"x": 2, "y": 0},
-                "size": {"height": 1, "width": 2},
-                "text": "Speaker Preset 2",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {"command": CoreCommands.OUTPUT_AUTO, "repeat": 1},
-                },
-                "location": {"x": 0, "y": 1},
-                "size": {"height": 1, "width": 2},
-                "text": "HDMI Auto",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {"command": CoreCommands.OUTPUT_1, "repeat": 1},
-                },
-                "location": {"x": 0, "y": 2},
-                "size": {"height": 1, "width": 2},
-                "text": "HDMI 1",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {"command": CoreCommands.OUTPUT_2, "repeat": 1},
-                },
-                "location": {"x": 2, "y": 2},
-                "size": {"height": 1, "width": 2},
-                "text": "HDMI 2",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {"command": CoreCommands.DELAY_DOWN, "repeat": 1},
-                },
-                "text": "Delay Down",
-                "location": {"x": 0, "y": 4},
-                "size": {"height": 1, "width": 2},
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {"command": CoreCommands.DELAY_UP, "repeat": 1},
-                },
-                "text": "Delay Up",
-                "location": {"x": 2, "y": 4},
-                "size": {"height": 1, "width": 2},
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.DIMMER_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "text": "Dimmer Off",
-                "location": {"x": 0, "y": 5},
-                "size": {"height": 1, "width": 2},
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.DIMMER_BRIGHT,
-                        "repeat": 1,
-                    },
-                },
-                "text": "Dimmer On",
-                "location": {"x": 2, "y": 5},
-                "size": {"height": 1, "width": 2},
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": media_player.Commands.CONTEXT_MENU,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 6},
-                "size": {"height": 1, "width": 1},
-                "text": "Option",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {"command": media_player.Commands.MENU, "repeat": 1},
-                },
-                "location": {"x": 1, "y": 6},
-                "size": {"height": 1, "width": 2},
-                "text": "Setup",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {"command": media_player.Commands.INFO, "repeat": 1},
-                },
-                "location": {"x": 3, "y": 6},
-                "size": {"height": 1, "width": 1},
-                "text": "Info",
-                "type": "text",
-            },
-        ],
-    },
-    {
-        "page_id": "denon_avr_commands_sound_modes",
-        "name": "Sound Modes",
-        "grid": {"height": 7, "width": 4},
-        "items": [
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_AUTO,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 0},
-                "size": {"height": 1, "width": 2},
-                "text": "Auto",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_DOLBY_DIGITAL,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 2, "y": 0},
-                "size": {"height": 1, "width": 2},
-                "text": "Dolby",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_DIRECT,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 1},
-                "size": {"height": 1, "width": 2},
-                "text": "Direct",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_DTS_SURROUND,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 2, "y": 1},
-                "size": {"height": 1, "width": 2},
-                "text": "DTS",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_PURE_DIRECT,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 2},
-                "size": {"height": 1, "width": 2},
-                "text": "Pure Direct",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_AURO3D,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 2, "y": 2},
-                "size": {"height": 1, "width": 2},
-                "text": "Auro-3D",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_MCH_STEREO,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 3},
-                "size": {"height": 1, "width": 2},
-                "text": "Multi Channel Stereo",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_AURO3D,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 2, "y": 2},
-                "size": {"height": 1, "width": 2},
-                "text": "Auro-3D",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_MCH_STEREO,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 3},
-                "size": {"height": 1, "width": 2},
-                "text": "Multi Channel Stereo",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_AURO2DSURR,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 2, "y": 3},
-                "size": {"height": 1, "width": 2},
-                "text": "Auro-2D Surround",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SOUND_MODE_IMAX_AUTO,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 4},
-                "size": {"height": 1, "width": 2},
-                "text": "IMAX Auto",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SOUND_MODE_NEURAL_X_ON,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 2, "y": 4},
-                "size": {"height": 1, "width": 2},
-                "text": "Neural X On",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SOUND_MODE_IMAX_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 5},
-                "size": {"height": 1, "width": 2},
-                "text": "IMAX Off",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SOUND_MODE_NEURAL_X_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 2, "y": 5},
-                "size": {"height": 1, "width": 2},
-                "text": "Neural X Off",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_PREVIOUS,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 6},
-                "size": {"height": 1, "width": 2},
-                "text": "Previous",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": SoundModeCommands.SURROUND_MODE_NEXT,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 2, "y": 6},
-                "size": {"height": 1, "width": 2},
-                "text": "Next",
-                "type": "text",
-            },
-        ],
-    },
-    {
-        "page_id": "denon_avr_commands_sound_modes",
-        "name": "Standby",
-        "grid": {"height": 4, "width": 1},
-        "items": [
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.AUTO_STANDBY_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 0},
-                "size": {"height": 1, "width": 1},
-                "text": "Auto Standby Off",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.AUTO_STANDBY_15MIN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 1},
-                "size": {"height": 1, "width": 1},
-                "text": "Auto Standby 15min",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.AUTO_STANDBY_30MIN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 2},
-                "size": {"height": 1, "width": 1},
-                "text": "Auto Standby 30min",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.AUTO_STANDBY_60MIN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 3},
-                "size": {"height": 1, "width": 1},
-                "text": "Auto Standby 60min",
-                "type": "text",
-            },
-        ],
-    },
-    {
-        "page_id": "denon_avr_commands_triggers",
-        "name": "Triggers",
-        "grid": {"height": 3, "width": 2},
-        "items": [
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.TRIGGER1_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 0},
-                "size": {"height": 1, "width": 1},
-                "text": "Trigger 1 Off",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.TRIGGER1_ON,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 0},
-                "size": {"height": 1, "width": 1},
-                "text": "Trigger 1 On",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.TRIGGER2_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 1},
-                "size": {"height": 1, "width": 1},
-                "text": "Trigger 2 Off",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.TRIGGER2_ON,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 1},
-                "size": {"height": 1, "width": 1},
-                "text": "Trigger 2 On",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.TRIGGER3_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 2},
-                "size": {"height": 1, "width": 1},
-                "text": "Trigger 3 Off",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.TRIGGER3_ON,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 2},
-                "size": {"height": 1, "width": 1},
-                "text": "Trigger 3 On",
-                "type": "text",
-            },
-        ],
-    },
-    {
-        "page_id": "denon_avr_commands_dirac",
-        "name": "Triggers",
-        "grid": {"height": 4, "width": 1},
-        "items": [
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": DiracCommands.DIRAC_LIVE_FILTER_SLOT1,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 0},
-                "size": {"height": 1, "width": 1},
-                "text": "Dirac Slot 1",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": DiracCommands.DIRAC_LIVE_FILTER_SLOT2,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 1},
-                "size": {"height": 1, "width": 1},
-                "text": "Dirac Slot 2",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": DiracCommands.DIRAC_LIVE_FILTER_SLOT3,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 2},
-                "size": {"height": 1, "width": 1},
-                "text": "Dirac Slot 3",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": DiracCommands.DIRAC_LIVE_FILTER_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 3},
-                "size": {"height": 1, "width": 1},
-                "text": "Dirac Off",
-                "type": "text",
-            },
-        ],
-    },
-    {
-        "page_id": "denon_avr_commands_audyssey",
-        "name": "Triggers",
-        "grid": {"height": 7, "width": 2},
-        "items": [
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.MULTIEQ_REFERENCE,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 0},
-                "size": {"height": 1, "width": 1},
-                "text": "MultiEQ Reference",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.MULTIEQ_BYPASS_LR,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 0},
-                "size": {"height": 1, "width": 1},
-                "text": "MultiEQ Bypass LR",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.MULTIEQ_FLAT,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 1},
-                "size": {"height": 1, "width": 1},
-                "text": "MultiEQ Flat",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.MULTIEQ_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 1},
-                "size": {"height": 1, "width": 1},
-                "text": "MultiEQ Off",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.DYNAMIC_EQ_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 2},
-                "size": {"height": 1, "width": 1},
-                "text": "Dynamic EQ Off",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.DYNAMIC_EQ_ON,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 2},
-                "size": {"height": 1, "width": 1},
-                "text": "Dynamic EQ On",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.AUDYSSEY_LFC_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 3},
-                "size": {"height": 1, "width": 1},
-                "text": "LFC Off",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.AUDYSSEY_LFC,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 3},
-                "size": {"height": 1, "width": 1},
-                "text": "LFC On",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.DYNAMIC_VOLUME_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 4},
-                "size": {"height": 1, "width": 1},
-                "text": "Dyn. Vol. Off",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.DYNAMIC_VOLUME_LIGHT,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 4},
-                "size": {"height": 1, "width": 1},
-                "text": "Dyn. Vol. Light",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.DYNAMIC_VOLUME_MEDIUM,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 5},
-                "size": {"height": 1, "width": 1},
-                "text": "Dyn. Vol. Medium",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.DYNAMIC_VOLUME_HEAVY,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 5},
-                "size": {"height": 1, "width": 1},
-                "text": "Dyn. Vol. Heavy",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.CONTAINMENT_AMOUNT_DOWN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 6},
-                "size": {"height": 1, "width": 1},
-                "text": "Containment Down",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": AudysseyCommands.CONTAINMENT_AMOUNT_UP,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 6},
-                "size": {"height": 1, "width": 1},
-                "text": "Containment Up",
-                "type": "text",
-            },
-        ],
-    },
-    {
-        "page_id": "denon_avr_commands_channel_levels",
-        "name": "Channel Levels",
-        "grid": {"height": 9, "width": 2},
-        "items": [
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.FRONT_LEFT_DOWN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 0},
-                "size": {"height": 1, "width": 1},
-                "text": "Front L Down",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.FRONT_LEFT_UP,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 0},
-                "size": {"height": 1, "width": 1},
-                "text": "Front L Up",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.FRONT_RIGHT_DOWN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 1},
-                "size": {"height": 1, "width": 1},
-                "text": "Front R Down",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.FRONT_RIGHT_UP,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 1},
-                "size": {"height": 1, "width": 1},
-                "text": "Front R Up",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.CENTER_DOWN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 2},
-                "size": {"height": 1, "width": 1},
-                "text": "Center Down",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.CENTER_UP,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 2},
-                "size": {"height": 1, "width": 1},
-                "text": "Center Up",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SURROUND_LEFT_DOWN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 3},
-                "size": {"height": 1, "width": 1},
-                "text": "Surr. L Down",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SURROUND_LEFT_UP,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 3},
-                "size": {"height": 1, "width": 1},
-                "text": "Surr. L Up",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SURROUND_RIGHT_DOWN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 4},
-                "size": {"height": 1, "width": 1},
-                "text": "Surr. R Down",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SURROUND_RIGHT_UP,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 4},
-                "size": {"height": 1, "width": 1},
-                "text": "Surr. R Up",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SURROUND_BACK_LEFT_DOWN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 5},
-                "size": {"height": 1, "width": 1},
-                "text": "Surr. Back L Down",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SURROUND_BACK_LEFT_UP,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 5},
-                "size": {"height": 1, "width": 1},
-                "text": "Surr. Back L Up",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SURROUND_BACK_RIGHT_DOWN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 6},
-                "size": {"height": 1, "width": 1},
-                "text": "Surr. Back R Down",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SURROUND_BACK_RIGHT_UP,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 6},
-                "size": {"height": 1, "width": 1},
-                "text": "Surr. Back R Up",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SUB1_DOWN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 7},
-                "size": {"height": 1, "width": 1},
-                "text": "Sub 1 Down",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SUB1_UP,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 7},
-                "size": {"height": 1, "width": 1},
-                "text": "Sub 1 Up",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SUB2_DOWN,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 8},
-                "size": {"height": 1, "width": 1},
-                "text": "Sub 2 Down",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": VolumeCommands.SUB2_UP,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 1, "y": 8},
-                "size": {"height": 1, "width": 1},
-                "text": "Sub 2 Up",
-                "type": "text",
-            },
-        ],
-    },
-    {
-        "page_id": "denon_avr_commands_eco",
-        "name": "ECO",
-        "grid": {"height": 3, "width": 1},
-        "items": [
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.ECO_AUTO,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 0},
-                "size": {"height": 1, "width": 1},
-                "text": "ECO Auto",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.ECO_ON,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 1},
-                "size": {"height": 1, "width": 1},
-                "text": "ECO On",
-                "type": "text",
-            },
-            {
-                "command": {
-                    "cmd_id": "remote.send",
-                    "params": {
-                        "command": CoreCommands.ECO_OFF,
-                        "repeat": 1,
-                    },
-                },
-                "location": {"x": 0, "y": 2},
-                "size": {"height": 1, "width": 1},
-                "text": "ECO On",
-                "type": "text",
-            },
-        ],
-    },
 ]
