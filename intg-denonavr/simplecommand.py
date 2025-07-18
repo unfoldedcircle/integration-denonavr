@@ -371,7 +371,9 @@ class SimpleCommand:
             return await self._handle_audyssey_command(cmd)
         if cmd in DIRAC_COMMANDS:
             return await self._handle_dirac_command(cmd)
-        return ucapi.StatusCodes.NOT_IMPLEMENTED
+
+        # send raw command to the receiver
+        return await self._send_command(cmd)
 
     async def _handle_core_command(self, cmd: str) -> ucapi.StatusCodes:
         # pylint: disable=R0915

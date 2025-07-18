@@ -119,58 +119,55 @@ class DenonMediaPlayer(MediaPlayer):
 
         match cmd_id:
             case Commands.PLAY_PAUSE:
-                res = await self._receiver.play_pause()
+                return await self._receiver.play_pause()
             case Commands.STOP:
-                res = await self._receiver.stop()
+                return await self._receiver.stop()
             case Commands.NEXT:
-                res = await self._receiver.next()
+                return await self._receiver.next()
             case Commands.PREVIOUS:
-                res = await self._receiver.previous()
+                return await self._receiver.previous()
             case Commands.VOLUME:
-                res = await self._receiver.set_volume_level(params.get("volume"))
+                return await self._receiver.set_volume_level(params.get("volume"))
             case Commands.VOLUME_UP:
-                res = await self._receiver.volume_up()
+                return await self._receiver.volume_up()
             case Commands.VOLUME_DOWN:
-                res = await self._receiver.volume_down()
+                return await self._receiver.volume_down()
             case Commands.MUTE_TOGGLE:
-                res = await self._receiver.mute(not self.attributes[Attributes.MUTED])
+                return await self._receiver.mute(not self.attributes[Attributes.MUTED])
             case Commands.MUTE:
-                res = await self._receiver.mute(True)
+                return await self._receiver.mute(True)
             case Commands.UNMUTE:
-                res = await self._receiver.mute(False)
+                return await self._receiver.mute(False)
             case Commands.ON:
-                res = await self._receiver.power_on()
+                return await self._receiver.power_on()
             case Commands.OFF:
-                res = await self._receiver.power_off()
+                return await self._receiver.power_off()
             case Commands.TOGGLE:
-                res = await self._receiver.power_toggle()
+                return await self._receiver.power_toggle()
             case Commands.SELECT_SOURCE:
-                res = await self._receiver.select_source(params.get("source"))
+                return await self._receiver.select_source(params.get("source"))
             case Commands.SELECT_SOUND_MODE:
-                res = await self._receiver.select_sound_mode(params.get("mode"))
+                return await self._receiver.select_sound_mode(params.get("mode"))
             case Commands.CURSOR_UP:
-                res = await self._receiver.cursor_up()
+                return await self._receiver.cursor_up()
             case Commands.CURSOR_DOWN:
-                res = await self._receiver.cursor_down()
+                return await self._receiver.cursor_down()
             case Commands.CURSOR_LEFT:
-                res = await self._receiver.cursor_left()
+                return await self._receiver.cursor_left()
             case Commands.CURSOR_RIGHT:
-                res = await self._receiver.cursor_right()
+                return await self._receiver.cursor_right()
             case Commands.CURSOR_ENTER:
-                res = await self._receiver.cursor_enter()
+                return await self._receiver.cursor_enter()
             case Commands.BACK:
-                res = await self._receiver.back()
+                return await self._receiver.back()
             case Commands.MENU:
-                res = await self._receiver.setup()
+                return await self._receiver.setup()
             case Commands.CONTEXT_MENU:
-                res = await self._receiver.options()
+                return await self._receiver.options()
             case Commands.INFO:
-                res = await self._receiver.info()
-            # Use SimpleCommandMappingsDenon as it covers both the shared and Denon specific commands
-            case cmd if cmd in ALL_COMMANDS_TELNET_DENON:
-                res = await self._receiver.send_simple_command(cmd)
+                return await self._receiver.info()
             case _:
-                return StatusCodes.NOT_IMPLEMENTED
+                return await self._receiver.send_simple_command(cmd_id)
 
     def get_supported_commands(self) -> list[str]:
         """
