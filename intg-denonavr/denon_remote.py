@@ -52,7 +52,7 @@ class DenonRemote(Remote):
             attributes={
                 Attributes.STATE: receiver.state,
             },
-            simple_commands=simplecommand.get_simple_commands(device),
+            simple_commands=self._denon_media_player.get_supported_commands(),
             button_mapping=REMOTE_BUTTONS_MAPPING,
             ui_pages=DenonRemote._get_remote_ui_pages(),
         )

@@ -44,7 +44,7 @@ class DenonMediaPlayer(MediaPlayer):
     def __init__(self, device: AvrDevice, receiver: avr.DenonDevice):
         """Initialize the class."""
         self._receiver: avr.DenonDevice = receiver
-
+        self._device: AvrDevice = device
         entity_id = create_entity_id(receiver.id, EntityTypes.MEDIA_PLAYER)
         features = [
             Features.ON_OFF,
@@ -172,7 +172,39 @@ class DenonMediaPlayer(MediaPlayer):
             case _:
                 return StatusCodes.NOT_IMPLEMENTED
 
-        return res
+    def get_supported_commands(self) -> list[str]:
+        """
+        Get the list of supported commands for this media-player entity.
+
+        :return: list of supported commands.
+        """
+        return [
+            Commands.PLAY_PAUSE,
+            Commands.STOP,
+            Commands.NEXT,
+            Commands.PREVIOUS,
+            Commands.VOLUME,
+            Commands.VOLUME_UP,
+            Commands.VOLUME_DOWN,
+            Commands.MUTE_TOGGLE,
+            Commands.MUTE,
+            Commands.UNMUTE,
+            Commands.ON,
+            Commands.OFF,
+            Commands.TOGGLE,
+            Commands.SELECT_SOURCE,
+            Commands.SELECT_SOUND_MODE,
+            Commands.CURSOR_UP,
+            Commands.CURSOR_DOWN,
+            Commands.CURSOR_LEFT,
+            Commands.CURSOR_RIGHT,
+            Commands.CURSOR_ENTER,
+            Commands.BACK,
+            Commands.MENU,
+            Commands.CONTEXT_MENU,
+            Commands.INFO,
+            *simplecommand.get_simple_commands(self._device),
+        ]
 
     def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
         """
