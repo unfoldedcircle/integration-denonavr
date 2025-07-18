@@ -361,6 +361,7 @@ class SimpleCommand:
 
     async def send_simple_command(self, cmd: str) -> ucapi.StatusCodes:
         """Send a simple command to the AVR."""
+        # pylint: disable=R0911
         if cmd in CORE_COMMANDS_DENON_TELNET:
             return await self._handle_core_command(cmd)
         if cmd in VOLUME_COMMANDS_TELNET:
