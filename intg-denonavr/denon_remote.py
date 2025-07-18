@@ -9,7 +9,6 @@ from typing import Any
 
 import avr
 import helpers
-import simplecommand
 import ucapi.remote
 from command_constants import (
     AudysseyCommands,
@@ -105,6 +104,7 @@ class DenonRemote(Remote):
         return attributes
 
     async def _handle_command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
+        # pylint: disable=R0911
         match cmd_id:
             case Commands.ON:
                 return await self._denon_media_player.command(Commands.ON)

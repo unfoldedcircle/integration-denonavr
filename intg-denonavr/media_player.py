@@ -12,9 +12,6 @@ import avr
 import helpers
 import simplecommand
 from config import AvrDevice, create_entity_id
-from simplecommand import (
-    ALL_COMMANDS_TELNET_DENON,
-)
 from ucapi import EntityTypes, MediaPlayer, StatusCodes
 from ucapi.media_player import (
     Attributes,
@@ -111,6 +108,7 @@ class DenonMediaPlayer(MediaPlayer):
         :param params: optional command parameters
         :return: status code of the command request
         """
+        # pylint: disable=R0911
         _LOG.info("Got %s command request: %s %s", self.id, cmd_id, params)
 
         if self._receiver is None:
