@@ -20,7 +20,7 @@ from command_constants import (
 )
 from config import AvrDevice, create_entity_id
 from media_player import DenonMediaPlayer
-from ucapi import EntityTypes, Remote, StatusCodes, media_player
+from ucapi import EntityTypes, Remote, StatusCodes, media_player, remote
 from ucapi.remote import Attributes, Commands, Features
 from ucapi.ui import Buttons
 
@@ -106,11 +106,11 @@ class DenonRemote(Remote):
 
         match command:
             case "remote.send":
-                return await self._denon_media_player.command(media_player.Commands.ON)
+                return await self._denon_media_player.command(remote.Commands.ON)
             case "remote.off":
-                return await self._denon_media_player.command(media_player.Commands.OFF)
+                return await self._denon_media_player.command(remote.Commands.OFF)
             case "remote.toggle":
-                return await self._denon_media_player.command(media_player.Commands.TOGGLE)
+                return await self._denon_media_player.command(remote.Commands.TOGGLE)
 
         if cmd_id == Commands.SEND_CMD:
             return await self._denon_media_player.command(command)
