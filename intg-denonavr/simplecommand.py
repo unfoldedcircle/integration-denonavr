@@ -372,7 +372,12 @@ class SimpleCommand:
         if cmd in DIRAC_COMMANDS:
             return await self._handle_dirac_command(cmd)
 
-        # send raw command to the receiver
+        # Unknown command, validate the string before sending
+        # Denon/Marantz API only supports length (COMMAND + PARAMETER[25]) with ascii 0x20-0x7F
+        # Add some buffer to the length to support the command text and spaces
+        if len(cmd) > 28 or (not all(0x20 <= ord(c) <= 0x7F for c in cmd)):
+            return ucapi.StatusCodes.BAD_REQUEST
+
         return await self._send_command(cmd)
 
     async def _handle_core_command(self, cmd: str) -> ucapi.StatusCodes:

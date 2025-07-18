@@ -71,10 +71,10 @@ class DenonRemote(Remote):
         else:
             repeat = 1
 
-        is_succsess = False
+        is_success = False
         for _ in range(0, repeat):
-            is_succsess |= await self._handle_command(cmd_id, params) == StatusCodes.OK
-        return StatusCodes.OK if is_succsess else StatusCodes.BAD_REQUEST
+            is_success |= await self._handle_command(cmd_id, params) == StatusCodes.OK
+        return StatusCodes.OK if is_success else StatusCodes.BAD_REQUEST
 
     @staticmethod
     def state_from_avr(avr_state: avr.States) -> ucapi.remote.States:
