@@ -20,7 +20,7 @@ from command_constants import (
 )
 from config import AvrDevice, create_entity_id
 from media_player import DenonMediaPlayer
-from ucapi import EntityTypes, Remote, StatusCodes, media_player, remote
+from ucapi import EntityTypes, Remote, StatusCodes, media_player
 from ucapi.remote import Attributes, Commands, Features
 from ucapi.ui import Buttons
 
@@ -67,7 +67,15 @@ class DenonRemote(Remote):
         :param params: optional command parameters
         :return: status code of the command request
         """
-        return await self._handle_command(cmd_id, params)
+        if params:
+            repeat = self._get_int_param("repeat", params, 1)
+        else:
+            repeat = 1
+
+        is_succsess = False
+        for _ in range(0, repeat):
+            is_succsess |= await self._handle_command(cmd_id, params) == StatusCodes.OK
+        return StatusCodes.OK if is_succsess else StatusCodes.BAD_REQUEST
 
     @staticmethod
     def state_from_avr(avr_state: avr.States) -> ucapi.remote.States:
@@ -97,25 +105,42 @@ class DenonRemote(Remote):
         return attributes
 
     async def _handle_command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
-        command = ""
-        if params:
-            command = params.get("command", "")
+        match cmd_id:
+            case Commands.ON:
+                return await self._denon_media_player.command(Commands.ON)
+            case Commands.OFF:
+                await self._denon_media_player.command(Commands.OFF)
+            case Commands.TOGGLE:
+                return await self._denon_media_player.command(Commands.TOGGLE)
 
-        if command == "":
-            command = f"remote.{cmd_id}"
-
-        match command:
-            case "remote.send":
-                return await self._denon_media_player.command(remote.Commands.ON)
-            case "remote.off":
-                return await self._denon_media_player.command(remote.Commands.OFF)
-            case "remote.toggle":
-                return await self._denon_media_player.command(remote.Commands.TOGGLE)
+        if params is None:
+            return StatusCodes.BAD_REQUEST
 
         if cmd_id == Commands.SEND_CMD:
-            return await self._denon_media_player.command(command)
+            return await self._denon_media_player.command(params.get("command", ""))
+
+        if cmd_id == Commands.SEND_CMD_SEQUENCE:
+            success = True
+            for command in params.get("sequence", []):
+                res = await self._denon_media_player.command(command)
+                if res != StatusCodes.OK:
+                    success = False
+            if success:
+                return StatusCodes.OK
+            return StatusCodes.BAD_REQUEST
 
         return StatusCodes.NOT_IMPLEMENTED
+
+    @staticmethod
+    def _get_int_param(param: str, params: dict[str, Any], default: int) -> int:
+        try:
+            value = params.get(param, default)
+        except AttributeError:
+            return default
+
+        if isinstance(value, str) and len(value) > 0:
+            return int(float(value))
+        return default
 
     @staticmethod
     def _get_remote_ui_pages():
