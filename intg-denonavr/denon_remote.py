@@ -115,7 +115,7 @@ class DenonRemote(Remote):
             case Commands.TOGGLE:
                 return await self._denon_media_player.command(Commands.TOGGLE)
 
-        if "remote." in cmd_id:
+        if cmd_id.startswith("remote."):
             _LOG.error("Command %s is not allowed.", cmd_id)
             return StatusCodes.BAD_REQUEST
 
@@ -123,19 +123,36 @@ class DenonRemote(Remote):
             return StatusCodes.BAD_REQUEST
 
         if cmd_id == Commands.SEND_CMD:
-            return await self._denon_media_player.command(params.get("command", ""))
+            command_or_status = self._get_command_or_status_code(cmd_id, params.get("command", ""))
+            if isinstance(command_or_status, StatusCodes):
+                return command_or_status
+            return await self._denon_media_player.command(command_or_status)
 
         if cmd_id == Commands.SEND_CMD_SEQUENCE:
             success = True
             for command in params.get("sequence", []):
-                res = await self._denon_media_player.command(command)
-                if res != StatusCodes.OK:
+                command_or_status = self._get_command_or_status_code(cmd_id, command)
+                if isinstance(command_or_status, StatusCodes):
                     success = False
+                else:
+                    res = await self._denon_media_player.command(command_or_status)
+                    if res != StatusCodes.OK:
+                        success = False
             if success:
                 return StatusCodes.OK
             return StatusCodes.BAD_REQUEST
 
         return await self._denon_media_player.command(cmd_id)
+
+    @staticmethod
+    def _get_command_or_status_code(cmd_id: str, command: str) -> str | StatusCodes:
+        if not command:
+            _LOG.error("Command parameter is missing for cmd_id %s", cmd_id)
+            return StatusCodes.BAD_REQUEST
+        if command.startswith("remote."):
+            _LOG.error("Command %s is not allowed for cmd_id %s.", command, cmd_id)
+            return StatusCodes.BAD_REQUEST
+        return command
 
     @staticmethod
     def _get_int_param(param: str, params: dict[str, Any], default: int) -> int:
