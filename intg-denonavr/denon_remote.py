@@ -123,11 +123,7 @@ class DenonRemote(Remote):
             return StatusCodes.BAD_REQUEST
 
         if cmd_id == Commands.SEND_CMD:
-            command = params.get("command", "")
-            # TODO: temp fix for toggle command since it's being sent as "remote.toggle" even though it shouldn't
-            if command == "remote." + Commands.TOGGLE:
-                return await self._denon_media_player.command(Commands.TOGGLE)
-            return await self._denon_media_player.command(command)
+            return await self._denon_media_player.command(params.get("command", ""))
 
         if cmd_id == Commands.SEND_CMD_SEQUENCE:
             success = True
