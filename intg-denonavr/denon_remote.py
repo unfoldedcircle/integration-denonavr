@@ -68,15 +68,53 @@ class DenonRemote(Remote):
         :param params: optional command parameters
         :return: status code of the command request
         """
+        # pylint: disable=R0911
+        match cmd_id:
+            case Commands.ON:
+                return await self._denon_media_player.command(Commands.ON)
+            case Commands.OFF:
+                await self._denon_media_player.command(Commands.OFF)
+            case Commands.TOGGLE:
+                return await self._denon_media_player.command(Commands.TOGGLE)
+
+        if cmd_id.startswith("remote."):
+            _LOG.error("Command %s is not allowed.", cmd_id)
+            return StatusCodes.BAD_REQUEST
+
+        if params is None:
+            return StatusCodes.BAD_REQUEST
+
         if params:
             repeat = self._get_int_param("repeat", params, 1)
         else:
             repeat = 1
 
-        is_success = False
-        for _ in range(0, repeat):
-            is_success |= await self._handle_command(cmd_id, params) == StatusCodes.OK
-        return StatusCodes.OK if is_success else StatusCodes.BAD_REQUEST
+        if cmd_id == Commands.SEND_CMD:
+            command_or_status = self._get_command_or_status_code(cmd_id, params.get("command", ""))
+            if isinstance(command_or_status, StatusCodes):
+                return command_or_status
+
+            success = True
+            for _ in range(0, repeat):
+                success |= await self._denon_media_player.command(command_or_status) == StatusCodes.OK
+
+        if cmd_id == Commands.SEND_CMD_SEQUENCE:
+            success = True
+            for command in params.get("sequence", []):
+                for _ in range(0, repeat):
+                    command_or_status = self._get_command_or_status_code(cmd_id, command)
+                    if isinstance(command_or_status, StatusCodes):
+                        success = False
+                    else:
+                        res = await self._denon_media_player.command(command_or_status)
+                        if res != StatusCodes.OK:
+                            success = False
+            if success:
+                return StatusCodes.OK
+            return StatusCodes.BAD_REQUEST
+
+        # send "raw" commands as is to the receiver
+        return await self._denon_media_player.command(cmd_id)
 
     @staticmethod
     def state_from_avr(avr_state: avr.States) -> ucapi.remote.States:
@@ -104,45 +142,6 @@ class DenonRemote(Remote):
             attributes = helpers.key_update_helper(Attributes.STATE, state, attributes, self.attributes)
 
         return attributes
-
-    async def _handle_command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
-        # pylint: disable=R0911
-        match cmd_id:
-            case Commands.ON:
-                return await self._denon_media_player.command(Commands.ON)
-            case Commands.OFF:
-                await self._denon_media_player.command(Commands.OFF)
-            case Commands.TOGGLE:
-                return await self._denon_media_player.command(Commands.TOGGLE)
-
-        if cmd_id.startswith("remote."):
-            _LOG.error("Command %s is not allowed.", cmd_id)
-            return StatusCodes.BAD_REQUEST
-
-        if params is None:
-            return StatusCodes.BAD_REQUEST
-
-        if cmd_id == Commands.SEND_CMD:
-            command_or_status = self._get_command_or_status_code(cmd_id, params.get("command", ""))
-            if isinstance(command_or_status, StatusCodes):
-                return command_or_status
-            return await self._denon_media_player.command(command_or_status)
-
-        if cmd_id == Commands.SEND_CMD_SEQUENCE:
-            success = True
-            for command in params.get("sequence", []):
-                command_or_status = self._get_command_or_status_code(cmd_id, command)
-                if isinstance(command_or_status, StatusCodes):
-                    success = False
-                else:
-                    res = await self._denon_media_player.command(command_or_status)
-                    if res != StatusCodes.OK:
-                        success = False
-            if success:
-                return StatusCodes.OK
-            return StatusCodes.BAD_REQUEST
-
-        return await self._denon_media_player.command(cmd_id)
 
     @staticmethod
     def _get_command_or_status_code(cmd_id: str, command: str) -> str | StatusCodes:
