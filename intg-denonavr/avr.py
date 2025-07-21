@@ -873,8 +873,20 @@ class DenonDevice:
             # pylint: disable=protected-access
             res = await self._receiver._device.api.async_get(url)
             if res.is_client_error:
+                _LOG.error(
+                    "Request for '%s' failed with is_client_error. Status code: %s. Content: '%s'",
+                    cmd,
+                    res.status_code,
+                    res.text,
+                )
                 return ucapi.StatusCodes.BAD_REQUEST
             if not res.is_success:
+                _LOG.error(
+                    "Request for '%s' failed with is_success = False. Status code: %s. Content: '%s'",
+                    cmd,
+                    res.status_code,
+                    res.text,
+                )
                 return ucapi.StatusCodes.SERVER_ERROR
         return ucapi.StatusCodes.OK
 

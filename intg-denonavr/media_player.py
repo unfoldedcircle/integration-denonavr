@@ -167,12 +167,14 @@ class DenonMediaPlayer(MediaPlayer):
             case _:
                 return await self._receiver.send_simple_command(cmd_id)
 
-    def get_supported_commands(self) -> list[str]:
+    def get_supported_commands(self, include_power_state_commands: bool) -> list[str]:
         """
         Get the list of supported commands for this media-player entity.
 
+        :param include_power_state_commands: Includes power state commands (on, off, toggle) if True.
         :return: list of supported commands.
         """
+        power_state_commands = [Commands.ON, Commands.OFF, Commands.TOGGLE] if include_power_state_commands else []
         return [
             Commands.PLAY_PAUSE,
             Commands.STOP,
@@ -184,9 +186,6 @@ class DenonMediaPlayer(MediaPlayer):
             Commands.MUTE_TOGGLE,
             Commands.MUTE,
             Commands.UNMUTE,
-            Commands.ON,
-            Commands.OFF,
-            Commands.TOGGLE,
             Commands.SELECT_SOURCE,
             Commands.SELECT_SOUND_MODE,
             Commands.CURSOR_UP,
@@ -198,6 +197,7 @@ class DenonMediaPlayer(MediaPlayer):
             Commands.MENU,
             Commands.CONTEXT_MENU,
             Commands.INFO,
+            *power_state_commands,
             *simplecommand.get_simple_commands(self._device),
         ]
 

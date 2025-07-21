@@ -168,14 +168,14 @@ async def on_avr_connected(avr_id: str):
 
         state = configured_entity.attributes[ucapi.media_player.Attributes.STATE]
         if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
-            if state == ucapi.media_player.States.UNAVAILABLE:
+            if state != ucapi.media_player.States.UNKNOWN:
                 api.configured_entities.update_attributes(
-                    entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
+                    entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNKNOWN}
                 )
         elif configured_entity.entity_type == ucapi.EntityTypes.REMOTE:
-            if state == ucapi.remote.States.UNAVAILABLE:
+            if state != ucapi.remote.States.UNKNOWN:
                 api.configured_entities.update_attributes(
-                    entity_id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNAVAILABLE}
+                    entity_id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNKNOWN}
                 )
 
 
@@ -379,6 +379,7 @@ async def main():
     # TODO there must be a simpler way to set the same log level of all modules in the same parent module
     #      (or how is that called in Python?)
     logging.getLogger("avr").setLevel(level)
+    logging.getLogger("denon_remote").setLevel(level)
     logging.getLogger("discover").setLevel(level)
     logging.getLogger("driver").setLevel(level)
     logging.getLogger("media_player").setLevel(level)

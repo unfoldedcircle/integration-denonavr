@@ -4,7 +4,7 @@ Remote entity functions.
 
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
 """
-
+import logging
 from typing import Any
 
 import avr
@@ -33,6 +33,8 @@ REMOTE_STATE_MAPPING = {
     avr.States.UNKNOWN: ucapi.remote.States.UNKNOWN,
 }
 
+_LOG = logging.getLogger("denon_remote")  # avoid having __main__ in log messages
+
 
 # pylint: disable=R0903
 class DenonRemote(Remote):
@@ -51,7 +53,7 @@ class DenonRemote(Remote):
             attributes={
                 Attributes.STATE: receiver.state,
             },
-            simple_commands=self._denon_media_player.get_supported_commands(),
+            simple_commands=self._denon_media_player.get_supported_commands(False),
             button_mapping=REMOTE_BUTTONS_MAPPING,
             ui_pages=DenonRemote._get_remote_ui_pages(),
         )
@@ -112,6 +114,10 @@ class DenonRemote(Remote):
                 await self._denon_media_player.command(Commands.OFF)
             case Commands.TOGGLE:
                 return await self._denon_media_player.command(Commands.TOGGLE)
+
+        if "remote." in cmd_id:
+            _LOG.error("Command %s is not allowed.", cmd_id)
+            return StatusCodes.BAD_REQUEST
 
         if params is None:
             return StatusCodes.BAD_REQUEST
