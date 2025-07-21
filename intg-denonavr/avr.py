@@ -12,6 +12,7 @@ from asyncio import AbstractEventLoop, Lock
 from enum import IntEnum
 from functools import wraps
 from typing import Any, Awaitable, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
+from urllib import parse
 
 import denonavr
 import discover
@@ -867,13 +868,25 @@ class DenonDevice:
         if self._use_telnet:
             await self._receiver.async_send_telnet_commands(cmd)
         else:
-            url = AVR_COMMAND_URL + "?" + cmd.replace(" ", "%20")
+            url = AVR_COMMAND_URL + "?" + parse.quote(cmd)
             # HACK only _receiver.async_get_command(url) is exposed which returns the body content
             # pylint: disable=protected-access
             res = await self._receiver._device.api.async_get(url)
             if res.is_client_error:
+                _LOG.error(
+                    "Request for '%s' failed with is_client_error. Status code: %s. Content: '%s'",
+                    cmd,
+                    res.status_code,
+                    res.text,
+                )
                 return ucapi.StatusCodes.BAD_REQUEST
             if not res.is_success:
+                _LOG.error(
+                    "Request for '%s' failed with is_success = False. Status code: %s. Content: '%s'",
+                    cmd,
+                    res.status_code,
+                    res.text,
+                )
                 return ucapi.StatusCodes.SERVER_ERROR
         return ucapi.StatusCodes.OK
 
