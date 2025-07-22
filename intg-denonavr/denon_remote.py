@@ -55,7 +55,7 @@ class DenonRemote(Remote):
             },
             simple_commands=self._denon_media_player.get_supported_commands(False),
             button_mapping=REMOTE_BUTTONS_MAPPING,
-            ui_pages=DenonRemote._get_remote_ui_pages(),
+            ui_pages=DenonRemote._get_remote_ui_pages(device.is_denon),
         )
 
     async def command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
@@ -165,7 +165,7 @@ class DenonRemote(Remote):
         return default
 
     @staticmethod
-    def _get_remote_ui_pages():
+    def _get_remote_ui_pages(is_denon: bool):
         return [
             DenonRemote._get_main_page(),
             DenonRemote._get_sound_modes_page(),
@@ -175,6 +175,7 @@ class DenonRemote(Remote):
             DenonRemote._get_audyssey_page(),
             DenonRemote._get_channel_levels_page(),
             DenonRemote._get_eco_page(),
+            DenonRemote._get_quick_select_page(is_denon),
         ]
 
     @staticmethod
@@ -791,6 +792,51 @@ class DenonRemote(Remote):
                     "location": {"x": 0, "y": 2},
                     "size": {"height": 1, "width": 1},
                     "text": "ECO On",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_quick_select_page(is_denon: bool):
+        return {
+            "page_id": "denon_avr_commands_quick_select",
+            "name": "Quick Select" if is_denon else "Smart Select",
+            "grid": {"height": 5, "width": 1},
+            "items": [
+                {
+                    "command": {"cmd_id": CoreCommands.QUICK_SELECT_1 if is_denon else CoreCommands.SMART_SELECT_1},
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Quick Select 1" if is_denon else "Smart Select 1",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.QUICK_SELECT_2 if is_denon else CoreCommands.SMART_SELECT_2},
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Quick Select 2" if is_denon else "Smart Select 2",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.QUICK_SELECT_3 if is_denon else CoreCommands.SMART_SELECT_3},
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Quick Select 3" if is_denon else "Smart Select 3",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.QUICK_SELECT_4 if is_denon else CoreCommands.SMART_SELECT_4},
+                    "location": {"x": 0, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Quick Select 4" if is_denon else "Smart Select 4",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.QUICK_SELECT_5 if is_denon else CoreCommands.SMART_SELECT_5},
+                    "location": {"x": 0, "y": 4},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Quick Select 5" if is_denon else "Smart Select 5",
                     "type": "text",
                 },
             ],
