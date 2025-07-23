@@ -72,6 +72,27 @@ CORE_COMMANDS = {
     CoreCommands.GRAPHIC_EQ_OFF,
     CoreCommands.HEADPHONE_EQ_ON,
     CoreCommands.HEADPHONE_EQ_OFF,
+    CoreCommands.INPUT_PHONO,
+    CoreCommands.INPUT_CD,
+    CoreCommands.INPUT_DVD,
+    CoreCommands.INPUT_BD,
+    CoreCommands.INPUT_TV,
+    CoreCommands.INPUT_SAT_CBL,
+    CoreCommands.INPUT_MPLAY,
+    CoreCommands.INPUT_GAME,
+    CoreCommands.INPUT_GAME1,
+    CoreCommands.INPUT_GAME2,
+    CoreCommands.INPUT_TUNER,
+    CoreCommands.INPUT_8K,
+    CoreCommands.INPUT_AUX1,
+    CoreCommands.INPUT_AUX2,
+    CoreCommands.INPUT_AUX3,
+    CoreCommands.INPUT_AUX4,
+    CoreCommands.INPUT_AUX5,
+    CoreCommands.INPUT_AUX6,
+    CoreCommands.INPUT_AUX7,
+    CoreCommands.INPUT_NET,
+    CoreCommands.INPUT_BT,
 }
 
 CORE_COMMANDS_TELNET = {
@@ -554,6 +575,48 @@ class SimpleCommand:
                 await self._receiver.async_headphone_eq_toggle()
             case CoreCommands.STATUS:
                 await self._receiver.async_status()
+            case CoreCommands.INPUT_PHONO:
+                await self._send_command("SIPHONO")
+            case CoreCommands.INPUT_CD:
+                await self._send_command("SICD")
+            case CoreCommands.INPUT_DVD:
+                await self._send_command("SIDVD")
+            case CoreCommands.INPUT_BD:
+                await self._send_command("SIBD")
+            case CoreCommands.INPUT_TV:
+                await self._send_command("SITV")
+            case CoreCommands.INPUT_SAT_CBL:
+                await self._send_command("SISAT/CBL")
+            case CoreCommands.INPUT_MPLAY:
+                await self._send_command("SIMPLAY")
+            case CoreCommands.INPUT_GAME:
+                await self._send_command("SIGAME")
+            case CoreCommands.INPUT_GAME1:
+                await self._send_command("SIGAME1")
+            case CoreCommands.INPUT_GAME2:
+                await self._send_command("SIGAME2")
+            case CoreCommands.INPUT_TUNER:
+                await self._send_command("SITUNER")
+            case CoreCommands.INPUT_8K:
+                await self._send_command("SI8K")
+            case CoreCommands.INPUT_AUX1:
+                await self._send_command("SIAUX1")
+            case CoreCommands.INPUT_AUX2:
+                await self._send_command("SIAUX2")
+            case CoreCommands.INPUT_AUX3:
+                await self._send_command("SIAUX3")
+            case CoreCommands.INPUT_AUX4:
+                await self._send_command("SIAUX4")
+            case CoreCommands.INPUT_AUX5:
+                await self._send_command("SIAUX5")
+            case CoreCommands.INPUT_AUX6:
+                await self._send_command("SIAUX6")
+            case CoreCommands.INPUT_AUX7:
+                await self._send_command("SIAUX7")
+            case CoreCommands.INPUT_NET:
+                await self._send_command("SINET")
+            case CoreCommands.INPUT_BT:
+                await self._send_command("SIBT")
             case CoreCommands.QUICK_SELECT_1:
                 await self._receiver.async_quick_select_mode(1)
             case CoreCommands.SMART_SELECT_1:
