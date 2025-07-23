@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
-### Changed
-
 ---
+
+## v0.10.0 - 2025-07-23
+Again major additions by @henrikwidlund, thanks!
+### Added
+- Add remote entity to the integration with support for raw commands by @henrikwidlund ([#87](https://github.com/unfoldedcircle/integration-denonavr/issues/87)).
+- Add discreet commands for inputs by @henrikwidlund ([#101](https://github.com/unfoldedcircle/integration-denonavr/pull/101), [feature-and-bug-tracker#527](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/527)).
+- Add support for Quick/Smart commands by @henrikwidlund ([#98](https://github.com/unfoldedcircle/integration-denonavr/issues/98), [feature-and-bug-tracker#486](https://github.com/unfoldedcircle/feature-and-bug-tracker/issues/486)).
 
 ## v0.9.0 - 2025-07-04
 Lots of contributions by @henrikwidlund, thanks!
