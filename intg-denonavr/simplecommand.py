@@ -5,6 +5,7 @@ This module implements the Denon/Marantz AVR receiver communication of the Remot
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
 """
 
+# pylint: disable=C0302
 from typing import Awaitable, Callable
 
 import denonavr
