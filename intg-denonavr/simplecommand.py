@@ -5,6 +5,7 @@ This module implements the Denon/Marantz AVR receiver communication of the Remot
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
 """
 
+# pylint: disable=C0302
 from typing import Awaitable, Callable
 
 import denonavr
@@ -104,13 +105,44 @@ CORE_COMMANDS_TELNET = {
     CoreCommands.HEADPHONE_EQ_TOGGLE,
 }
 
+CORE_COMMANDS_QUICK_SELECT = {
+    CoreCommands.STATUS,
+    CoreCommands.QUICK_SELECT_1,
+    CoreCommands.QUICK_SELECT_2,
+    CoreCommands.QUICK_SELECT_3,
+    CoreCommands.QUICK_SELECT_4,
+    CoreCommands.QUICK_SELECT_5,
+}
+
 CORE_COMMANDS_DENON = {
     *CORE_COMMANDS,
     CoreCommands.STATUS,
+    *CORE_COMMANDS_QUICK_SELECT,
 }
 
-CORE_COMMANDS_DENON_TELNET = {*CORE_COMMANDS_TELNET, CoreCommands.STATUS}
+CORE_COMMANDS_DENON_TELNET = {
+    *CORE_COMMANDS_TELNET,
+    CoreCommands.STATUS,
+    *CORE_COMMANDS_QUICK_SELECT,
+}
 
+CORE_COMMANDS_SMART_SELECT = {
+    CoreCommands.SMART_SELECT_1,
+    CoreCommands.SMART_SELECT_2,
+    CoreCommands.SMART_SELECT_3,
+    CoreCommands.SMART_SELECT_4,
+    CoreCommands.SMART_SELECT_5,
+}
+
+CORE_COMMANDS_MARANTZ = {
+    *CORE_COMMANDS,
+    *CORE_COMMANDS_SMART_SELECT,
+}
+
+CORE_COMMANDS_MARANTZ_TELNET = {
+    *CORE_COMMANDS_TELNET,
+    *CORE_COMMANDS_SMART_SELECT,
+}
 
 SOUND_MODE_COMMANDS = {
     SoundModeCommands.SURROUND_MODE_AUTO,
@@ -318,16 +350,8 @@ VOLUME_COMMANDS_TELNET = {
     VolumeCommands.SUBWOOFER_TOGGLE,
 }
 
-ALL_COMMANDS = {
-    *CORE_COMMANDS,
-    *SOUND_MODE_COMMANDS,
-    *AUDYSSEY_COMMANDS,
-    *DIRAC_COMMANDS,
-    *VOLUME_COMMANDS,
-}
-
 ALL_COMMANDS_DENON = {
-    # Same as ALL_COMMANDS but with STATUS
+    # Same as ALL_COMMANDS but with STATUS and quick select
     *CORE_COMMANDS_DENON,
     *SOUND_MODE_COMMANDS,
     *AUDYSSEY_COMMANDS,
@@ -335,18 +359,27 @@ ALL_COMMANDS_DENON = {
     *VOLUME_COMMANDS,
 }
 
-ALL_COMMANDS_TELNET = {
-    # Same as ALL_COMMANDS but with support for toggle commands
-    *CORE_COMMANDS_TELNET,
+ALL_COMMANDS_MARANTZ = {
+    # Same as ALL_COMMANDS but with smart select
+    *CORE_COMMANDS_MARANTZ,
+    *SOUND_MODE_COMMANDS,
+    *AUDYSSEY_COMMANDS,
+    *DIRAC_COMMANDS,
+    *VOLUME_COMMANDS,
+}
+
+ALL_COMMANDS_TELNET_DENON = {
+    # Same as ALL_COMMANDS_TELNET but with support for toggle commands, STATUS and quick select
+    *CORE_COMMANDS_DENON_TELNET,
     *SOUND_MODE_COMMANDS_TELNET,
     *AUDYSSEY_COMMANDS,
     *DIRAC_COMMANDS,
     *VOLUME_COMMANDS_TELNET,
 }
 
-ALL_COMMANDS_TELNET_DENON = {
-    # Same as ALL_COMMANDS_TELNET but with support for toggle commands and STATUS
-    *CORE_COMMANDS_DENON_TELNET,
+ALL_COMMANDS_TELNET_MARANTZ = {
+    # Same as ALL_COMMANDS_TELNET but with support for toggle commands and smart select
+    *CORE_COMMANDS_MARANTZ_TELNET,
     *SOUND_MODE_COMMANDS_TELNET,
     *AUDYSSEY_COMMANDS,
     *DIRAC_COMMANDS,
@@ -362,8 +395,8 @@ def get_simple_commands(device: AvrDevice):
             return [*ALL_COMMANDS_TELNET_DENON]
         return [*ALL_COMMANDS_DENON]
     if device.use_telnet:
-        return [*ALL_COMMANDS_TELNET]
-    return [*ALL_COMMANDS]
+        return [*ALL_COMMANDS_TELNET_MARANTZ]
+    return [*ALL_COMMANDS_MARANTZ]
 
 
 # pylint: disable=R0903
@@ -585,6 +618,27 @@ class SimpleCommand:
                 await self._send_command("SINET")
             case CoreCommands.INPUT_BT:
                 await self._send_command("SIBT")
+            case CoreCommands.QUICK_SELECT_1:
+                await self._receiver.async_quick_select_mode(1)
+            case CoreCommands.SMART_SELECT_1:
+                await self._send_command("MSSMART1")
+            case CoreCommands.QUICK_SELECT_2:
+                await self._receiver.async_quick_select_mode(2)
+            case CoreCommands.SMART_SELECT_2:
+                await self._send_command("MSSMART2")
+            case CoreCommands.QUICK_SELECT_3:
+                await self._receiver.async_quick_select_mode(3)
+            case CoreCommands.SMART_SELECT_3:
+                await self._send_command("MSSMART3")
+            case CoreCommands.QUICK_SELECT_4:
+                await self._receiver.async_quick_select_mode(4)
+            case CoreCommands.SMART_SELECT_4:
+                await self._send_command("MSSMART4")
+            case CoreCommands.QUICK_SELECT_5:
+                await self._receiver.async_quick_select_mode(5)
+            case CoreCommands.SMART_SELECT_5:
+                await self._send_command("MSSMART5")
+
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
