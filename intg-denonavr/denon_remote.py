@@ -489,7 +489,7 @@ class DenonRemote(Remote):
     def _get_dirac_page():
         return {
             "page_id": "denon_avr_commands_dirac",
-            "name": "Triggers",
+            "name": "Dirac",
             "grid": {"height": 4, "width": 1},
             "items": [
                 {
@@ -527,7 +527,7 @@ class DenonRemote(Remote):
     def _get_audyssey_page():
         return {
             "page_id": "denon_avr_commands_audyssey",
-            "name": "Triggers",
+            "name": "Audyssey",
             "grid": {"height": 7, "width": 2},
             "items": [
                 {
