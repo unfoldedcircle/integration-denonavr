@@ -439,35 +439,21 @@ class SimpleCommand:
         # pylint: disable=R0915
         match cmd:
             case CoreCommands.OUTPUT_1:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("VSMONI1")
-                # await self._receiver.async_hdmi_output("HDMI1")
+                await self._receiver.async_hdmi_output("HDMI1")
             case CoreCommands.OUTPUT_2:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("VSMONI2")
-                # await self._receiver.async_hdmi_output("HDMI2")
+                await self._receiver.async_hdmi_output("HDMI2")
             case CoreCommands.OUTPUT_AUTO:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("VSMONIAUTO")
-                # await self._receiver.async_hdmi_output("Auto")
+                await self._receiver.async_hdmi_output("Auto")
             case CoreCommands.DIMMER_TOGGLE:
                 await self._receiver.async_dimmer_toggle()
             case CoreCommands.DIMMER_BRIGHT:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("DIM BRI")
-                # await self._receiver.async_dimmer("Bright")
+                await self._receiver.async_dimmer("Bright")
             case CoreCommands.DIMMER_DIM:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("DIM DIM")
-                # await self._receiver.async_dimmer("Dim")
+                await self._receiver.async_dimmer("Dim")
             case CoreCommands.DIMMER_DARK:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("DIM DAR")
-                # await self._receiver.async_dimmer("Dark")
+                await self._receiver.async_dimmer("Dark")
             case CoreCommands.DIMMER_OFF:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("DIM OFF")
-                # await self._receiver.async_dimmer("Off")
+                await self._receiver.async_dimmer("Off")
             case CoreCommands.TRIGGER1_ON:
                 await self._receiver.async_trigger_on(1)
             case CoreCommands.TRIGGER1_OFF:
@@ -485,17 +471,11 @@ class SimpleCommand:
             case CoreCommands.DELAY_DOWN:
                 await self._receiver.async_delay_down()
             case CoreCommands.ECO_AUTO:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("ECOAUTO")
-                # await self._receiver.async_eco_mode("Auto")
+                await self._receiver.async_eco_mode("Auto")
             case CoreCommands.ECO_ON:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("ECOON")
-                # await self._receiver.async_eco_mode("On")
+                await self._receiver.async_eco_mode("On")
             case CoreCommands.ECO_OFF:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("ECOOFF")
-                # await self._receiver.async_eco_mode("Off")
+                await self._receiver.async_eco_mode("Off")
             case CoreCommands.INFO_MENU:
                 await self._receiver.async_info()
             case CoreCommands.CHANNEL_LEVEL_ADJUST_MENU:
@@ -618,26 +598,16 @@ class SimpleCommand:
                 await self._send_command("SINET")
             case CoreCommands.INPUT_BT:
                 await self._send_command("SIBT")
-            case CoreCommands.QUICK_SELECT_1:
+            case CoreCommands.QUICK_SELECT_1 | CoreCommands.SMART_SELECT_1:
                 await self._receiver.async_quick_select_mode(1)
-            case CoreCommands.SMART_SELECT_1:
-                await self._send_command("MSSMART1")
-            case CoreCommands.QUICK_SELECT_2:
+            case CoreCommands.QUICK_SELECT_2 | CoreCommands.SMART_SELECT_2:
                 await self._receiver.async_quick_select_mode(2)
-            case CoreCommands.SMART_SELECT_2:
-                await self._send_command("MSSMART2")
-            case CoreCommands.QUICK_SELECT_3:
+            case CoreCommands.QUICK_SELECT_3 | CoreCommands.SMART_SELECT_3:
                 await self._receiver.async_quick_select_mode(3)
-            case CoreCommands.SMART_SELECT_3:
-                await self._send_command("MSSMART3")
-            case CoreCommands.QUICK_SELECT_4:
+            case CoreCommands.QUICK_SELECT_4 | CoreCommands.SMART_SELECT_4:
                 await self._receiver.async_quick_select_mode(4)
-            case CoreCommands.SMART_SELECT_4:
-                await self._send_command("MSSMART4")
-            case CoreCommands.QUICK_SELECT_5:
+            case CoreCommands.QUICK_SELECT_5 | CoreCommands.SMART_SELECT_5:
                 await self._receiver.async_quick_select_mode(5)
-            case CoreCommands.SMART_SELECT_5:
-                await self._send_command("MSSMART5")
 
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
@@ -1032,21 +1002,13 @@ class SimpleCommand:
         # pylint: disable=R0911
         match cmd:
             case DiracCommands.DIRAC_LIVE_FILTER_SLOT1:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("PSDIRAC 1")
-                # await self._receiver.dirac.async_dirac_filter("Slot 1")
+                await self._receiver.dirac.async_dirac_filter("Slot 1")
             case DiracCommands.DIRAC_LIVE_FILTER_SLOT2:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("PSDIRAC 2")
-                # await self._receiver.dirac.async_dirac_filter("Slot 2")
+                await self._receiver.dirac.async_dirac_filter("Slot 2")
             case DiracCommands.DIRAC_LIVE_FILTER_SLOT3:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("PSDIRAC 3")
-                # await self._receiver.dirac.async_dirac_filter("Slot 3")
+                await self._receiver.dirac.async_dirac_filter("Slot 3")
             case DiracCommands.DIRAC_LIVE_FILTER_OFF:
-                # TODO: Replace with commented code once https://github.com/ol-iver/denonavr/pull/337 is merged
-                await self._send_command("PSDIRAC OFF")
-                # await self._receiver.dirac.async_dirac_filter("Off")
+                await self._receiver.dirac.async_dirac_filter("Off")
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
