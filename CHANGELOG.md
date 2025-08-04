@@ -11,6 +11,13 @@ _Changes in the next release_
 
 ---
 
+## v0.10.1 - 2025-08-04
+### Fixed
+- Incorrect remote-entity page names by @henrikwidlund ([#104](https://github.com/unfoldedcircle/integration-denonavr/pull/104)).
+
+### Changed
+- Update denonavr dependency and remove workarounds ([#105](https://github.com/unfoldedcircle/integration-denonavr/pull/105)).
+
 ## v0.10.0 - 2025-07-23
 Again major additions by @henrikwidlund, thanks!
 ### Added
