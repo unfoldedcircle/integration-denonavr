@@ -222,7 +222,6 @@ class DenonDevice:
             timeout=device.timeout / 1000.0,
             add_zones=self._zones,
         )
-        self._is_denon = device.is_denon
         self._update_audyssey = device.update_audyssey
         self._simple_command = SimpleCommand(self._receiver, self._send_command)
 
@@ -243,6 +242,11 @@ class DenonDevice:
         self._update_lock = Lock()
 
         _LOG.debug("Denon/Marantz AVR created: %s", device.address)
+
+    @property
+    def is_denon(self) -> bool:
+        """Return True if this is a Denon AVR."""
+        return self._receiver.manufacturer.lower().startswith("denon")
 
     @property
     def active(self) -> bool:
@@ -732,7 +736,7 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def play_pause(self) -> ucapi.StatusCodes:
         """Send toggle-play-pause command to AVR."""
-        if self._is_denon:
+        if self.is_denon:
             return await self.send_command("RCKSK0410992")
         await self._receiver.async_toggle_play_pause()
         return ucapi.StatusCodes.OK
@@ -740,7 +744,7 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def stop(self) -> ucapi.StatusCodes:
         """Send stop command to AVR."""
-        if self._is_denon:
+        if self.is_denon:
             return await self.send_command("RCKSK0410993")
 
         return ucapi.StatusCodes.NOT_IMPLEMENTED
@@ -748,7 +752,7 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def next(self) -> ucapi.StatusCodes:
         """Send next-track command to AVR."""
-        if self._is_denon:
+        if self.is_denon:
             return await self.send_command("RCKSK0470776")
         await self._receiver.async_next_track()
         return ucapi.StatusCodes.OK
@@ -756,7 +760,7 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def previous(self) -> ucapi.StatusCodes:
         """Send previous-track command to AVR."""
-        if self._is_denon:
+        if self.is_denon:
             return await self.send_command("RCKSK0470777")
         await self._receiver.async_previous_track()
         return ucapi.StatusCodes.OK

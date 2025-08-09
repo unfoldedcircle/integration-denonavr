@@ -84,7 +84,7 @@ class DenonMediaPlayer(MediaPlayer):
 
         self.simple_commands = simplecommand.get_simple_commands(device)
         # Denon has additional simple commands
-        if device.is_denon:
+        if receiver.is_denon:
             features.append(Features.STOP)
 
         options = {Options.SIMPLE_COMMANDS: self.simple_commands}

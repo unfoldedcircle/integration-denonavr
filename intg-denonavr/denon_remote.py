@@ -55,7 +55,7 @@ class DenonRemote(Remote):
             },
             simple_commands=self._denon_media_player.get_supported_commands(False),
             button_mapping=REMOTE_BUTTONS_MAPPING,
-            ui_pages=DenonRemote._get_remote_ui_pages(device.is_denon),
+            ui_pages=DenonRemote._get_remote_ui_pages(receiver.is_denon),
         )
 
     async def command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
