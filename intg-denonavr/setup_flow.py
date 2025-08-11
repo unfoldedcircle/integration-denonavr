@@ -305,11 +305,13 @@ async def handle_configuration_mode(
                 connection_mode = "use_http"
             volume_step = selected_device.volume_step if selected_device.volume_step else 0.5
             timeout = selected_device.timeout if selected_device.timeout else 2000
+            is_denon = selected_device.is_denon
 
             return RequestUserInput(
                 _a("Configure your AVR"),
                 [
                     __show_all_inputs_cfg(show_all_inputs),
+                    __manufacturer_cfg(is_denon),
                     __connection_mode_cfg(connection_mode),
                     __volume_cfg(volume_step),
                     __timeout_cfg(timeout),
@@ -340,6 +342,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
 
     dropdown_items = []
     address = msg.input_values["address"]
+    connect_denonavr: ConnectDenonAVR | None = None
 
     if address:
         _LOG.debug("Starting manual driver setup for %s", address)
@@ -397,6 +400,10 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
         return SetupError(error_type=IntegrationSetupError.NOT_FOUND)
 
     _setup_step = SetupSteps.DEVICE_CHOICE
+    if connect_denonavr is None:
+        _is_denon = True
+    else:
+        _is_denon = __is_denon_device(connect_denonavr.receiver.manufacturer)
     return RequestUserInput(
         _a("Please choose your Denon or Marantz AVR"),
         [
@@ -406,6 +413,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
                 "label": _a("Choose your Denon or Marantz AVR"),
             },
             __show_all_inputs_cfg(False),
+            __manufacturer_cfg(_is_denon),
             # TODO #21 support multiple zones
             # {
             #     "id": "zone2",
@@ -499,6 +507,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         zone3=zone3,
         volume_step=volume_step,
         timeout=timeout,
+        is_denon=__is_denon_device(receiver.manufacturer),
     )
     config.devices.add_or_update(device)  # triggers DenonAVR instance creation
 
@@ -537,6 +546,7 @@ async def _handle_device_reconfigure(
         return SetupError(error_type=IntegrationSetupError.OTHER)
 
     _reconfigured_device.show_all_inputs = msg.input_values.get("show_all_inputs") == "true"
+    _reconfigured_device.is_denon = __is_denon_device(msg.input_values.get("menufacturer"))
     _reconfigured_device.zone2 = msg.input_values.get("zone2") == "true"
     _reconfigured_device.zone3 = msg.input_values.get("zone3") == "true"
     _reconfigured_device.use_telnet = connection_mode == "use_telnet"
@@ -555,6 +565,28 @@ def __show_all_inputs_cfg(enabled: bool):
         "id": "show_all_inputs",
         "label": _a("Show all sources"),
         "field": {"checkbox": {"value": enabled}},
+    }
+
+
+def __manufacturer_cfg(is_denon: bool):
+    return {
+        "id": "manufacturer",
+        "label": _a("Select manufacturer"),
+        "field": {
+            "dropdown": {
+                "value": "denon" if is_denon else "marantz",
+                "items": [
+                    {
+                        "id": "denon",
+                        "label": _a("Denon"),
+                    },
+                    {
+                        "id": "marantz",
+                        "label": _a("Marantz"),
+                    },
+                ],
+            }
+        },
     }
 
 
@@ -602,3 +634,13 @@ def __timeout_cfg(timeout: int):
             "number": {"value": timeout, "min": 250, "max": 10_000, "steps": 1, "decimals": 0, "unit": {"en": "ms"}}
         },
     }
+
+
+def __is_denon_device(manufacturer: str) -> bool:
+    """
+    Check if the manufacturer is Denon.
+
+    :param manufacturer: Manufacturer name
+    :return: True if the manufacturer is Denon, False otherwise
+    """
+    return manufacturer.lower().startswith("denon")
