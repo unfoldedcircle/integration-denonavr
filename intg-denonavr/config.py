@@ -194,7 +194,6 @@ class Devices:
                 data = json.load(f)
             needs_migration = False
             for item in data:
-                is_denon = item.get("is_denon")
                 # not using AvrDevice(**item) to be able to migrate old configuration files with missing attributes
                 avr = AvrDevice(
                     item.get("id"),
@@ -210,9 +209,9 @@ class Devices:
                     item.get("zone3", False),
                     item.get("volume_step", 0.5),
                     item.get("timeout", 2000),
-                    is_denon,
+                    item.get("is_denon", True),
                 )
-                needs_migration |= item.get("use_telnet_for_events") is not None or is_denon is None
+                needs_migration |= item.get("use_telnet_for_events") is not None or item.get("is_denon") is None
                 self._config.append(avr)
 
             if needs_migration:
