@@ -578,11 +578,11 @@ def __manufacturer_cfg(is_denon: bool):
                 "items": [
                     {
                         "id": "denon",
-                        "label": _a("Denon"),
+                        "label": {"en": "Denon"},
                     },
                     {
                         "id": "marantz",
-                        "label": _a("Marantz"),
+                        "label": {"en": "Marantz"},
                     },
                 ],
             }
