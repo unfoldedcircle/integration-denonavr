@@ -52,6 +52,7 @@ class AvrDevice:
     volume_step: float
     timeout: int
     """Connection and command timeout in milliseconds."""
+    is_denon: bool
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
@@ -139,6 +140,7 @@ class Devices:
                 item.zone3 = avr.zone3
                 item.volume_step = avr.volume_step
                 item.timeout = avr.timeout
+                item.is_denon = avr.is_denon
                 return self.store()
         return False
 
@@ -192,6 +194,7 @@ class Devices:
                 data = json.load(f)
             needs_migration = False
             for item in data:
+                is_denon = item.get("is_denon")
                 # not using AvrDevice(**item) to be able to migrate old configuration files with missing attributes
                 avr = AvrDevice(
                     item.get("id"),
@@ -207,8 +210,9 @@ class Devices:
                     item.get("zone3", False),
                     item.get("volume_step", 0.5),
                     item.get("timeout", 2000),
+                    is_denon,
                 )
-                needs_migration |= item.get("use_telnet_for_events") is not None
+                needs_migration |= item.get("use_telnet_for_events") is not None or is_denon is None
                 self._config.append(avr)
 
             if needs_migration:
