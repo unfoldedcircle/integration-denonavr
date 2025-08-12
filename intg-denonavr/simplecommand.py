@@ -390,7 +390,7 @@ ALL_COMMANDS_TELNET_MARANTZ = {
 def get_simple_commands(device: AvrDevice):
     """Get the list of simple commands for the given device."""
     # Denon has additional simple commands
-    if "denon" in device.name.lower():
+    if device.is_denon:
         if device.use_telnet:
             return [*ALL_COMMANDS_TELNET_DENON]
         return [*ALL_COMMANDS_DENON]

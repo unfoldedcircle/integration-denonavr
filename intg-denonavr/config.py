@@ -52,11 +52,7 @@ class AvrDevice:
     volume_step: float
     timeout: int
     """Connection and command timeout in milliseconds."""
-
-    @property
-    def is_denon(self) -> bool:
-        """Check if the device is a Denon AVR."""
-        return "denon" in self.name.lower()
+    is_denon: bool
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
@@ -144,6 +140,7 @@ class Devices:
                 item.zone3 = avr.zone3
                 item.volume_step = avr.volume_step
                 item.timeout = avr.timeout
+                item.is_denon = avr.is_denon
                 return self.store()
         return False
 
@@ -212,8 +209,9 @@ class Devices:
                     item.get("zone3", False),
                     item.get("volume_step", 0.5),
                     item.get("timeout", 2000),
+                    item.get("is_denon", True),
                 )
-                needs_migration |= item.get("use_telnet_for_events") is not None
+                needs_migration |= item.get("use_telnet_for_events") is not None or item.get("is_denon") is None
                 self._config.append(avr)
 
             if needs_migration:

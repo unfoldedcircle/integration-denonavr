@@ -216,13 +216,13 @@ class DenonDevice:
             self._zones["Zone2"] = None
         if device.zone3:
             self._zones["Zone3"] = None
+        self._is_denon = device.is_denon
         self._receiver: denonavr.DenonAVR = denonavr.DenonAVR(
             host=device.address,
             show_all_inputs=device.show_all_inputs,
             timeout=device.timeout / 1000.0,
             add_zones=self._zones,
         )
-        self._is_denon = device.is_denon
         self._update_audyssey = device.update_audyssey
         self._simple_command = SimpleCommand(self._receiver, self._send_command)
 
