@@ -546,7 +546,7 @@ async def _handle_device_reconfigure(
         return SetupError(error_type=IntegrationSetupError.OTHER)
 
     _reconfigured_device.show_all_inputs = msg.input_values.get("show_all_inputs") == "true"
-    _reconfigured_device.is_denon = __is_denon_device(msg.input_values.get("menufacturer"))
+    _reconfigured_device.is_denon = __is_denon_device(msg.input_values.get("manufacturer"))
     _reconfigured_device.zone2 = msg.input_values.get("zone2") == "true"
     _reconfigured_device.zone3 = msg.input_values.get("zone3") == "true"
     _reconfigured_device.use_telnet = connection_mode == "use_telnet"
@@ -636,11 +636,11 @@ def __timeout_cfg(timeout: int):
     }
 
 
-def __is_denon_device(manufacturer: str) -> bool:
+def __is_denon_device(manufacturer: str | None) -> bool:
     """
     Check if the manufacturer is Denon.
 
     :param manufacturer: Manufacturer name
     :return: True if the manufacturer is Denon, False otherwise
     """
-    return manufacturer.lower().startswith("denon")
+    return True if None else manufacturer.lower().startswith("denon")
