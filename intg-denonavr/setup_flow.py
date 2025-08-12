@@ -643,4 +643,4 @@ def __is_denon_device(manufacturer: str | None) -> bool:
     :param manufacturer: Manufacturer name
     :return: True if the manufacturer is Denon, False otherwise
     """
-    return True if None else manufacturer.lower().startswith("denon")
+    return bool(manufacturer and manufacturer.lower().startswith("denon"))
