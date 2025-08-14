@@ -9,13 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## v0.10.2 - 2025-08-14
 ### Fixed
 - Use manufacturer when checking if device is a Denon or Marantz receiver ([#108](https://github.com/unfoldedcircle/integration-denonavr/issues/108)).
 
 ### Changed
 - Set timeout configuration step to 1 sec. Custom values can still be entered manually.
-
----
 
 ## v0.10.1 - 2025-08-04
 ### Fixed
