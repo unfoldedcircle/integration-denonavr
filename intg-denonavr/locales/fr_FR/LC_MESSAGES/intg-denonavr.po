@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-12 13:22+0200\n"
-"PO-Revision-Date: 2025-08-14 16:30\n"
+"PO-Revision-Date: 2025-08-14 17:41\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -109,7 +109,7 @@ msgstr "Afficher tous les sources"
 
 #: ../setup_flow.py:574
 msgid "Select manufacturer"
-msgstr "Select manufacturer"
+msgstr "Sélectionner fabricant"
 
 #: ../setup_flow.py:596
 msgid "Connection mode"
