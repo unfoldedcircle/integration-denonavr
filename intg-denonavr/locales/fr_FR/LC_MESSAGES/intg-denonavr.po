@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-04 14:52+0200\n"
-"PO-Revision-Date: 2025-07-02 07:09\n"
+"POT-Creation-Date: 2025-08-12 13:22+0200\n"
+"PO-Revision-Date: 2025-08-14 17:41\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -18,7 +18,7 @@ msgstr ""
 "X-Crowdin-File: /main/intg-denonavr/locales/en_US/LC_MESSAGES/intg-denonavr.po\n"
 "X-Crowdin-File-ID: 118\n"
 
-#: ../driver.py:370
+#: ../driver.py:400
 msgid "Control your Denon or Marantz AVRs with Remote Two/3."
 msgstr "Contrôler Denon ou Marantz AVRs avec Remote Two/3."
 
@@ -91,39 +91,43 @@ msgstr "Appareils configurés"
 msgid "Action"
 msgstr "Action"
 
-#: ../setup_flow.py:310
+#: ../setup_flow.py:311
 msgid "Configure your AVR"
 msgstr "Configurez votre AVR"
 
-#: ../setup_flow.py:401
+#: ../setup_flow.py:408
 msgid "Please choose your Denon or Marantz AVR"
 msgstr "Veuillez choisir votre Denon ou Marantz AVR"
 
-#: ../setup_flow.py:406
+#: ../setup_flow.py:413
 msgid "Choose your Denon or Marantz AVR"
 msgstr "Choisissez votre Denon ou Marantz AVR"
 
-#: ../setup_flow.py:556
+#: ../setup_flow.py:566
 msgid "Show all sources"
 msgstr "Afficher tous les sources"
 
-#: ../setup_flow.py:564
+#: ../setup_flow.py:574
+msgid "Select manufacturer"
+msgstr "Sélectionner fabricant"
+
+#: ../setup_flow.py:596
 msgid "Connection mode"
 msgstr "Mode de connexion"
 
-#: ../setup_flow.py:571
+#: ../setup_flow.py:603
 msgid "Use Telnet connection"
 msgstr "Utilise une connexion Telnet"
 
-#: ../setup_flow.py:575
+#: ../setup_flow.py:607
 msgid "Use HTTP connection"
 msgstr "Utilise une connexion HTTP"
 
-#: ../setup_flow.py:586
+#: ../setup_flow.py:618
 msgid "Volume step"
 msgstr "Incrémentation du volume"
 
-#: ../setup_flow.py:594
+#: ../setup_flow.py:632
 msgid "Connection and request timeout"
 msgstr "Délai de connexion et de requête (ms)"
 
