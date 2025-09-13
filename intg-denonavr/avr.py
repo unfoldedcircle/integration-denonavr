@@ -14,18 +14,18 @@ from functools import wraps
 from typing import Any, Awaitable, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
 from urllib import parse
 
-import denonavr
+import denonavrlib.denonavr
 import discover
 import ucapi
 from config import AvrDevice
-from denonavr.const import (
+from denonavrlib.denonavr.const import (
     ALL_ZONES,
     STATE_OFF,
     STATE_ON,
     STATE_PAUSED,
     STATE_PLAYING,
 )
-from denonavr.exceptions import (
+from denonavrlib.denonavr.exceptions import (
     AvrCommandError,
     AvrForbiddenError,
     AvrNetworkError,
@@ -217,7 +217,7 @@ class DenonDevice:
         if device.zone3:
             self._zones["Zone3"] = None
         self._is_denon = device.is_denon
-        self._receiver: denonavr.DenonAVR = denonavr.DenonAVR(
+        self._receiver: denonavrlib.denonavr.DenonAVR = denonavrlib.denonavr.DenonAVR(
             host=device.address,
             show_all_inputs=device.show_all_inputs,
             timeout=device.timeout / 1000.0,
@@ -438,7 +438,7 @@ class DenonDevice:
                     success = True
                     self._connection_attempts = 0
                     self._reconnect_delay = MIN_RECONNECT_DELAY
-                except denonavr.exceptions.DenonAvrError as ex:
+                except denonavrlib.denonavr.exceptions.DenonAvrError as ex:
                     await self._handle_connection_failure(time.time() - request_start, ex)
 
             if self.id != self._receiver.serial_number:
@@ -517,7 +517,7 @@ class DenonDevice:
                 except ValueError:
                     pass
                 await self._receiver.async_telnet_disconnect()
-        except denonavr.exceptions.DenonAvrError:
+        except denonavrlib.denonavr.exceptions.DenonAvrError:
             pass
         if self.id:
             self.events.emit(Events.DISCONNECTED, self.id)

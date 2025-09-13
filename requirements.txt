@@ -1,3 +1,2 @@
 pyee~=12.1.1
-denonavr~=1.1.2
 ucapi==0.3.1

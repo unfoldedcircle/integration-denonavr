@@ -7,7 +7,7 @@ Denon/Marantz AVR device discovery with SSDP.
 
 import logging
 
-import denonavr
+import denonavrlib.denonavr
 
 _LOG = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ async def denon_avrs() -> list[dict]:
 
     # extra safety, if anything goes wrong here the reconnection logic is dead
     try:
-        avrs = await denonavr.async_discover()
+        avrs = await denonavrlib.denonavr.async_discover()
         if not avrs:
             _LOG.info("No AVRs discovered")
             return []
