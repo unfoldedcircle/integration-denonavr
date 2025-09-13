@@ -217,7 +217,7 @@ class DenonDevice:
         if device.zone3:
             self._zones["Zone3"] = None
         self._is_denon = device.is_denon
-        self._receiver: denonavr.denonavr.DenonAVR = denonavr.denonavr.DenonAVR(
+        self._receiver: denonavr.DenonAVR = denonavr.DenonAVR(
             host=device.address,
             show_all_inputs=device.show_all_inputs,
             timeout=device.timeout / 1000.0,
