@@ -9,9 +9,6 @@ This module implements the Denon/Marantz AVR receiver communication of the Remot
 from typing import Awaitable, Callable
 
 import ucapi
-
-from denonavrlib import denonavr
-
 from command_constants import (
     AudysseyCommands,
     CoreCommands,
@@ -20,6 +17,8 @@ from command_constants import (
     VolumeCommands,
 )
 from config import AvrDevice
+
+from denonavrlib import denonavr
 
 CORE_COMMANDS = {
     CoreCommands.OUTPUT_1,
