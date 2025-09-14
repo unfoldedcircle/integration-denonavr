@@ -68,6 +68,7 @@ jobs:
             bash -c \
               "cd /workspace && \
               python -m pip install -r requirements.txt && \
+              python -m pip install ./denonavrlib && \
               pyinstaller --clean --onedir --name intg-denonavr --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
           echo "Clean up locales"
           cd dist/intg-denonavr/_internal/locales
