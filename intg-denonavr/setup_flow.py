@@ -64,8 +64,8 @@ def setup_data_schema():
                             __("The integration discovers Denon and Marantz Receivers on the network."),
                             "\n\n",
                             # Translators: Make sure to include the support article link as Markdown. See English text
-                            __("Please note that this integration can take 2-4s before it's ready to send commands after" +
-                            " the remote starts or wakes up."),
+                            __("Please note that this integration can take 2-4s before it's ready to send commands" +
+                            " after the remote starts or wakes up."),
                             "\n\n",
                             __("Please see our support article for requirements, features and restrictions."),
                         )
