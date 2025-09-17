@@ -5,7 +5,11 @@ and [uc-integration-api](https://github.com/aitatoi/integration-python-library),
 [Crowdin translations](https://crowdin.com/project/uc-integration-denon-avr).
 
 This integration is included in the Remote Two and Remote 3 firmware, and no external service must be run to connect
-with Denon AVR devices. It can be run as an external integration for development.
+with Denon AVR devices.
+
+‼️ Do not install this integration as a custom integration on the Remote, or it can interfere with the included version.  
+Included integrations cannot be updated manually. The integration can be run as an external integration for testing and 
+development.
 
 - The driver discovers Denon or Marantz AVRs on the local network. Manual configuration by hostname or IP is also supported.  
 - Multiple AVR devices are supported with version 0.8.0 and newer.
