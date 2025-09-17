@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## v0.10.3 - 2025-09-17
 ### Changed
 - Update embedded Python runtime to 3.11.13 and pyinstaller to 6.16.0.
-
----
 
 ## v0.10.2 - 2025-08-14
 ### Fixed
