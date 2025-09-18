@@ -1,6 +1,6 @@
 # Denon AVR integration for Remote Two/3
 
-Using [denonavr](https://github.com/ol-iver/denonavr) (included as a git submodule)
+Using [denonavr](https://github.com/henrikwidlund/denonavr) (included as a git submodule)
 and [uc-integration-api](https://github.com/aitatoi/integration-python-library),
 [Crowdin translations](https://crowdin.com/project/uc-integration-denon-avr).
 
@@ -408,9 +408,10 @@ docker run --rm --name builder \
     -v "$PWD":/workspace \
     docker.io/unfoldedcircle/r2-pyinstaller:3.11.13  \
     bash -c \
-      "python -m pip install -r requirements.txt && \
-      python -m pip install ./denonavrlib && \
-      pyinstaller --clean --onedir --name intg-denonavr \
+      "PYTHON_VERSION=\$(python --version | cut -d' ' -f2 | cut -d. -f1,2) && \
+      python -m pip install --user -r requirements.txt && \
+      python -m pip install --user ./denonavrlib && \
+      PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir --name intg-denonavr \
         --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
 ```
 
@@ -424,9 +425,10 @@ docker run --rm --name builder \
     -v "$PWD":/workspace \
     docker.io/unfoldedcircle/r2-pyinstaller:3.11.13  \
     bash -c \
-      "python -m pip install -r requirements.txt && \
-      python -m pip install ./denonavrlib && \
-      pyinstaller --clean --onedir --name intg-denonavr \
+      "PYTHON_VERSION=\$(python --version | cut -d' ' -f2 | cut -d. -f1,2) && \
+      python -m pip install --user -r requirements.txt && \
+      python -m pip install --user ./denonavrlib && \
+      PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir --name intg-denonavr \
         --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
 ```
 
