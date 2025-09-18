@@ -411,7 +411,7 @@ docker run --rm --name builder \
       "PYTHON_VERSION=\$(python --version | cut -d' ' -f2 | cut -d. -f1,2) && \
       python -m pip install --user -r requirements.txt && \
       python -m pip install --user ./denonavrlib && \
-      PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir --name intg-denonavr \
+      PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir --name intg-denonavr -y \
         --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
 ```
 
@@ -428,7 +428,7 @@ docker run --rm --name builder \
       "PYTHON_VERSION=\$(python --version | cut -d' ' -f2 | cut -d. -f1,2) && \
       python -m pip install --user -r requirements.txt && \
       python -m pip install --user ./denonavrlib && \
-      PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir --name intg-denonavr \
+      PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir --name intg-denonavr -y \
         --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
 ```
 
