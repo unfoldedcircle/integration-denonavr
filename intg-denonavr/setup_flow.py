@@ -13,7 +13,6 @@ import avr
 import config
 import discover
 from config import AvrDevice
-from denonavr.exceptions import AvrNetworkError, AvrTimoutError
 from i18n import __, _a, _am
 from receiver import ConnectDenonAVR
 from ucapi import (
@@ -27,6 +26,8 @@ from ucapi import (
     SetupError,
     UserDataResponse,
 )
+
+from denonavrlib.denonavr.exceptions import AvrNetworkError, AvrTimoutError
 
 _LOG = logging.getLogger(__name__)
 

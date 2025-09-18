@@ -7,7 +7,7 @@ Denon/Marantz AVR device discovery with SSDP.
 
 import logging
 
-import denonavr
+from denonavrlib import denonavr
 
 _LOG = logging.getLogger(__name__)
 

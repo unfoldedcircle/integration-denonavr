@@ -1,0 +1,3 @@
+[submodule "denonavrlib"]
+	path = denonavrlib
+	url = https://github.com/henrikwidlund/denonavr.git

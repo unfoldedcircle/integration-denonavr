@@ -32,6 +32,7 @@ jobs:
         with:
           # History of 200 should be more than enough to calculate commit count since last release tag.
           fetch-depth: 200
+          submodules: recursive
 
       - name: Fetch all tags to determine version
         run: |
@@ -58,7 +59,8 @@ jobs:
           sudo apt-get install -y qemu-system-arm binfmt-support qemu-user-static
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-          echo "Running pyinstaller"          
+          echo "Running pyinstaller"
+          
           docker run --rm --name builder \
             --platform=aarch64 \
             --user=$(id -u):$(id -g) \
@@ -66,8 +68,11 @@ jobs:
             docker.io/unfoldedcircle/r2-pyinstaller:${PYTHON_VER} \
             bash -c \
               "cd /workspace && \
-              python -m pip install -r requirements.txt && \
-              pyinstaller --clean --onedir --name intg-denonavr --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
+              PYTHON_VERSION=\$(python --version | cut -d' ' -f2 | cut -d. -f1,2) && \
+              pip install --user -r requirements.txt && \
+              pip install --user ./denonavrlib && \
+              PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir \
+                --name intg-denonavr --add-data intg-denonavr/locales:locales intg-denonavr/driver.py" -y
           echo "Clean up locales"
           cd dist/intg-denonavr/_internal/locales
           rm -Rf *.pot Makefile README.md */LC_MESSAGES/*.po

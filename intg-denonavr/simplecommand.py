@@ -8,7 +8,6 @@ This module implements the Denon/Marantz AVR receiver communication of the Remot
 # pylint: disable=C0302
 from typing import Awaitable, Callable
 
-import denonavr
 import ucapi
 from command_constants import (
     AudysseyCommands,
@@ -18,6 +17,8 @@ from command_constants import (
     VolumeCommands,
 )
 from config import AvrDevice
+
+from denonavrlib import denonavr
 
 CORE_COMMANDS = {
     CoreCommands.OUTPUT_1,

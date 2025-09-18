@@ -26,6 +26,8 @@ jobs:
     name: Check Python code formatting
     steps:
       - uses: actions/checkout@v5
+        with:
+          submodules: recursive
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -42,13 +44,13 @@ jobs:
           if [ -f test-requirements.txt ]; then pip install -r test-requirements.txt; fi
       - name: Analyzing the code with pylint
         run: |
-          python -m pylint intg-denonavr
+          PYTHONPATH=. python -m pylint intg-denonavr
       - name: Lint with flake8
         run: |
-          python -m flake8 intg-denonavr --count --show-source --statistics
+          PYTHONPATH=. python -m flake8 intg-denonavr --count --show-source --statistics
       - name: Check code formatting with isort
         run: |
-          python -m isort intg-denonavr/. --check --verbose
+          PYTHONPATH=. python -m isort intg-denonavr/. --check --verbose
       - name: Check code formatting with black
         run: |
-          python -m black intg-denonavr --check --verbose --line-length 120
+          PYTHONPATH=. python -m black intg-denonavr --check --verbose --line-length 120
