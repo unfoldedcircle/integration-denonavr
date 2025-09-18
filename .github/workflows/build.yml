@@ -60,17 +60,15 @@ jobs:
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
           echo "Running pyinstaller"
-          PYTHON_VERSION=$(echo ${PYTHON_VER} | cut -d. -f1,2)
-          echo "Using Python version: ${PYTHON_VERSION}"
           
           docker run --rm --name builder \
             --platform=aarch64 \
             --user=$(id -u):$(id -g) \
             -v ${GITHUB_WORKSPACE}:/workspace \
-            -e PYTHON_VERSION=${PYTHON_VERSION} \
             docker.io/unfoldedcircle/r2-pyinstaller:${PYTHON_VER} \
             bash -c \
               "cd /workspace && \
+              PYTHON_VERSION=\$(python --version | cut -d' ' -f2 | cut -d. -f1,2) && \
               pip install --user -r requirements.txt && \
               pip install --user ./denonavrlib && \
               PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir \
