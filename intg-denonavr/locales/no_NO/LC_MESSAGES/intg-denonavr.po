@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 13:22+0200\n"
-"PO-Revision-Date: 2025-08-14 16:30\n"
+"POT-Creation-Date: 2025-09-18 13:56+0200\n"
+"PO-Revision-Date: 2025-09-20 13:54\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: Norwegian\n"
 "Language: no\n"
@@ -22,112 +22,115 @@ msgstr ""
 msgid "Control your Denon or Marantz AVRs with Remote Two/3."
 msgstr "Control your Denon or Marantz AVRs with Remote Two/3."
 
-#: ../setup_flow.py:56
+#: ../setup_flow.py:57
 msgid "Integration setup"
 msgstr "Integration setup"
 
-#: ../setup_flow.py:60
+#: ../setup_flow.py:61
 msgid "Setup process"
 msgstr "Setup process"
 
-#: ../setup_flow.py:64
+#: ../setup_flow.py:65
 msgid "The integration discovers Denon and Marantz Receivers on the network."
 msgstr "The integration discovers Denon and Marantz Audio Video Receivers (AVR) on the network."
 
-#. Translators: Make sure to include the support article link as Markdown. See English text
-#: ../setup_flow.py:67
+#: ../setup_flow.py:69
+msgid "Please note that this integration can take 2-4s before it's ready to send commands after the remote starts or wakes up."
+msgstr "Please note that this integration can take 2-4s before it's ready to send commands after the remote starts or wakes up."
+
+#: ../setup_flow.py:73
 msgid "Please see our support article for requirements, features and restrictions."
 msgstr "Please see our [support article](https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844) for requirements, features and restrictions."
 
-#: ../setup_flow.py:79
+#: ../setup_flow.py:85
 msgid "Setup mode"
 msgstr "Setup mode"
 
-#: ../setup_flow.py:87
+#: ../setup_flow.py:93
 msgid "Leave blank to use auto-discovery and click _Next_."
 msgstr "Leave blank to use auto-discovery and click _Next_."
 
-#: ../setup_flow.py:89
+#: ../setup_flow.py:95
 msgid "The device must be on the same network as the remote."
 msgstr "The device must be on the same network as the remote."
 
-#: ../setup_flow.py:96
+#: ../setup_flow.py:102
 msgid "Manual IP address or hostname"
 msgstr "Manual IP address or hostname"
 
-#: ../setup_flow.py:106
+#: ../setup_flow.py:112
 msgid "Please note:"
 msgstr "Please note:"
 
-#: ../setup_flow.py:110
+#: ../setup_flow.py:116
 msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only!"
 msgstr "Using Telnet provides realtime updates for many values but certain receivers allow a single connection only! If you enable this setting, other apps or systems may no longer work."
 
-#: ../setup_flow.py:194
+#: ../setup_flow.py:200
 msgid "Add a new device"
 msgstr "Add a new device"
 
-#: ../setup_flow.py:205
+#: ../setup_flow.py:211
 msgid "Configure selected device"
 msgstr "Configure selected device"
 
-#: ../setup_flow.py:212
+#: ../setup_flow.py:218
 msgid "Delete selected device"
 msgstr "Delete selected device"
 
-#: ../setup_flow.py:219
+#: ../setup_flow.py:225
 msgid "Reset configuration and reconfigure"
 msgstr "Reset configuration and reconfigure"
 
-#: ../setup_flow.py:227
+#: ../setup_flow.py:233
 msgid "Configuration mode"
 msgstr "Configuration mode"
 
-#: ../setup_flow.py:237
+#: ../setup_flow.py:243
 msgid "Configured devices"
 msgstr "Configured devices"
 
-#: ../setup_flow.py:247
+#: ../setup_flow.py:253
 msgid "Action"
 msgstr "Action"
 
-#: ../setup_flow.py:311
+#: ../setup_flow.py:317
 msgid "Configure your AVR"
 msgstr "Configure your AVR"
 
-#: ../setup_flow.py:408
+#: ../setup_flow.py:414
 msgid "Please choose your Denon or Marantz AVR"
 msgstr "Please choose your Denon or Marantz AVR"
 
-#: ../setup_flow.py:413
+#: ../setup_flow.py:419
 msgid "Choose your Denon or Marantz AVR"
 msgstr "Choose your Denon or Marantz AVR"
 
-#: ../setup_flow.py:566
+#: ../setup_flow.py:572
 msgid "Show all sources"
 msgstr "Show all sources"
 
-#: ../setup_flow.py:574
+#: ../setup_flow.py:580
 msgid "Select manufacturer"
 msgstr "Select manufacturer"
 
-#: ../setup_flow.py:596
+#: ../setup_flow.py:602
 msgid "Connection mode"
 msgstr "Connection mode"
 
-#: ../setup_flow.py:603
+#: ../setup_flow.py:609
 msgid "Use Telnet connection"
 msgstr "Use Telnet connection"
 
-#: ../setup_flow.py:607
+#: ../setup_flow.py:613
 msgid "Use HTTP connection"
 msgstr "Use HTTP connection"
 
-#: ../setup_flow.py:618
+#: ../setup_flow.py:624
 msgid "Volume step"
 msgstr "Volume step"
 
-#: ../setup_flow.py:632
+#: ../setup_flow.py:638
 msgid "Connection and request timeout"
 msgstr "Connection and request timeout (ms)"
 
