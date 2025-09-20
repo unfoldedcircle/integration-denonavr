@@ -95,6 +95,9 @@ CORE_COMMANDS = {
     CoreCommands.INPUT_AUX7,
     CoreCommands.INPUT_NET,
     CoreCommands.INPUT_BT,
+    CoreCommands.INPUT_HD_RADIO,
+    CoreCommands.HDMI_CEC_ON,
+    CoreCommands.HDMI_CEC_OFF,
 }
 
 CORE_COMMANDS_TELNET = {
@@ -138,6 +141,13 @@ CORE_COMMANDS_SMART_SELECT = {
 CORE_COMMANDS_MARANTZ = {
     *CORE_COMMANDS,
     *CORE_COMMANDS_SMART_SELECT,
+    CoreCommands.ILLUMINATION_AUTO,
+    CoreCommands.ILLUMINATION_BRIGHT,
+    CoreCommands.ILLUMINATION_DIM,
+    CoreCommands.ILLUMINATION_DARK,
+    CoreCommands.ILLUMINATION_OFF,
+    CoreCommands.AUTO_LIP_SYNC_ON,
+    CoreCommands.AUTO_LIP_SYNC_OFF,
 }
 
 CORE_COMMANDS_MARANTZ_TELNET = {
@@ -223,6 +233,16 @@ SOUND_MODE_COMMANDS = {
     SoundModeCommands.DRC_MID,
     SoundModeCommands.DRC_HI,
     SoundModeCommands.DRC_OFF,
+}
+
+SOUND_MODE_COMMANDS_MARANTZ = {
+    *SOUND_MODE_COMMANDS,
+    SoundModeCommands.MDAX_OFF,
+    SoundModeCommands.MDAX_LOW,
+    SoundModeCommands.MDAX_MEDIUM,
+    SoundModeCommands.MDAX_HIGH,
+    SoundModeCommands.DAC_FILTER_MODE_1,
+    SoundModeCommands.DAC_FILTER_MODE_2,
 }
 
 SOUND_MODE_COMMANDS_TELNET = {
@@ -363,7 +383,7 @@ ALL_COMMANDS_DENON = {
 ALL_COMMANDS_MARANTZ = {
     # Same as ALL_COMMANDS but with smart select
     *CORE_COMMANDS_MARANTZ,
-    *SOUND_MODE_COMMANDS,
+    *SOUND_MODE_COMMANDS_MARANTZ,
     *AUDYSSEY_COMMANDS,
     *DIRAC_COMMANDS,
     *VOLUME_COMMANDS,
@@ -599,6 +619,8 @@ class SimpleCommand:
                 await self._send_command("SINET")
             case CoreCommands.INPUT_BT:
                 await self._send_command("SIBT")
+            case CoreCommands.INPUT_HD_RADIO:
+                await self._send_command("SIHDRADIO")
             case CoreCommands.QUICK_SELECT_1 | CoreCommands.SMART_SELECT_1:
                 await self._receiver.async_quick_select_mode(1)
             case CoreCommands.QUICK_SELECT_2 | CoreCommands.SMART_SELECT_2:
@@ -609,6 +631,24 @@ class SimpleCommand:
                 await self._receiver.async_quick_select_mode(4)
             case CoreCommands.QUICK_SELECT_5 | CoreCommands.SMART_SELECT_5:
                 await self._receiver.async_quick_select_mode(5)
+            case CoreCommands.HDMI_CEC_ON:
+                await self._receiver.async_hdmi_cec_on()
+            case CoreCommands.HDMI_CEC_OFF:
+                await self._receiver.async_hdmi_cec_off()
+            case CoreCommands.ILLUMINATION_AUTO:
+                await self._receiver.async_illumination("Auto")
+            case CoreCommands.ILLUMINATION_BRIGHT:
+                await self._receiver.async_illumination("Bright")
+            case CoreCommands.ILLUMINATION_DIM:
+                await self._receiver.async_illumination("Dim")
+            case CoreCommands.ILLUMINATION_DARK:
+                await self._receiver.async_illumination("Dark")
+            case CoreCommands.ILLUMINATION_OFF:
+                await self._receiver.async_illumination("Off")
+            case CoreCommands.AUTO_LIP_SYNC_ON:
+                await self._receiver.async_auto_lip_sync_on()
+            case CoreCommands.AUTO_LIP_SYNC_OFF:
+                await self._receiver.async_auto_lip_sync_off()
 
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
@@ -956,6 +996,18 @@ class SimpleCommand:
                 await self._receiver.soundmode.async_drc("HI")
             case SoundModeCommands.DRC_OFF:
                 await self._receiver.soundmode.async_drc("OFF")
+            case SoundModeCommands.MDAX_OFF:
+                await self._receiver.soundmode.async_mdax("Off")
+            case SoundModeCommands.MDAX_LOW:
+                await self._receiver.soundmode.async_mdax("Low")
+            case SoundModeCommands.MDAX_MEDIUM:
+                await self._receiver.soundmode.async_mdax("Medium")
+            case SoundModeCommands.MDAX_HIGH:
+                await self._receiver.soundmode.async_mdax("High")
+            case SoundModeCommands.DAC_FILTER_MODE_1:
+                await self._receiver.soundmode.async_dac_filter("Mode 1")
+            case SoundModeCommands.DAC_FILTER_MODE_2:
+                await self._receiver.soundmode.async_dac_filter("Mode 2")
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
