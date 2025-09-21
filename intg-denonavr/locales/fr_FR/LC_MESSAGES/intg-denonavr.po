@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-09-18 13:56+0200\n"
-"PO-Revision-Date: 2025-09-20 13:53\n"
+"PO-Revision-Date: 2025-09-21 13:45\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -36,7 +36,7 @@ msgstr "Cette intégration trouvera des AVR Denon et Marantz dans le réseau."
 
 #: ../setup_flow.py:69
 msgid "Please note that this integration can take 2-4s before it's ready to send commands after the remote starts or wakes up."
-msgstr "Please note that this integration can take 2-4s before it's ready to send commands after the remote starts or wakes up."
+msgstr "Veuillez noter qu’après la mise en marche ou la sortie de veille de la télécommande, il faut attendre 2 à 4 secondes avant qu’elle puisse envoyer des commandes."
 
 #: ../setup_flow.py:73
 msgid "Please see our support article for requirements, features and restrictions."
