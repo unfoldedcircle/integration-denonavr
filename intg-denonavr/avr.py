@@ -420,7 +420,6 @@ class DenonDevice:
             _LOG.debug("Starting connection task for %s", self.id)
 
             while not success:
-                iteration_start_time = time.time()
                 try:
                     _LOG.info("Connecting AVR %s on %s", self.id, self._receiver.host)
                     self.events.emit(Events.CONNECTING, self.id)
@@ -442,7 +441,6 @@ class DenonDevice:
                     self._reconnect_delay = MIN_RECONNECT_DELAY
                 except denonavr.exceptions.DenonAvrError as ex:
                     await self._handle_connection_failure(time.time() - request_start, ex)
-                _LOG.info("Connection attempt took %s", time.time() - iteration_start_time)
             if self.id != self._receiver.serial_number:
                 _LOG.warning(
                     "Different device serial number! Expected=%s, received=%s", self.id, self._receiver.serial_number
