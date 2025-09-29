@@ -792,7 +792,7 @@ class DenonRemote(Remote):
                     "command": {"cmd_id": CoreCommands.ECO_OFF},
                     "location": {"x": 0, "y": 2},
                     "size": {"height": 1, "width": 1},
-                    "text": "ECO On",
+                    "text": "ECO Off",
                     "type": "text",
                 },
             ],
