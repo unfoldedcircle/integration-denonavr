@@ -376,6 +376,7 @@ async def main():
 
     level = os.getenv("UC_LOG_LEVEL", "DEBUG").upper()
     logging.getLogger("denonavr.ssdp").setLevel(level)
+    logging.getLogger("denonavrlib").setLevel("INFO")
     # TODO there must be a simpler way to set the same log level of all modules in the same parent module
     #      (or how is that called in Python?)
     logging.getLogger("avr").setLevel(level)
