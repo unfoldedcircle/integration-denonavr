@@ -710,7 +710,8 @@ class DenonDevice:
             await self.set_volume_level(self._expected_volume)
         else:
             await self._receiver.async_volume_up()
-            self._expected_volume = min(self._expected_volume + self._volume_step, 100)
+            if self._expected_volume is not None:
+                self._expected_volume = min(self._expected_volume + self._volume_step, 100)
             # Send updated volume if no update task in progress
             if not self._update_lock.locked():
                 self._event_loop.create_task(self._receiver.async_update())
@@ -724,7 +725,8 @@ class DenonDevice:
             await self.set_volume_level(self._expected_volume)
         else:
             await self._receiver.async_volume_down()
-            self._expected_volume = max(self._expected_volume - self._volume_step, 0)
+            if self._expected_volume is not None:
+                self._expected_volume = max(self._expected_volume - self._volume_step, 0)
             # Send updated volume if no update task in progress
             if not self._update_lock.locked():
                 self._event_loop.create_task(self._receiver.async_update())
