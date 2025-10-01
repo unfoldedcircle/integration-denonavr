@@ -166,6 +166,13 @@ class DenonRemote(Remote):
 
         if isinstance(value, str) and len(value) > 0:
             return int(float(value))
+
+        if isinstance(value, int):
+            return value
+
+        if isinstance(value, float):
+            return int(value)
+
         return default
 
     @staticmethod
