@@ -86,6 +86,10 @@ class DenonRemote(Remote):
 
         if params:
             repeat = self._get_int_param("repeat", params, 1)
+            # temporary hack for hold-down buttons sending a repeat count.
+            # This will be addressed with the upcoming press-and-hold feature.
+            if repeat == 4:
+                repeat = 1
         else:
             repeat = 1
 
