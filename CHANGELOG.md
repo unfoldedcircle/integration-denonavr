@@ -11,6 +11,17 @@ _Changes in the next release_
 
 ---
 
+## v0.11.0 - 2025-10-02
+### Fixed
+- Eco off command text in remote-entity UI screen.
+- Volume commands in http-mode.
+- Incorrect initialization check for events ([#125](https://github.com/unfoldedcircle/integration-denonavr/pull/125)).
+- Number parameter retrieval and validation from remote-entity command, limit repeat count to 20.
+
+### Changed
+- Add denonavr library as git submodule by @henrikwidlund ([#119](https://github.com/unfoldedcircle/integration-denonavr/pull/119)).
+- Improve performance, new Marantz commands, fix Quick/smart select by @henrikwidlund ([#122](https://github.com/unfoldedcircle/integration-denonavr/pull/122)).
+
 ## v0.10.3 - 2025-09-17
 ### Changed
 - Update embedded Python runtime to 3.11.13 and pyinstaller to 6.16.0.
