@@ -1,17 +1,19 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="driver" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
     <module name="integration-denonavr" />
+    <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
+      <env name="_UC_INTEGRATION_INTERFACE" value="192.168.16.221" />
       <env name="PYTHONUNBUFFERED" value="1" />
       <env name="UC_CONFIG_HOME" value="./" />
       <env name="UC_INTEGRATION_HTTP_PORT" value="8092" />
-      <env name="UC_INTEGRATION_INTERFACE" value="0.0.0.0" />
     </envs>
     <option name="SDK_HOME" value="" />
+    <option name="SDK_NAME" value="Python 3.11 (integration-denonavr)" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-    <option name="IS_MODULE_SDK" value="true" />
+    <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
