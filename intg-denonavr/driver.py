@@ -28,7 +28,7 @@ _LOOP = asyncio.get_event_loop()
 api = ucapi.IntegrationAPI(_LOOP)
 # Map of avr_id -> DenonAVR instance
 _configured_avrs: dict[str, avr.DenonDevice] = {}
-_R2_IN_STANDBY = False
+_r2_in_standby = False
 
 
 async def receiver_status_poller(interval: float = 10.0) -> None:
@@ -36,7 +36,7 @@ async def receiver_status_poller(interval: float = 10.0) -> None:
     # TODO: is it important to delay the first call?
     while True:
         start_time = asyncio.get_event_loop().time()
-        if not _R2_IN_STANDBY:
+        if not _r2_in_standby:
             try:
                 tasks = [
                     receiver.async_update_receiver_data()
@@ -76,9 +76,9 @@ async def on_r2_enter_standby() -> None:
 
     Disconnect every Denon/Marantz AVR instances.
     """
-    global _R2_IN_STANDBY
+    global _r2_in_standby
 
-    _R2_IN_STANDBY = True
+    _r2_in_standby = True
     _LOG.debug("Enter standby event: disconnecting device(s)")
     for configured in _configured_avrs.values():
         await configured.disconnect()
@@ -91,9 +91,9 @@ async def on_r2_exit_standby() -> None:
 
     Connect all Denon/Marantz AVR instances.
     """
-    global _R2_IN_STANDBY
+    global _r2_in_standby
 
-    _R2_IN_STANDBY = False
+    _r2_in_standby = False
     _LOG.debug("Exit standby event: connecting device(s)")
 
     for configured in _configured_avrs.values():
@@ -108,9 +108,9 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
 
     :param entity_ids: entity identifiers.
     """
-    global _R2_IN_STANDBY
+    global _r2_in_standby
 
-    _R2_IN_STANDBY = False
+    _r2_in_standby = False
     _LOG.debug("Subscribe entities event: %s", entity_ids)
     for entity_id in entity_ids:
         avr_id = avr_from_entity_id(entity_id)
