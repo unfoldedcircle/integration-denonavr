@@ -164,6 +164,8 @@ SOUND_MODE_COMMANDS = {
     SoundModeCommands.SURROUND_MODE_AURO3D,
     SoundModeCommands.SURROUND_MODE_AURO2DSURR,
     SoundModeCommands.SURROUND_MODE_MCH_STEREO,
+    SoundModeCommands.SURROUND_MODE_STEREO,
+    SoundModeCommands.SURROUND_MODE_MONO,
     SoundModeCommands.SURROUND_MODE_NEXT,
     SoundModeCommands.SURROUND_MODE_PREVIOUS,
     SoundModeCommands.SOUND_MODE_NEURAL_X_ON,
@@ -844,6 +846,10 @@ class SimpleCommand:
                 return await self._send_command("MSAURO2DSURR")
             case SoundModeCommands.SURROUND_MODE_MCH_STEREO:
                 return await self._send_command("MSMCH STEREO")
+            case SoundModeCommands.SURROUND_MODE_STEREO:
+                return await self._send_command("MSSTEREO")
+            case SoundModeCommands.SURROUND_MODE_STEREO:
+                return await self._send_command("MSMONO MOVIE")
             case SoundModeCommands.SURROUND_MODE_NEXT:
                 await self._receiver.soundmode.async_sound_mode_next()
             case SoundModeCommands.SURROUND_MODE_PREVIOUS:
