@@ -858,6 +858,18 @@ class DenonDevice:
         return await self._send_command("MNMEN ON")
 
     @async_handle_denonlib_errors
+    async def channel_up(self) -> ucapi.StatusCodes:
+        """Send channel up command to AVR."""
+        await self._receiver.async_page_up()
+        return ucapi.StatusCodes.OK
+
+    @async_handle_denonlib_errors
+    async def channel_down(self) -> ucapi.StatusCodes:
+        """Send channel down command to AVR."""
+        await self._receiver.async_page_down()
+        return ucapi.StatusCodes.OK
+
+    @async_handle_denonlib_errors
     async def send_command(self, cmd: str) -> ucapi.StatusCodes:
         """
         Send a command to the AVR.
