@@ -1059,4 +1059,6 @@ REMOTE_BUTTONS_MAPPING: list[dict[str, Any]] = [
     {"button": Buttons.PREV, "short_press": {"cmd_id": media_player.Commands.PREVIOUS}},
     {"button": Buttons.PLAY, "short_press": {"cmd_id": media_player.Commands.PLAY_PAUSE}},
     {"button": Buttons.NEXT, "short_press": {"cmd_id": media_player.Commands.NEXT}},
+    {"button": Buttons.CHANNEL_UP, "short_press": {"cmd_id": media_player.Commands.CHANNEL_UP}},
+    {"button": Buttons.CHANNEL_DOWN, "short_press": {"cmd_id": media_player.Commands.CHANNEL_DOWN}},
 ]

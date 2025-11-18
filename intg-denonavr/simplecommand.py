@@ -651,7 +651,16 @@ class SimpleCommand:
                 await self._receiver.async_auto_lip_sync_on()
             case CoreCommands.AUTO_LIP_SYNC_OFF:
                 await self._receiver.async_auto_lip_sync_off()
-
+            case CoreCommands.INPUT_MODE_SELECT:
+                await self._receiver.async_input_mode("Select")
+            case CoreCommands.INPUT_MODE_AUTO:
+                await self._receiver.async_input_mode("Auto")
+            case CoreCommands.INPUT_MODE_HDMI:
+                await self._receiver.async_input_mode("HDMI")
+            case CoreCommands.INPUT_MODE_DIGITAL:
+                await self._receiver.async_input_mode("Digital")
+            case CoreCommands.INPUT_MODE_ANALOG:
+                await self._receiver.async_input_mode("Analog")
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
@@ -1014,6 +1023,8 @@ class SimpleCommand:
                 await self._receiver.soundmode.async_dac_filter("Mode 1")
             case SoundModeCommands.DAC_FILTER_MODE_2:
                 await self._receiver.soundmode.async_dac_filter("Mode 2")
+            case SoundModeCommands.DOLBY_ATMOS_TOGGLE:
+                await self._receiver.soundmode.async_dolby_atmos_toggle()
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
