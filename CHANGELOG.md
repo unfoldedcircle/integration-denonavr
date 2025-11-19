@@ -11,6 +11,15 @@ _Changes in the next release_
 
 ---
 
+## v0.11.1 - 2025-11-19
+### Added
+- Add discrete commands for stereo and mono by @henrikwidlund ([#132](https://github.com/unfoldedcircle/integration-denonavr/pull/132)).
+- Support for more commands: Dolby Atmos Toggle, Page/Ch Up/Down, Input Mode (Select, Auto, HDMI, Digital, Analog) by @henrikwidlund ([#133](https://github.com/unfoldedcircle/integration-denonavr/pull/135).
+
+### Changed
+- Updated denonavr library ([#131](https://github.com/unfoldedcircle/integration-denonavr/pull/131)).
+- Updated GitHub build action dependencies.
+
 ## v0.11.0 - 2025-10-02
 ### Fixed
 - Eco off command text in remote-entity UI screen.
