@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## v0.11.3 - 2025-11-25
 ### Fixed
 - Channel down command in media-player entity.
-
----
 
 ## v0.11.2 - 2025-11-24
 ### Fixed
