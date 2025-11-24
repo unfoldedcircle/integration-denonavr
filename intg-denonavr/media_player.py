@@ -167,7 +167,7 @@ class DenonMediaPlayer(MediaPlayer):
                 return await self._receiver.info()
             case Commands.CHANNEL_UP:
                 return await self._receiver.channel_up()
-            case Commands.CHANNEL_UP:
+            case Commands.CHANNEL_DOWN:
                 return await self._receiver.channel_down()
             case _:
                 return await self._receiver.send_simple_command(cmd_id)
