@@ -27,7 +27,7 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -55,7 +55,7 @@ jobs:
     needs: [ test ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           # History of 200 should be more than enough to calculate commit count since last release tag.
           fetch-depth: 200
@@ -181,7 +181,7 @@ jobs:
 
       # Checkout is required for the next `gh release delete` step
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: main
 
