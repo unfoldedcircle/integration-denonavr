@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Fixed
+- Not disconnecting the AVR(s) if a Remote client disconnects ([#137](https://github.com/unfoldedcircle/integration-denonavr/issues/137)).
+
+### Added
+- Initial unit tests.
+
 ---
 
 ## v0.11.1 - 2025-11-19
