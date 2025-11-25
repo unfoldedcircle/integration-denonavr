@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
-### Fixed
-- Telnet callbacks were no longer processed, stopping all dynamic state updates.
-
 ---
+
+## v0.11.4 - 2025-11-25
+### Fixed
+- Telnet callbacks were no longer processed, stopping all dynamic state updates ([#140](https://github.com/unfoldedcircle/integration-denonavr/pull/140)).
 
 ## v0.11.3 - 2025-11-25
 ### Fixed
