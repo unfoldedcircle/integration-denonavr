@@ -26,14 +26,16 @@ def create_entity_id(avr_id: str, entity_type: EntityTypes) -> str:
 
 def avr_from_entity_id(entity_id: str) -> str | None:
     """
-    Return the avr_id prefix of an entity_id.
+    Return the avr_id suffix of an entity_id.
 
-    The prefix is the part before the first dot in the name and refers to the AVR device identifier.
+    The prefix is the part before the first dot in the name and refers to the entity type (media-player or remote),
+    the suffix is the AVR device identifier.
 
     :param entity_id: the entity identifier
-    :return: the device prefix, or None if entity_id doesn't contain a dot
+    :return: the device suffix, or None if entity_id doesn't contain a dot
     """
-    return entity_id.split(".", 1)[1]
+    parts = entity_id.split(".", 1)
+    return parts[1] if len(parts) == 2 else None
 
 
 @dataclass
