@@ -589,7 +589,7 @@ class DenonDevice:
         # None update object means data are up to date & client can fetch required data.
         self.events.emit(Events.UPDATE, self.id, None)
 
-    async def _telnet_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _telnet_callback(self, zone: str, event: str, parameter: str) -> None:
         """Process a telnet command callback."""
         _LOG.debug("[%s] zone: %s, event: %s, parameter: %s", self.id, zone, event, parameter)
 
