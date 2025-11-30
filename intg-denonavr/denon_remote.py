@@ -104,6 +104,10 @@ class DenonRemote(Remote):
             for _ in range(0, repeat):
                 success |= await self._denon_media_player.command(command_or_status) == StatusCodes.OK
 
+            if success:
+                return StatusCodes.OK
+            return StatusCodes.BAD_REQUEST
+
         if cmd_id == Commands.SEND_CMD_SEQUENCE:
             success = True
             for command in params.get("sequence", []):
