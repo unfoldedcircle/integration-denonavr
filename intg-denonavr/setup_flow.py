@@ -43,8 +43,8 @@ class SetupSteps(IntEnum):
 
 
 _setup_step = SetupSteps.INIT
-_cfg_add_device: bool = False
-_reconfigured_device: AvrDevice | None = None
+_CFG_ADD_DEVICE: bool = False
+_RECONFIGURED_DEVICE: AvrDevice | None = None
 
 
 def setup_data_schema():
@@ -131,13 +131,13 @@ async def driver_setup_handler(msg: SetupDriver) -> SetupAction:
     :return: the setup action on how to continue
     """
     global _setup_step
-    global _cfg_add_device
-    global _reconfigured_device
+    global _CFG_ADD_DEVICE
+    global _RECONFIGURED_DEVICE
 
     if isinstance(msg, DriverSetupRequest):
         _setup_step = SetupSteps.INIT
-        _reconfigured_device = None
-        _cfg_add_device = False
+        _RECONFIGURED_DEVICE = None
+        _CFG_ADD_DEVICE = False
         return await handle_driver_setup(msg)
 
     if isinstance(msg, UserDataResponse):
@@ -274,8 +274,8 @@ async def handle_configuration_mode(
     :return: the setup action on how to continue
     """
     global _setup_step
-    global _cfg_add_device
-    global _reconfigured_device
+    global _CFG_ADD_DEVICE
+    global _RECONFIGURED_DEVICE
 
     action = msg.input_values["action"]
 
@@ -284,7 +284,7 @@ async def handle_configuration_mode(
 
     match action:
         case "add":
-            _cfg_add_device = True
+            _CFG_ADD_DEVICE = True
         case "remove":
             choice = msg.input_values["choice"]
             if not config.devices.remove(choice):
@@ -301,7 +301,7 @@ async def handle_configuration_mode(
                 return SetupError(error_type=IntegrationSetupError.OTHER)
 
             _setup_step = SetupSteps.RECONFIGURE
-            _reconfigured_device = selected_device
+            _RECONFIGURED_DEVICE = selected_device
 
             show_all_inputs = selected_device.show_all_inputs if selected_device.show_all_inputs else False
             use_telnet = selected_device.use_telnet if selected_device.use_telnet else False
@@ -367,7 +367,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             await connect_denonavr.async_connect_receiver()
             receiver = connect_denonavr.receiver
             existing = config.devices.get(receiver.serial_number)
-            if _cfg_add_device and existing:
+            if _CFG_ADD_DEVICE and existing:
                 _LOG.warning("Manually specified device is already configured %s: %s", address, receiver.name)
                 # no better error code at the moment
                 return SetupError(error_type=IntegrationSetupError.OTHER)
@@ -392,7 +392,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             serial_number = a["serialNumber"]
             if serial_number:
                 existing = config.devices.get(serial_number)
-                if _cfg_add_device and existing:
+                if _CFG_ADD_DEVICE and existing:
                     _LOG.info(
                         "Skipping found device '%s' %s: already configured",
                         a["friendlyName"],
@@ -536,9 +536,9 @@ async def _handle_device_reconfigure(
     """
     # flake8: noqa:F824
     # pylint: disable=W0602
-    global _reconfigured_device
+    global _RECONFIGURED_DEVICE
 
-    if _reconfigured_device is None:
+    if _RECONFIGURED_DEVICE is None:
         return SetupError()
 
     _LOG.debug("User has changed configuration")
@@ -551,17 +551,17 @@ async def _handle_device_reconfigure(
     except ValueError:
         return SetupError(error_type=IntegrationSetupError.OTHER)
 
-    _reconfigured_device.show_all_inputs = msg.input_values.get("show_all_inputs") == "true"
-    _reconfigured_device.is_denon = __is_denon_device(msg.input_values.get("manufacturer"))
-    _reconfigured_device.zone2 = msg.input_values.get("zone2") == "true"
-    _reconfigured_device.zone3 = msg.input_values.get("zone3") == "true"
-    _reconfigured_device.use_telnet = connection_mode == "use_telnet"
-    _reconfigured_device.volume_step = volume_step
-    _reconfigured_device.timeout = int(msg.input_values.get("timeout", 2000))
+    _RECONFIGURED_DEVICE.show_all_inputs = msg.input_values.get("show_all_inputs") == "true"
+    _RECONFIGURED_DEVICE.is_denon = __is_denon_device(msg.input_values.get("manufacturer"))
+    _RECONFIGURED_DEVICE.zone2 = msg.input_values.get("zone2") == "true"
+    _RECONFIGURED_DEVICE.zone3 = msg.input_values.get("zone3") == "true"
+    _RECONFIGURED_DEVICE.use_telnet = connection_mode == "use_telnet"
+    _RECONFIGURED_DEVICE.volume_step = volume_step
+    _RECONFIGURED_DEVICE.timeout = int(msg.input_values.get("timeout", 2000))
 
-    config.devices.update(_reconfigured_device)  # triggers receiver instance update
+    config.devices.update(_RECONFIGURED_DEVICE)  # triggers receiver instance update
     await asyncio.sleep(1)
-    _LOG.info("Setup successfully completed for %s", _reconfigured_device.name)
+    _LOG.info("Setup successfully completed for %s", _RECONFIGURED_DEVICE.name)
 
     return SetupComplete()
 
