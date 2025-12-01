@@ -11,6 +11,11 @@ _Changes in the next release_
 
 ---
 
+## v0.11.5 - 2025-12-01
+### Fixed
+- Invalid send_cmd when using a remote-entity ([#126](https://github.com/unfoldedcircle/integration-denonavr/issues/126)).
+- Invalid command map and validation ([#141](https://github.com/unfoldedcircle/integration-denonavr/pull/141)).
+
 ## v0.11.4 - 2025-11-25
 ### Fixed
 - Telnet callbacks were no longer processed, stopping all dynamic state updates ([#140](https://github.com/unfoldedcircle/integration-denonavr/pull/140)).
