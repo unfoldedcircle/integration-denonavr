@@ -242,6 +242,7 @@ class DenonDevice:
         self._expected_state: States = States.UNKNOWN
         self._volume_step = device.volume_step
         self._update_lock = Lock()
+        self._update_task: asyncio.Task | None = None  # Track pending update task
 
         _LOG.debug("Denon/Marantz AVR created: %s", device.address)
 
@@ -304,8 +305,8 @@ class DenonDevice:
             and self._active
             and not self._update_lock.locked()
         ):
-            # Force update because of state mismatch
-            self._event_loop.create_task(self.async_update_receiver_data(True))
+            # Schedule update because of state mismatch
+            self._schedule_update_task()
         return reported_state
 
     def _set_expected_state(self, state: States):
@@ -579,6 +580,8 @@ class DenonDevice:
 
             self._notify_updated_data()
         finally:
+            # Set to None so a new task can be scheduled
+            self._update_task = None
             self._update_lock.release()
 
     def _notify_updated_data(self):
@@ -665,7 +668,7 @@ class DenonDevice:
         if not self._use_telnet:
             self._set_expected_state(States.ON)
 
-        await self._start_update_task()
+        self._schedule_update_task()
 
         return ucapi.StatusCodes.OK
 
@@ -676,7 +679,7 @@ class DenonDevice:
         if not self._use_telnet:
             self._set_expected_state(States.OFF)
 
-        await self._start_update_task()
+        self._schedule_update_task()
 
         return ucapi.StatusCodes.OK
 
@@ -701,7 +704,7 @@ class DenonDevice:
         if not self._use_telnet or self._update_lock.locked():
             self._expected_volume = volume
 
-        await self._start_update_task()
+        self._schedule_update_task()
 
         return ucapi.StatusCodes.OK
 
@@ -715,9 +718,8 @@ class DenonDevice:
             await self._receiver.async_volume_up()
             if self._expected_volume is not None:
                 self._expected_volume = min(self._expected_volume + self._volume_step, 100)
-            # Send updated volume if no update task in progress
-            if not self._update_lock.locked():
-                self._event_loop.create_task(self._receiver.async_update())
+            # Schedule update
+            self._schedule_update_task()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -730,9 +732,8 @@ class DenonDevice:
             await self._receiver.async_volume_down()
             if self._expected_volume is not None:
                 self._expected_volume = max(self._expected_volume - self._volume_step, 0)
-            # Send updated volume if no update task in progress
-            if not self._update_lock.locked():
-                self._event_loop.create_task(self._receiver.async_update())
+            # Schedule update
+            self._schedule_update_task()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -775,7 +776,7 @@ class DenonDevice:
         if not self._use_telnet:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
 
-        await self._start_update_task()
+        self._schedule_update_task()
 
         return ucapi.StatusCodes.OK
 
@@ -915,7 +916,13 @@ class DenonDevice:
         """Return True if telnet connection is enabled and healthy."""
         return self._use_telnet and self._receiver.telnet_connected and self._receiver.telnet_healthy
 
-    async def _start_update_task(self):
+    def _schedule_update_task(self):
         if not self._telnet_healthy:
+            # Check if an update task is already running or pending
+            if self._update_task is not None and not self._update_task.done():
+                _LOG.debug("[%s] Update task already running, skipping", self.id)
+                return
+
             # kick off an update in case of http communication, or if the telnet connection is not healthy
-            await self._event_loop.create_task(self.async_update_receiver_data())
+            # _update_task will be cleared by async_update_receiver_data when it completes
+            self._update_task = self._event_loop.create_task(self.async_update_receiver_data())
