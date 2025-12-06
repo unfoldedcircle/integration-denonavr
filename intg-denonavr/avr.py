@@ -96,6 +96,9 @@ TELNET_EVENTS = {
     "ZM",  # Zone Main
     "Z2",  # Zone 2
     "Z3",  # Zone 3
+    "DIM",  # Dimmer
+    "ECO",  # Eco Mode
+    "SLP",  # Sleep Timer
 }
 
 SUBSCRIBED_TELNET_EVENTS = {
@@ -104,6 +107,10 @@ SUBSCRIBED_TELNET_EVENTS = {
     "MU",  # Muted
     "SI",  # Select Input source
     "MS",  # surround Mode Setting
+    "DIM",  # Dimmer
+    "ECO",  # Eco Mode
+    "SLP",  # Sleep Timer
+    "PS",  # Parameter Setting
 }
 
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
@@ -622,6 +629,8 @@ class DenonDevice:
         elif event == "MS":  # surround Mode Setting
             self._set_expected_state(States.ON)
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.SOUND_MODE: self._receiver.sound_mode})
+            # RAW_SOUND_MODE to display the actual sound mode on the sensor
+            self.events.emit(Events.UPDATE, self.id, {"RAW_SOUND_MODE": self._receiver.sound_mode_raw})
         elif event == "PS":  # Parameter Setting
             return  # TODO check if we need to handle certain parameters, likely Audyssey
 
