@@ -12,6 +12,7 @@ import avr
 from config import AvrDevice
 from ucapi import Sensor
 from ucapi.sensor import Attributes, DeviceClasses, Options, States
+
 from denonavrlib.denonavr.const import SOUND_MODE_MAPPING
 
 _LOG = logging.getLogger(__name__)
