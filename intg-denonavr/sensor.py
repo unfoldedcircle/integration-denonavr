@@ -219,7 +219,7 @@ class DenonSensor(Sensor):
         return None
 
     def _update_state_and_create_return_value(self, sensor_type: SensorType, value: Any) -> Any:
-        """Helper to create return value with state and value."""
+        """Update sensor state and create return value."""
         if sensor_value := self.SensorStates.get(sensor_type, None):
             if sensor_value != value:
                 self.SensorStates[sensor_type] = value
