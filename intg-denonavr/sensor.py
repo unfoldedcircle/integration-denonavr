@@ -12,9 +12,8 @@ from typing import Any
 import avr
 from config import AvrDevice
 from ucapi import Sensor
+from ucapi.media_player import Attributes as MediaAttr
 from ucapi.sensor import Attributes, DeviceClasses, Options, States
-
-from denonavrlib.denonavr.const import SOUND_MODE_MAPPING
 
 _LOG = logging.getLogger(__name__)
 
@@ -30,9 +29,6 @@ class SensorType(str, Enum):
     SLEEP_TIMER = "sleep_timer"
     AUDIO_DELAY = "audio_delay"
     MUTE = "muted"
-
-
-SOUND_MODE_VALUES: list[str] = SOUND_MODE_MAPPING.values()
 
 
 class DenonSensor(Sensor):
@@ -68,11 +64,9 @@ class DenonSensor(Sensor):
     @staticmethod
     def _get_sensor_config(sensor_type: SensorType, device: AvrDevice, receiver: avr.DenonDevice) -> dict[str, Any]:
         """Get sensor configuration based on type."""
-        base_id = f"{receiver.id}_sensor"
-
         configs = {
             SensorType.VOLUME_DB: {
-                "id": f"{base_id}_volume_db",
+                "id": f"sensor_volume_db.{receiver.id}",
                 "name": f"{device.name} Volume",
                 "device_class": DeviceClasses.CUSTOM,
                 "unit": "dB",
@@ -82,7 +76,7 @@ class DenonSensor(Sensor):
                 },
             },
             SensorType.SOUND_MODE: {
-                "id": f"{base_id}_sound_mode",
+                "id": f"sensor_sound_mode.{receiver.id}",
                 "name": f"{device.name} Sound Mode",
                 "device_class": DeviceClasses.CUSTOM,
                 "unit": None,
@@ -91,7 +85,7 @@ class DenonSensor(Sensor):
                 },
             },
             SensorType.INPUT_SOURCE: {
-                "id": f"{base_id}_input_source",
+                "id": f"sensor_input_source.{receiver.id}",
                 "name": f"{device.name} Input Source",
                 "device_class": DeviceClasses.CUSTOM,
                 "unit": None,
@@ -100,7 +94,7 @@ class DenonSensor(Sensor):
                 },
             },
             SensorType.DIMMER: {
-                "id": f"{base_id}_dimmer",
+                "id": f"sensor_dimmer.{receiver.id}",
                 "name": f"{device.name} Dimmer",
                 "device_class": DeviceClasses.CUSTOM,
                 "unit": None,
@@ -109,7 +103,7 @@ class DenonSensor(Sensor):
                 },
             },
             SensorType.ECO_MODE: {
-                "id": f"{base_id}_eco_mode",
+                "id": f"sensor_eco_mode.{receiver.id}",
                 "name": f"{device.name} Eco Mode",
                 "device_class": DeviceClasses.CUSTOM,
                 "unit": None,
@@ -118,7 +112,7 @@ class DenonSensor(Sensor):
                 },
             },
             SensorType.SLEEP_TIMER: {
-                "id": f"{base_id}_sleep_timer",
+                "id": f"sensor_sleep_timer.{receiver.id}",
                 "name": f"{device.name} Sleep Timer",
                 "device_class": DeviceClasses.CUSTOM,
                 "unit": "min",
@@ -127,7 +121,7 @@ class DenonSensor(Sensor):
                 },
             },
             SensorType.AUDIO_DELAY: {
-                "id": f"{base_id}_audio_delay",
+                "id": f"sensor_audio_delay.{receiver.id}",
                 "name": f"{device.name} Audio Delay",
                 "device_class": DeviceClasses.CUSTOM,
                 "unit": "ms",
@@ -137,7 +131,7 @@ class DenonSensor(Sensor):
                 },
             },
             SensorType.MUTE: {
-                "id": f"{base_id}_mute",
+                "id": f"sensor_mute.{receiver.id}",
                 "name": f"{device.name} Mute Status",
                 "device_class": DeviceClasses.CUSTOM,
                 "unit": None,
@@ -174,46 +168,42 @@ class DenonSensor(Sensor):
     # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access
     def _get_sensor_value(self, update: dict[str, Any]) -> Any:
         """Get the current value for this sensor type."""
+        # If receiver is turned off, clear stored sensor state
+        if update.get(MediaAttr.STATE, None) and self._receiver._receiver.state == "off":
+            self.SensorStates.pop(self._sensor_type, None)
+
         try:
             if self._sensor_type == SensorType.VOLUME_DB:
-                return self._update_state_and_create_return_value(SensorType.VOLUME_DB, self._receiver._receiver.volume)
+                return self._update_state_and_create_return_value(self._receiver._receiver.volume)
 
             if self._sensor_type == SensorType.SOUND_MODE:
                 sound_mode = update.get("RAW_SOUND_MODE", None)
                 if sound_mode:
-                    return self._update_state_and_create_return_value(SensorType.SOUND_MODE, sound_mode)
+                    return self._update_state_and_create_return_value(sound_mode)
                 return None
 
             if self._sensor_type == SensorType.INPUT_SOURCE:
-                return self._update_state_and_create_return_value(
-                    SensorType.INPUT_SOURCE, self._receiver._receiver.input_func
-                )
+                return self._update_state_and_create_return_value(self._receiver._receiver.input_func)
 
             if self._sensor_type == SensorType.DIMMER:
-                return self._update_state_and_create_return_value(
-                    SensorType.DIMMER, f"Dimmer {self._receiver._receiver.dimmer}"
-                )
+                return self._update_state_and_create_return_value(f"Dimmer {self._receiver._receiver.dimmer}")
 
             if self._sensor_type == SensorType.ECO_MODE:
-                return self._update_state_and_create_return_value(
-                    SensorType.ECO_MODE, f"ECO {self._receiver._receiver.eco_mode}"
-                )
+                return self._update_state_and_create_return_value(f"ECO {self._receiver._receiver.eco_mode}")
 
             if self._sensor_type == SensorType.SLEEP_TIMER:
                 sleep = self._receiver._receiver.sleep
                 if sleep is not None:
                     if isinstance(sleep, int):
-                        return self._update_state_and_create_return_value(SensorType.SLEEP_TIMER, f"Sleep {sleep}")
-                return self._update_state_and_create_return_value(SensorType.SLEEP_TIMER, "Sleep Off")
+                        return self._update_state_and_create_return_value(f"Sleep {sleep}")
+                return self._update_state_and_create_return_value("Sleep Off")
 
             if self._sensor_type == SensorType.AUDIO_DELAY:
-                return self._update_state_and_create_return_value(
-                    SensorType.AUDIO_DELAY, self._receiver._receiver.delay
-                )
+                return self._update_state_and_create_return_value(self._receiver._receiver.delay)
 
             if self._sensor_type == SensorType.MUTE:
                 on_off = "On" if self._receiver._receiver.muted else "Off"
-                return self._update_state_and_create_return_value(SensorType.MUTE, f"Mute {on_off}")
+                return self._update_state_and_create_return_value(f"Mute {on_off}")
 
         except Exception as ex:
             _LOG.warning("Error getting sensor value for %s: %s", self._sensor_type.value, ex)
@@ -221,14 +211,14 @@ class DenonSensor(Sensor):
 
         return None
 
-    def _update_state_and_create_return_value(self, sensor_type: SensorType, value: Any) -> Any:
+    def _update_state_and_create_return_value(self, value: Any) -> Any:
         """Update sensor state and create return value."""
-        if sensor_value := self.SensorStates.get(sensor_type, None):
+        if sensor_value := self.SensorStates.get(self._sensor_type, None):
             if sensor_value != value:
-                self.SensorStates[sensor_type] = value
+                self.SensorStates[self._sensor_type] = value
                 return value
         else:
-            self.SensorStates[sensor_type] = value
+            self.SensorStates[self._sensor_type] = value
             return value
 
         return None

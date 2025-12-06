@@ -299,18 +299,17 @@ def _entities_from_avr(avr_id: str) -> list[str]:
     """
     # dead simple for now: one media_player entity per device!
     # TODO #21 support multiple zones: one media-player per zone
-    sensor_base = f"{avr_id}_sensor"
     return [
         f"media_player.{avr_id}",
         f"remote.{avr_id}",
-        f"{sensor_base}_volume_db",
-        f"{sensor_base}_sound_mode",
-        f"{sensor_base}_input_source",
-        f"{sensor_base}_mute",
-        f"{sensor_base}_dimmer",
-        f"{sensor_base}_eco_mode",
-        f"{sensor_base}_sleep_timer",
-        f"{sensor_base}_audio_delay",
+        f"sensor_volume_db.{avr_id}",
+        f"sensor_sound_mode.{avr_id}",
+        f"sensor_input_source.{avr_id}",
+        f"sensor_mute.{avr_id}",
+        f"sensor_dimmer.{avr_id}",
+        f"sensor_eco_mode.{avr_id}",
+        f"sensor_sleep_timer.{avr_id}",
+        f"sensor_audio_delay.{avr_id}",
     ]
 
 
