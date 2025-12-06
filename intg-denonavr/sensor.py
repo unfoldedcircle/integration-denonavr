@@ -169,46 +169,47 @@ class DenonSensor(Sensor):
 
     SensorStates: dict[SensorType, Any] = {}
 
+    # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access
     def _get_sensor_value(self, update: dict[str, Any]) -> Any:
         """Get the current value for this sensor type."""
         try:
             if self._sensor_type == SensorType.VOLUME_DB:
                 return self._update_state_and_create_return_value(SensorType.VOLUME_DB, self._receiver._receiver.volume)
 
-            elif self._sensor_type == SensorType.SOUND_MODE:
+            if self._sensor_type == SensorType.SOUND_MODE:
                 sound_mode = update.get("RAW_SOUND_MODE", None)
                 if sound_mode:
                     return self._update_state_and_create_return_value(SensorType.SOUND_MODE, sound_mode)
                 return None
 
-            elif self._sensor_type == SensorType.INPUT_SOURCE:
+            if self._sensor_type == SensorType.INPUT_SOURCE:
                 return self._update_state_and_create_return_value(
                     SensorType.INPUT_SOURCE, self._receiver._receiver.input_func
                 )
 
-            elif self._sensor_type == SensorType.DIMMER:
+            if self._sensor_type == SensorType.DIMMER:
                 return self._update_state_and_create_return_value(
                     SensorType.DIMMER, f"Dimmer {self._receiver._receiver.dimmer}"
                 )
 
-            elif self._sensor_type == SensorType.ECO_MODE:
+            if self._sensor_type == SensorType.ECO_MODE:
                 return self._update_state_and_create_return_value(
                     SensorType.ECO_MODE, f"ECO {self._receiver._receiver.eco_mode}"
                 )
 
-            elif self._sensor_type == SensorType.SLEEP_TIMER:
+            if self._sensor_type == SensorType.SLEEP_TIMER:
                 sleep = self._receiver._receiver.sleep
                 if sleep is not None:
                     if isinstance(sleep, int):
                         return self._update_state_and_create_return_value(SensorType.SLEEP_TIMER, f"Sleep {sleep}")
                 return self._update_state_and_create_return_value(SensorType.SLEEP_TIMER, "Sleep Off")
 
-            elif self._sensor_type == SensorType.AUDIO_DELAY:
+            if self._sensor_type == SensorType.AUDIO_DELAY:
                 return self._update_state_and_create_return_value(
                     SensorType.AUDIO_DELAY, self._receiver._receiver.delay
                 )
 
-            elif self._sensor_type == SensorType.MUTE:
+            if self._sensor_type == SensorType.MUTE:
                 on_off = "On" if self._receiver._receiver.muted else "Off"
                 return self._update_state_and_create_return_value(SensorType.MUTE, f"Mute {on_off}")
 
