@@ -632,7 +632,8 @@ class DenonDevice:
             # RAW_SOUND_MODE to display the actual sound mode on the sensor
             self.events.emit(Events.UPDATE, self.id, {"RAW_SOUND_MODE": self._receiver.sound_mode_raw})
         elif event == "PS":  # Parameter Setting
-            return  # TODO check if we need to handle certain parameters, likely Audyssey
+            if not parameter or not parameter.startswith("DELAY"):
+                return  # TODO check if we need to handle certain parameters, likely Audyssey
 
         self._notify_updated_data()
 
