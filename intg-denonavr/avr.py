@@ -99,6 +99,7 @@ TELNET_EVENTS = {
     "DIM",  # Dimmer
     "ECO",  # Eco Mode
     "SLP",  # Sleep Timer
+    "VS",  # Video Setting
 }
 
 SUBSCRIBED_TELNET_EVENTS = {
@@ -111,6 +112,7 @@ SUBSCRIBED_TELNET_EVENTS = {
     "ECO",  # Eco Mode
     "SLP",  # Sleep Timer
     "PS",  # Parameter Setting
+    "VS",  # Video Setting
 }
 
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
@@ -634,6 +636,8 @@ class DenonDevice:
         elif event == "PS":  # Parameter Setting
             if not parameter or not parameter.startswith("DELAY"):
                 return  # TODO check if we need to handle certain parameters, likely Audyssey
+        elif event == "VS" and not parameter.startswith("MONI"):
+            return  # No need to process other video settings
 
         self._notify_updated_data()
 
