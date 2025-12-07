@@ -134,6 +134,16 @@ class DenonSensor(Sensor):
                         Options.CUSTOM_UNIT: "",
                     },
                 }
+            case SensorType.HDMI_OUTPUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.HDMI_OUTPUT.value),
+                    "name": f"{device.name} HDMI Output",
+                    "device_class": DeviceClasses.CUSTOM,
+                    "unit": None,
+                    "options": {
+                        Options.CUSTOM_UNIT: "",
+                    },
+                }
             case _:
                 raise ValueError(f"Unsupported sensor type: {sensor_type}")
         return sensor
@@ -200,6 +210,9 @@ class DenonSensor(Sensor):
                 on_off = "On" if self._receiver._receiver.muted else "Off"
                 return self._update_state_and_create_return_value(f"Mute {on_off}")
 
+            if self._sensor_type == SensorType.HDMI_OUTPUT:
+                return self._update_state_and_create_return_value(self._receiver._receiver.hdmi_output)
+
         except Exception as ex:
             _LOG.warning("Error getting sensor value for %s: %s", self._sensor_type.value, ex)
             return None
@@ -240,5 +253,6 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice) -> list[DenonSe
         sensors.append(DenonSensor(device, receiver, SensorType.ECO_MODE))
         sensors.append(DenonSensor(device, receiver, SensorType.SLEEP_TIMER))
         sensors.append(DenonSensor(device, receiver, SensorType.AUDIO_DELAY))
+        sensors.append(DenonSensor(device, receiver, SensorType.HDMI_OUTPUT))
 
     return sensors
