@@ -6,29 +6,15 @@ Sensor entity functions.
 """
 
 import logging
-from enum import Enum
 from typing import Any
 
 import avr
-from config import AvrDevice
-from ucapi import Sensor
+from config import AvrDevice, SensorType, create_entity_id
+from ucapi import EntityTypes, Sensor
 from ucapi.media_player import Attributes as MediaAttr
 from ucapi.sensor import Attributes, DeviceClasses, Options, States
 
 _LOG = logging.getLogger(__name__)
-
-
-class SensorType(str, Enum):
-    """Sensor types for Denon AVR."""
-
-    VOLUME_DB = "volume_db"
-    SOUND_MODE = "sound_mode"
-    INPUT_SOURCE = "input_source"
-    DIMMER = "dimmer"
-    ECO_MODE = "eco_mode"
-    SLEEP_TIMER = "sleep_timer"
-    AUDIO_DELAY = "audio_delay"
-    MUTE = "muted"
 
 
 class DenonSensor(Sensor):
@@ -64,84 +50,91 @@ class DenonSensor(Sensor):
     @staticmethod
     def _get_sensor_config(sensor_type: SensorType, device: AvrDevice, receiver: avr.DenonDevice) -> dict[str, Any]:
         """Get sensor configuration based on type."""
-        configs = {
-            SensorType.VOLUME_DB: {
-                "id": f"sensor_volume_db.{receiver.id}",
-                "name": f"{device.name} Volume",
-                "device_class": DeviceClasses.CUSTOM,
-                "unit": "dB",
-                "options": {
-                    Options.CUSTOM_UNIT: "dB",
-                    Options.DECIMALS: 1,
-                },
-            },
-            SensorType.SOUND_MODE: {
-                "id": f"sensor_sound_mode.{receiver.id}",
-                "name": f"{device.name} Sound Mode",
-                "device_class": DeviceClasses.CUSTOM,
-                "unit": None,
-                "options": {
-                    Options.CUSTOM_UNIT: "",
-                },
-            },
-            SensorType.INPUT_SOURCE: {
-                "id": f"sensor_input_source.{receiver.id}",
-                "name": f"{device.name} Input Source",
-                "device_class": DeviceClasses.CUSTOM,
-                "unit": None,
-                "options": {
-                    Options.CUSTOM_UNIT: "",
-                },
-            },
-            SensorType.DIMMER: {
-                "id": f"sensor_dimmer.{receiver.id}",
-                "name": f"{device.name} Dimmer",
-                "device_class": DeviceClasses.CUSTOM,
-                "unit": None,
-                "options": {
-                    Options.CUSTOM_UNIT: "",
-                },
-            },
-            SensorType.ECO_MODE: {
-                "id": f"sensor_eco_mode.{receiver.id}",
-                "name": f"{device.name} Eco Mode",
-                "device_class": DeviceClasses.CUSTOM,
-                "unit": None,
-                "options": {
-                    Options.CUSTOM_UNIT: "",
-                },
-            },
-            SensorType.SLEEP_TIMER: {
-                "id": f"sensor_sleep_timer.{receiver.id}",
-                "name": f"{device.name} Sleep Timer",
-                "device_class": DeviceClasses.CUSTOM,
-                "unit": "min",
-                "options": {
-                    Options.CUSTOM_UNIT: "",
-                },
-            },
-            SensorType.AUDIO_DELAY: {
-                "id": f"sensor_audio_delay.{receiver.id}",
-                "name": f"{device.name} Audio Delay",
-                "device_class": DeviceClasses.CUSTOM,
-                "unit": "ms",
-                "options": {
-                    Options.CUSTOM_UNIT: "ms",
-                    Options.DECIMALS: 0,
-                },
-            },
-            SensorType.MUTE: {
-                "id": f"sensor_mute.{receiver.id}",
-                "name": f"{device.name} Mute Status",
-                "device_class": DeviceClasses.CUSTOM,
-                "unit": None,
-                "options": {
-                    Options.CUSTOM_UNIT: "",
-                },
-            },
-        }
-
-        return configs[sensor_type]
+        match sensor_type:
+            case SensorType.VOLUME_DB:
+                return {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.VOLUME_DB.value),
+                    "name": f"{device.name} Volume",
+                    "device_class": DeviceClasses.CUSTOM,
+                    "unit": "dB",
+                    "options": {
+                        Options.CUSTOM_UNIT: "dB",
+                        Options.DECIMALS: 1,
+                    },
+                }
+            case SensorType.SOUND_MODE:
+                return {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.SOUND_MODE.value),
+                    "name": f"{device.name} Sound Mode",
+                    "device_class": DeviceClasses.CUSTOM,
+                    "unit": None,
+                    "options": {
+                        Options.CUSTOM_UNIT: "",
+                    },
+                }
+            case SensorType.INPUT_SOURCE:
+                return {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.INPUT_SOURCE.value),
+                    "name": f"{device.name} Input Source",
+                    "device_class": DeviceClasses.CUSTOM,
+                    "unit": None,
+                    "options": {
+                        Options.CUSTOM_UNIT: "",
+                    },
+                }
+            case SensorType.DIMMER:
+                return {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.DIMMER.value),
+                    "name": f"{device.name} Dimmer",
+                    "device_class": DeviceClasses.CUSTOM,
+                    "unit": None,
+                    "options": {
+                        Options.CUSTOM_UNIT: "",
+                    },
+                }
+            case SensorType.ECO_MODE:
+                return {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.ECO_MODE.value),
+                    "name": f"{device.name} Eco Mode",
+                    "device_class": DeviceClasses.CUSTOM,
+                    "unit": None,
+                    "options": {
+                        Options.CUSTOM_UNIT: "",
+                    },
+                }
+            case SensorType.SLEEP_TIMER:
+                return {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.SLEEP_TIMER.value),
+                    "name": f"{device.name} Sleep Timer",
+                    "device_class": DeviceClasses.CUSTOM,
+                    "unit": "min",
+                    "options": {
+                        Options.CUSTOM_UNIT: "",
+                    },
+                }
+            case SensorType.AUDIO_DELAY:
+                return {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_DELAY.value),
+                    "name": f"{device.name} Audio Delay",
+                    "device_class": DeviceClasses.CUSTOM,
+                    "unit": "ms",
+                    "options": {
+                        Options.CUSTOM_UNIT: "ms",
+                        Options.DECIMALS: 0,
+                    },
+                }
+            case SensorType.MUTE:
+                return {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MUTE.value),
+                    "name": f"{device.name} Mute Status",
+                    "device_class": DeviceClasses.CUSTOM,
+                    "unit": None,
+                    "options": {
+                        Options.CUSTOM_UNIT: "",
+                    },
+                }
+            case _:
+                raise ValueError(f"Unsupported sensor type: {sensor_type}")
 
     def update_attributes(self, update: dict[str, Any]) -> dict[str, Any] | None:
         """Get current sensor value from receiver."""

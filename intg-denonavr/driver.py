@@ -18,7 +18,7 @@ import media_player
 import sensor
 import setup_flow
 import ucapi
-from config import avr_from_entity_id
+from config import SensorType, avr_from_entity_id, create_entity_id
 from i18n import _a
 from ucapi.media_player import Attributes as MediaAttr
 
@@ -300,16 +300,16 @@ def _entities_from_avr(avr_id: str) -> list[str]:
     # dead simple for now: one media_player entity per device!
     # TODO #21 support multiple zones: one media-player per zone
     return [
-        f"media_player.{avr_id}",
-        f"remote.{avr_id}",
-        f"sensor_volume_db.{avr_id}",
-        f"sensor_sound_mode.{avr_id}",
-        f"sensor_input_source.{avr_id}",
-        f"sensor_mute.{avr_id}",
-        f"sensor_dimmer.{avr_id}",
-        f"sensor_eco_mode.{avr_id}",
-        f"sensor_sleep_timer.{avr_id}",
-        f"sensor_audio_delay.{avr_id}",
+        create_entity_id(avr_id, ucapi.EntityTypes.MEDIA_PLAYER),
+        create_entity_id(avr_id, ucapi.EntityTypes.REMOTE),
+        create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.VOLUME_DB.value),
+        create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.SOUND_MODE.value),
+        create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.INPUT_SOURCE.value),
+        create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.DIMMER.value),
+        create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.ECO_MODE.value),
+        create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.SLEEP_TIMER.value),
+        create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.AUDIO_DELAY.value),
+        create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.MUTE.value),
     ]
 
 

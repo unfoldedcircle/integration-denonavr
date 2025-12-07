@@ -10,7 +10,8 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Iterator
+from enum import Enum
+from typing import Iterator, Optional
 
 from ucapi import EntityTypes
 
@@ -19,8 +20,10 @@ _LOG = logging.getLogger(__name__)
 _CFG_FILENAME = "config.json"
 
 
-def create_entity_id(avr_id: str, entity_type: EntityTypes) -> str:
+def create_entity_id(avr_id: str, entity_type: EntityTypes, sub_type: Optional[str] = None) -> str:
     """Create a unique entity identifier for the given receiver and entity type."""
+    if sub_type:
+        return f"{entity_type.value}.{sub_type}.{avr_id}"
     return f"{entity_type.value}.{avr_id}"
 
 
@@ -55,6 +58,19 @@ class AvrDevice:
     timeout: int
     """Connection and command timeout in milliseconds."""
     is_denon: bool
+
+
+class SensorType(str, Enum):
+    """Sensor types for Denon AVR."""
+
+    VOLUME_DB = "volume_db"
+    SOUND_MODE = "sound_mode"
+    INPUT_SOURCE = "input_source"
+    DIMMER = "dimmer"
+    ECO_MODE = "eco_mode"
+    SLEEP_TIMER = "sleep_timer"
+    AUDIO_DELAY = "audio_delay"
+    MUTE = "mute"
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
