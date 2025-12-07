@@ -50,9 +50,10 @@ class DenonSensor(Sensor):
     @staticmethod
     def _get_sensor_config(sensor_type: SensorType, device: AvrDevice, receiver: avr.DenonDevice) -> dict[str, Any]:
         """Get sensor configuration based on type."""
+        sensor = {}
         match sensor_type:
             case SensorType.VOLUME_DB:
-                return {
+                sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.VOLUME_DB.value),
                     "name": f"{device.name} Volume",
                     "device_class": DeviceClasses.CUSTOM,
@@ -63,7 +64,7 @@ class DenonSensor(Sensor):
                     },
                 }
             case SensorType.SOUND_MODE:
-                return {
+                sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.SOUND_MODE.value),
                     "name": f"{device.name} Sound Mode",
                     "device_class": DeviceClasses.CUSTOM,
@@ -73,7 +74,7 @@ class DenonSensor(Sensor):
                     },
                 }
             case SensorType.INPUT_SOURCE:
-                return {
+                sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.INPUT_SOURCE.value),
                     "name": f"{device.name} Input Source",
                     "device_class": DeviceClasses.CUSTOM,
@@ -83,7 +84,7 @@ class DenonSensor(Sensor):
                     },
                 }
             case SensorType.DIMMER:
-                return {
+                sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.DIMMER.value),
                     "name": f"{device.name} Dimmer",
                     "device_class": DeviceClasses.CUSTOM,
@@ -93,7 +94,7 @@ class DenonSensor(Sensor):
                     },
                 }
             case SensorType.ECO_MODE:
-                return {
+                sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.ECO_MODE.value),
                     "name": f"{device.name} Eco Mode",
                     "device_class": DeviceClasses.CUSTOM,
@@ -103,7 +104,7 @@ class DenonSensor(Sensor):
                     },
                 }
             case SensorType.SLEEP_TIMER:
-                return {
+                sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.SLEEP_TIMER.value),
                     "name": f"{device.name} Sleep Timer",
                     "device_class": DeviceClasses.CUSTOM,
@@ -113,7 +114,7 @@ class DenonSensor(Sensor):
                     },
                 }
             case SensorType.AUDIO_DELAY:
-                return {
+                sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_DELAY.value),
                     "name": f"{device.name} Audio Delay",
                     "device_class": DeviceClasses.CUSTOM,
@@ -124,7 +125,7 @@ class DenonSensor(Sensor):
                     },
                 }
             case SensorType.MUTE:
-                return {
+                sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MUTE.value),
                     "name": f"{device.name} Mute Status",
                     "device_class": DeviceClasses.CUSTOM,
@@ -135,6 +136,7 @@ class DenonSensor(Sensor):
                 }
             case _:
                 raise ValueError(f"Unsupported sensor type: {sensor_type}")
+        return sensor
 
     def update_attributes(self, update: dict[str, Any]) -> dict[str, Any] | None:
         """Get current sensor value from receiver."""
