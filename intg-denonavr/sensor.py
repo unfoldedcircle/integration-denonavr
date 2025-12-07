@@ -134,10 +134,10 @@ class DenonSensor(Sensor):
                         Options.CUSTOM_UNIT: "",
                     },
                 }
-            case SensorType.HDMI_OUTPUT:
+            case SensorType.MONITOR_OUTPUT:
                 sensor = {
-                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.HDMI_OUTPUT.value),
-                    "name": f"{device.name} HDMI Output",
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MONITOR_OUTPUT.value),
+                    "name": f"{device.name} Monitor Output",
                     "device_class": DeviceClasses.CUSTOM,
                     "unit": None,
                     "options": {
@@ -210,7 +210,7 @@ class DenonSensor(Sensor):
                 on_off = "On" if self._receiver._receiver.muted else "Off"
                 return self._update_state_and_create_return_value(f"Mute {on_off}")
 
-            if self._sensor_type == SensorType.HDMI_OUTPUT:
+            if self._sensor_type == SensorType.MONITOR_OUTPUT:
                 return self._update_state_and_create_return_value(self._receiver._receiver.hdmi_output)
 
         except Exception as ex:
@@ -253,6 +253,6 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice) -> list[DenonSe
         sensors.append(DenonSensor(device, receiver, SensorType.ECO_MODE))
         sensors.append(DenonSensor(device, receiver, SensorType.SLEEP_TIMER))
         sensors.append(DenonSensor(device, receiver, SensorType.AUDIO_DELAY))
-        sensors.append(DenonSensor(device, receiver, SensorType.HDMI_OUTPUT))
+        sensors.append(DenonSensor(device, receiver, SensorType.MONITOR_OUTPUT))
 
     return sensors

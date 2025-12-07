@@ -71,7 +71,7 @@ class SensorType(str, Enum):
     SLEEP_TIMER = "sleep_timer"
     AUDIO_DELAY = "audio_delay"
     MUTE = "mute"
-    HDMI_OUTPUT = "hdmi_output"
+    MONITOR_OUTPUT = "monitor_output"
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
