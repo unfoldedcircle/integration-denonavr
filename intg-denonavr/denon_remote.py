@@ -73,7 +73,7 @@ class DenonRemote(Remote):
             case Commands.ON:
                 return await self._denon_media_player.command(Commands.ON)
             case Commands.OFF:
-                await self._denon_media_player.command(Commands.OFF)
+                return await self._denon_media_player.command(Commands.OFF)
             case Commands.TOGGLE:
                 return await self._denon_media_player.command(Commands.TOGGLE)
 
