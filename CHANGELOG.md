@@ -11,6 +11,12 @@ _Changes in the next release_
 
 ---
 
+## v0.12.0 - 2025-12-08
+### Fixed
+- Power off command in remote-entity throws an error.
+- Slow volume changes and updates when using http by @henrikwidlund ([#42](https://github.com/unfoldedcircle/integration-denonavr/issues/42), [#135](https://github.com/unfoldedcircle/integration-denonavr/issues/135)).
+- Add rate limiter to avoid commands from executing after releasing button by @henrikwidlund ([#145](https://github.com/unfoldedcircle/integration-denonavr/pull/145)).
+
 ## v0.11.5 - 2025-12-01
 ### Fixed
 - Invalid send_cmd when using a remote-entity ([#126](https://github.com/unfoldedcircle/integration-denonavr/issues/126)).
