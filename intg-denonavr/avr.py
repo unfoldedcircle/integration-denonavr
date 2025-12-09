@@ -620,7 +620,12 @@ class DenonDevice:
             self._set_expected_state(States.ON)
             level = self.volume_level
             if level is None:
-                level = int(parameter)
+                if len(parameter) < 3:
+                    level = float(parameter)
+                else:
+                    whole_number = float(parameter[0:2])
+                    fraction = 0.1 * float(parameter[2])
+                    level = whole_number + fraction
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: level})
         elif event == "MU":  # Muted
             self._set_expected_state(States.ON)
