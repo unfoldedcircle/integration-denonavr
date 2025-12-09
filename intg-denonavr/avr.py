@@ -339,6 +339,7 @@ class DenonDevice:
         # Volume is sent in a format like -50.0. Minimum is -80.0,
         # maximum is 18.0
         if self._receiver.volume is None:
+            _LOG.debug("volume_level is None")
             return None
         return relative_volume_to_absolute(self._receiver.volume)
 
@@ -586,7 +587,14 @@ class DenonDevice:
     def _notify_updated_data(self):
         """Notify listeners that the AVR data has been updated."""
         # adjust to the real volume level
-        self._expected_volume = self.volume_level
+        volume_level = self.volume_level
+        _LOG.debug(
+            "[%s] _notify_updated_data: old expected_volume=%s, new volume_level=%s",
+            self.id,
+            self._expected_volume,
+            volume_level,
+        )
+        self._expected_volume = volume_level
 
         # None update object means data are up to date & client can fetch required data.
         self.events.emit(Events.UPDATE, self.id, None)
@@ -697,6 +705,7 @@ class DenonDevice:
         max_volume_rel = self._receiver.max_volume
         if max_volume_rel is None:  # temporary workaround until denonavrlib is fixed
             max_volume_rel = 18.0
+        _LOG.debug("[%s] set_volume_level: %s, max_volume_rel=%s", self.id, volume_abs, max_volume_rel)
         volume_rel = absolute_volume_to_relative(volume_abs)
         if volume_rel > max_volume_rel:
             volume_rel = max_volume_rel
@@ -720,6 +729,15 @@ class DenonDevice:
         max_volume_rel = self._receiver.max_volume
         if max_volume_rel is None:  # temporary workaround until denonavrlib is fixed
             max_volume_rel = 18.0
+
+        _LOG.debug(
+            "[%s] volume_up: max_volume_rel=%s, _expected_volume=%s, _telnet_healthy=%s",
+            self.id,
+            max_volume_rel,
+            self._expected_volume,
+            self._telnet_healthy,
+        )
+
         if self._expected_volume is not None:
             expected_volume = min(self._expected_volume + self._volume_step, 100)
             volume_rel = absolute_volume_to_relative(expected_volume)
@@ -738,6 +756,8 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def volume_down(self) -> ucapi.StatusCodes:
         """Send volume-down command to AVR."""
+        _LOG.debug("[%s] volume_down: _expected_volume=%s", self.id, self._expected_volume)
+
         if self._expected_volume is not None:
             self._expected_volume = max(self._expected_volume - self._volume_step, 0)
 
