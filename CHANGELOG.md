@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## v0.12.1 - 2025-12-09
+### Fixed
+- Guard against decrease/increase volume outside valid range ([#149](https://github.com/unfoldedcircle/integration-denonavr/pull/149)).
+
 ## v0.12.0 - 2025-12-08
 ### Fixed
 - Power off command in remote-entity throws an error.
