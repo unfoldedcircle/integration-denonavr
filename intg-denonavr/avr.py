@@ -17,6 +17,7 @@ from urllib import parse
 import discover
 import ucapi
 from config import AvrDevice
+from helpers import absolute_volume_to_relative, relative_volume_to_absolute
 from pyee.asyncio import AsyncIOEventEmitter
 from simplecommand import SimpleCommand
 from ucapi.media_player import Attributes as MediaAttr
@@ -339,9 +340,7 @@ class DenonDevice:
         # maximum is 18.0
         if self._receiver.volume is None:
             return None
-        volume = min(self._receiver.volume + 80, 100)
-        volume = max(volume, 0)
-        return volume
+        return relative_volume_to_absolute(self._receiver.volume)
 
     @property
     def source(self) -> str:
@@ -690,19 +689,22 @@ class DenonDevice:
         return await self.power_on()
 
     @async_handle_denonlib_errors
-    async def set_volume_level(self, volume: float | None) -> ucapi.StatusCodes:
-        """Set volume level, range 0..100."""
-        if volume is None:
+    async def set_volume_level(self, volume_abs: float | None) -> ucapi.StatusCodes:
+        """Set absolute volume level, range 0..100."""
+        if volume_abs is None:
             return ucapi.StatusCodes.BAD_REQUEST
-        # Volume has to be sent in a format like -50.0. Minimum is -80.0,
-        # maximum is 18.0
-        volume_denon = float(volume - 80)
-        if volume_denon > 18:
-            volume_denon = float(18)
-        await self._receiver.async_set_volume(volume_denon)
-        self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
+        # Volume has to be sent in a relative volume scale (-80 dB - 18 dB, or lower if limited by AVR setting)
+        max_volume_rel = self._receiver.max_volume
+        volume_rel = absolute_volume_to_relative(volume_abs)
+        if volume_rel > max_volume_rel:
+            volume_rel = max_volume_rel
+            volume_abs = relative_volume_to_absolute(max_volume_rel)
+            _LOG.debug("[%s] Adjusted max volume %s", self.id, volume_abs)
+
+        await self._receiver.async_set_volume(volume_rel)
+        self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume_abs})
         if not self._use_telnet or self._update_lock.locked():
-            self._expected_volume = volume
+            self._expected_volume = volume_abs
 
         self._schedule_update_task()
 
@@ -711,28 +713,34 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def volume_up(self) -> ucapi.StatusCodes:
         """Send volume-up command to AVR."""
+        # Workaround to stop increasing expected volume when it's already at max volume.
+        # Otherwise, volume_down won't work until it reaches max volume!
+        max_volume_rel = self._receiver.max_volume
+        if self._expected_volume is not None:
+            expected_volume = min(self._expected_volume + self._volume_step, 100)
+            volume_rel = absolute_volume_to_relative(expected_volume)
+            if volume_rel > max_volume_rel:
+                expected_volume = relative_volume_to_absolute(max_volume_rel)
+                _LOG.debug("[%s] Expected volume up reached max: %s", self.id, expected_volume)
+            self._expected_volume = expected_volume
+
         if self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
-            self._expected_volume = min(self._expected_volume + self._volume_step, 100)
             await self.set_volume_level(self._expected_volume)
         else:
             await self._receiver.async_volume_up()
-            if self._expected_volume is not None:
-                self._expected_volume = min(self._expected_volume + self._volume_step, 100)
-            # Schedule update
             self._schedule_update_task()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def volume_down(self) -> ucapi.StatusCodes:
         """Send volume-down command to AVR."""
-        if self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
+        if self._expected_volume is not None:
             self._expected_volume = max(self._expected_volume - self._volume_step, 0)
+
+        if self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
             await self.set_volume_level(self._expected_volume)
         else:
             await self._receiver.async_volume_down()
-            if self._expected_volume is not None:
-                self._expected_volume = max(self._expected_volume - self._volume_step, 0)
-            # Schedule update
             self._schedule_update_task()
         return ucapi.StatusCodes.OK
 
