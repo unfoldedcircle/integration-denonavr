@@ -43,6 +43,7 @@ class SetupSteps(IntEnum):
 
 
 _setup_step = SetupSteps.INIT
+# pylint: disable=C0103
 _CFG_ADD_DEVICE: bool = False
 _RECONFIGURED_DEVICE: AvrDevice | None = None
 
