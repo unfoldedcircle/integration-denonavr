@@ -28,6 +28,7 @@ _LOOP = asyncio.get_event_loop()
 api = ucapi.IntegrationAPI(_LOOP)
 # Map of avr_id -> DenonAVR instance
 _configured_avrs: dict[str, avr.DenonDevice] = {}
+# pylint: disable=C0103
 _REMOTE_IN_STANDBY = False
 
 
