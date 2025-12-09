@@ -695,6 +695,8 @@ class DenonDevice:
             return ucapi.StatusCodes.BAD_REQUEST
         # Volume has to be sent in a relative volume scale (-80 dB - 18 dB, or lower if limited by AVR setting)
         max_volume_rel = self._receiver.max_volume
+        if max_volume_rel is None:  # temporary workaround until denonavrlib is fixed
+            max_volume_rel = 18.0
         volume_rel = absolute_volume_to_relative(volume_abs)
         if volume_rel > max_volume_rel:
             volume_rel = max_volume_rel
@@ -716,6 +718,8 @@ class DenonDevice:
         # Workaround to stop increasing expected volume when it's already at max volume.
         # Otherwise, volume_down won't work until it reaches max volume!
         max_volume_rel = self._receiver.max_volume
+        if max_volume_rel is None:  # temporary workaround until denonavrlib is fixed
+            max_volume_rel = 18.0
         if self._expected_volume is not None:
             expected_volume = min(self._expected_volume + self._volume_step, 100)
             volume_rel = absolute_volume_to_relative(expected_volume)
