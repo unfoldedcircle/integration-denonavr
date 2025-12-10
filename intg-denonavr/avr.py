@@ -339,6 +339,7 @@ class DenonDevice:
         # Volume is sent in a format like -50.0. Minimum is -80.0,
         # maximum is 18.0
         if self._receiver.volume is None:
+            _LOG.debug("volume_level is None")
             return None
         return relative_volume_to_absolute(self._receiver.volume)
 
@@ -612,7 +613,12 @@ class DenonDevice:
             self._set_expected_state(States.ON)
             level = self.volume_level
             if level is None:
-                level = int(parameter)
+                if len(parameter) < 3:
+                    level = float(parameter)
+                else:
+                    whole_number = float(parameter[0:2])
+                    fraction = 0.1 * float(parameter[2])
+                    level = whole_number + fraction
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: level})
         elif event == "MU":  # Muted
             self._set_expected_state(States.ON)
@@ -695,8 +701,7 @@ class DenonDevice:
             return ucapi.StatusCodes.BAD_REQUEST
         # Volume has to be sent in a relative volume scale (-80 dB - 18 dB, or lower if limited by AVR setting)
         max_volume_rel = self._receiver.max_volume
-        if max_volume_rel is None:  # temporary workaround until denonavrlib is fixed
-            max_volume_rel = 18.0
+        _LOG.debug("[%s] set_volume_level: %s, max_volume_rel=%s", self.id, volume_abs, max_volume_rel)
         volume_rel = absolute_volume_to_relative(volume_abs)
         if volume_rel > max_volume_rel:
             volume_rel = max_volume_rel
@@ -718,8 +723,6 @@ class DenonDevice:
         # Workaround to stop increasing expected volume when it's already at max volume.
         # Otherwise, volume_down won't work until it reaches max volume!
         max_volume_rel = self._receiver.max_volume
-        if max_volume_rel is None:  # temporary workaround until denonavrlib is fixed
-            max_volume_rel = 18.0
         if self._expected_volume is not None:
             expected_volume = min(self._expected_volume + self._volume_step, 100)
             volume_rel = absolute_volume_to_relative(expected_volume)
