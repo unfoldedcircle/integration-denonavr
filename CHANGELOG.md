@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
-### Fixed
-- Remove max volume event caching for guaranteed event handling when running on the Remote device. Events are not always emitted at the same time or order.
-
 ---
+
+## v0.12.3 - 2025-12-10
+### Fixed
+- Remove max volume event caching for guaranteed event handling when running on the Remote device. Events are not always emitted at the same time or order ([#150](https://github.com/unfoldedcircle/integration-denonavr/pull/150))..
 
 ## v0.12.2 - 2025-12-09
 ### Fixed
