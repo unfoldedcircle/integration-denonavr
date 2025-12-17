@@ -244,10 +244,10 @@ def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             MediaAttr.SOURCE: receiver.source,
             MediaAttr.SOURCE_LIST: receiver.source_list,
             MediaAttr.SOUND_MODE: receiver.sound_mode,
-            "RAW_SOUND_MODE": receiver._receiver.sound_mode_raw,
+            "RAW_SOUND_MODE": receiver.sound_mode_raw,
             MediaAttr.SOUND_MODE_LIST: receiver.sound_mode_list,
             MediaAttr.VOLUME: receiver.volume_level,
-            "SLEEP_TIMER": receiver._receiver.sleep,
+            "SLEEP_TIMER": receiver.sleep,
         }
     else:
         _LOG.info("[%s] AVR update: %s", avr_id, update)

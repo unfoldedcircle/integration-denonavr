@@ -352,6 +352,11 @@ class DenonDevice:
         return volume
 
     @property
+    def sleep(self) -> int | str | None:
+        """Return the current sleep timer value."""
+        return self._receiver.sleep
+
+    @property
     def source(self) -> str:
         """Return the current input source."""
         if self._receiver.input_func is not None:
@@ -369,6 +374,11 @@ class DenonDevice:
         if self._receiver.sound_mode is not None:
             return self._receiver.sound_mode
         return ""
+
+    @property
+    def sound_mode_raw(self) -> str | None:
+        """Return the current sound mode."""
+        return self._receiver.sound_mode_raw
 
     @property
     def media_image_url(self) -> str:
