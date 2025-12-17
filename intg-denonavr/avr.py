@@ -638,6 +638,8 @@ class DenonDevice:
                 return  # TODO check if we need to handle certain parameters, likely Audyssey
         elif event == "VS" and not parameter.startswith("MONI"):
             return  # No need to process other video settings
+        elif event == "SLP":  # Sleep Timer
+            self.events.emit(Events.UPDATE, self.id, {"SLEEP_TIMER": self._receiver.sleep})
 
         self._notify_updated_data()
 

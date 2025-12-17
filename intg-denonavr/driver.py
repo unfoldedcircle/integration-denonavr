@@ -186,29 +186,19 @@ async def on_avr_connected(avr_id: str):
                     api.configured_entities.update_attributes(entity.id, attributes)
 
 
-async def on_avr_disconnected(avr_id: str):
+def on_avr_disconnected(avr_id: str):
     """Handle AVR disconnection."""
     _LOG.debug("AVR disconnected: %s", avr_id)
-
-    for entity in _configured_entities_from_device(avr_id):
-        if entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
-            api.configured_entities.update_attributes(
-                entity.id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
-            )
-        elif entity.entity_type == ucapi.EntityTypes.REMOTE:
-            api.configured_entities.update_attributes(
-                entity.id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNAVAILABLE}
-            )
-        elif entity.entity_type == ucapi.EntityTypes.SENSOR:
-            api.configured_entities.update_attributes(
-                entity.id, {ucapi.sensor.Attributes.STATE: ucapi.sensor.States.UNAVAILABLE}
-            )
+    _mark_entities_unavailable(avr_id)
 
 
-async def on_avr_connection_error(avr_id: str, message):
+def on_avr_connection_error(avr_id: str, message):
     """Set entities of AVR to state UNAVAILABLE if AVR connection error occurred."""
     _LOG.error(message)
+    _mark_entities_unavailable(avr_id)
 
+
+def _mark_entities_unavailable(avr_id: str):
     for entity in _configured_entities_from_device(avr_id):
         if entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
             api.configured_entities.update_attributes(
@@ -224,7 +214,7 @@ async def on_avr_connection_error(avr_id: str, message):
             )
 
 
-async def handle_avr_address_change(avr_id: str, address: str) -> None:
+def handle_avr_address_change(avr_id: str, address: str) -> None:
     """Update device configuration with changed IP address."""
     device = config.devices.get(avr_id)
     if device and device.address != address:
@@ -233,7 +223,7 @@ async def handle_avr_address_change(avr_id: str, address: str) -> None:
         config.devices.update(device)
 
 
-async def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
+def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
     """
     Update attributes of configured media-player entity if AVR properties changed.
 
@@ -254,8 +244,10 @@ async def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             MediaAttr.SOURCE: receiver.source,
             MediaAttr.SOURCE_LIST: receiver.source_list,
             MediaAttr.SOUND_MODE: receiver.sound_mode,
+            "RAW_SOUND_MODE": receiver._receiver.sound_mode_raw,
             MediaAttr.SOUND_MODE_LIST: receiver.sound_mode_list,
             MediaAttr.VOLUME: receiver.volume_level,
+            "SLEEP_TIMER": receiver._receiver.sleep,
         }
     else:
         _LOG.info("[%s] AVR update: %s", avr_id, update)

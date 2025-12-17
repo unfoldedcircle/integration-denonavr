@@ -182,11 +182,13 @@ class DenonSensor(Sensor):
                 return self._update_state_and_create_return_value(volume)
 
             if self._sensor_type == SensorType.SOUND_MODE:
-                sound_mode = update.get("RAW_SOUND_MODE", "Unknown")
+                sound_mode = update.get("RAW_SOUND_MODE", None)
+                if sound_mode is None:
+                    return None
                 return self._update_state_and_create_return_value(sound_mode)
 
             if self._sensor_type == SensorType.INPUT_SOURCE:
-                input_source = self._get_value_or_default(self._receiver._receiver.input_func, "Unknown")
+                input_source = self._get_value_or_default(self._receiver._receiver.input_func, "--")
                 return self._update_state_and_create_return_value(input_source)
 
             if self._sensor_type == SensorType.DIMMER:
@@ -198,7 +200,7 @@ class DenonSensor(Sensor):
                 return self._update_state_and_create_return_value(f"ECO {eco_mode}")
 
             if self._sensor_type == SensorType.SLEEP_TIMER:
-                sleep = self._receiver._receiver.sleep
+                sleep = update.get("SLEEP_TIMER", self._receiver._receiver.sleep)
                 if sleep is not None:
                     if isinstance(sleep, int):
                         return self._update_state_and_create_return_value(f"Sleep {sleep}")
