@@ -293,6 +293,7 @@ def _entities_from_avr(avr_id: str) -> list[str]:
             create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.SLEEP_TIMER.value),
             create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.AUDIO_DELAY.value),
             create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.MUTE.value),
+            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.MONITOR_OUTPUT.value),
         ]
         MAPPED_AVR_ENTITIES[avr_id] = avr_entities
     return avr_entities
