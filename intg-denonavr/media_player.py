@@ -99,7 +99,7 @@ class DenonMediaPlayer(MediaPlayer):
             options=options,
         )
 
-    async def command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
+    async def command(self, cmd_id: str, params: dict[str, Any] | None = None, *, websocket: Any) -> StatusCodes:
         """
         Media-player entity command handler.
 
@@ -107,6 +107,7 @@ class DenonMediaPlayer(MediaPlayer):
 
         :param cmd_id: command
         :param params: optional command parameters
+        :param websocket: websocket connection (not used)
         :return: status code of the command request
         """
         # pylint: disable=R0911
