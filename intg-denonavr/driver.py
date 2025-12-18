@@ -29,6 +29,7 @@ _LOOP = asyncio.get_event_loop()
 api = ucapi.IntegrationAPI(_LOOP)
 # Map of avr_id -> DenonAVR instance
 _configured_avrs: dict[str, avr.DenonDevice] = {}
+# pylint: disable=C0103
 _REMOTE_IN_STANDBY = False
 
 
@@ -407,9 +408,7 @@ async def main():
 
     level = os.getenv("UC_LOG_LEVEL", "DEBUG").upper()
     logging.getLogger("denonavr.ssdp").setLevel(level)
-    logging.getLogger("denonavrlib").setLevel("INFO")
-    # TODO there must be a simpler way to set the same log level of all modules in the same parent module
-    #      (or how is that called in Python?)
+    logging.getLogger("denonavrlib.denonavr").setLevel("INFO")
     logging.getLogger("avr").setLevel(level)
     logging.getLogger("denon_remote").setLevel(level)
     logging.getLogger("discover").setLevel(level)

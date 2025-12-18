@@ -20,3 +20,16 @@ def key_update_helper(key: str, value: str | None, attributes: dict, original_at
         attributes[key] = value
 
     return attributes
+
+
+def relative_volume_to_absolute(relative: float) -> float:
+    """Convert relative volume (-80 dB - 18 dB) to absolute volume (0-98)."""
+    absolute = min(relative + 80, 98)
+    return max(absolute, 0)
+
+
+def absolute_volume_to_relative(absolute: float) -> float:
+    """Convert absolute volume (0-98) to relative volume (-80 dB - 18 dB)."""
+    absolute = min(absolute, 98)
+    absolute = max(absolute, 0)
+    return absolute - 80

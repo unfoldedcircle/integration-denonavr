@@ -11,6 +11,24 @@ _Changes in the next release_
 
 ---
 
+## v0.12.3 - 2025-12-10
+### Fixed
+- Remove max volume event caching for guaranteed event handling when running on the Remote device. Events are not always emitted at the same time or order ([#150](https://github.com/unfoldedcircle/integration-denonavr/pull/150))..
+
+## v0.12.2 - 2025-12-09
+### Fixed
+- Use default for maximum volume, since it is not always sent by the AVR.
+
+## v0.12.1 - 2025-12-09
+### Fixed
+- Guard against decrease/increase volume outside valid volume range ([#149](https://github.com/unfoldedcircle/integration-denonavr/pull/149)).
+
+## v0.12.0 - 2025-12-08
+### Fixed
+- Power off command in remote-entity throws an error.
+- Slow volume changes and updates when using http by @henrikwidlund ([#42](https://github.com/unfoldedcircle/integration-denonavr/issues/42), [#135](https://github.com/unfoldedcircle/integration-denonavr/issues/135)).
+- Add rate limiter to avoid commands from executing after releasing button by @henrikwidlund ([#145](https://github.com/unfoldedcircle/integration-denonavr/pull/145)).
+
 ## v0.11.5 - 2025-12-01
 ### Fixed
 - Invalid send_cmd when using a remote-entity ([#126](https://github.com/unfoldedcircle/integration-denonavr/issues/126)).

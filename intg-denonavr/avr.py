@@ -17,6 +17,7 @@ from urllib import parse
 import discover
 import ucapi
 from config import AvrDevice
+from helpers import absolute_volume_to_relative, relative_volume_to_absolute
 from pyee.asyncio import AsyncIOEventEmitter
 from simplecommand import SimpleCommand
 from ucapi.media_player import Attributes as MediaAttr
@@ -251,6 +252,7 @@ class DenonDevice:
         self._expected_state: States = States.UNKNOWN
         self._volume_step = device.volume_step
         self._update_lock = Lock()
+        self._update_task: asyncio.Task | None = None  # Track pending update task
 
         _LOG.debug("Denon/Marantz AVR created: %s", device.address)
 
@@ -313,8 +315,8 @@ class DenonDevice:
             and self._active
             and not self._update_lock.locked()
         ):
-            # Force update because of state mismatch
-            self._event_loop.create_task(self.async_update_receiver_data(True))
+            # Schedule update because of state mismatch
+            self._schedule_update_task()
         return reported_state
 
     def _set_expected_state(self, state: States):
@@ -346,10 +348,9 @@ class DenonDevice:
         # Volume is sent in a format like -50.0. Minimum is -80.0,
         # maximum is 18.0
         if self._receiver.volume is None:
+            _LOG.debug("volume_level is None")
             return None
-        volume = min(self._receiver.volume + 80, 100)
-        volume = max(volume, 0)
-        return volume
+        return relative_volume_to_absolute(self._receiver.volume)
 
     @property
     def sleep(self) -> int | str | None:
@@ -598,6 +599,8 @@ class DenonDevice:
 
             self._notify_updated_data()
         finally:
+            # Set to None so a new task can be scheduled
+            self._update_task = None
             self._update_lock.release()
 
     def _notify_updated_data(self):
@@ -629,7 +632,12 @@ class DenonDevice:
             self._set_expected_state(States.ON)
             level = self.volume_level
             if level is None:
-                level = int(parameter)
+                if len(parameter) < 3:
+                    level = float(parameter)
+                else:
+                    whole_number = float(parameter[0:2])
+                    fraction = 0.1 * float(parameter[2])
+                    level = whole_number + fraction
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: level})
         elif event == "MU":  # Muted
             self._set_expected_state(States.ON)
@@ -691,7 +699,7 @@ class DenonDevice:
         if not self._use_telnet:
             self._set_expected_state(States.ON)
 
-        await self._start_update_task()
+        self._schedule_update_task()
 
         return ucapi.StatusCodes.OK
 
@@ -702,7 +710,7 @@ class DenonDevice:
         if not self._use_telnet:
             self._set_expected_state(States.OFF)
 
-        await self._start_update_task()
+        self._schedule_update_task()
 
         return ucapi.StatusCodes.OK
 
@@ -713,52 +721,60 @@ class DenonDevice:
         return await self.power_on()
 
     @async_handle_denonlib_errors
-    async def set_volume_level(self, volume: float | None) -> ucapi.StatusCodes:
-        """Set volume level, range 0..100."""
-        if volume is None:
+    async def set_volume_level(self, volume_abs: float | None) -> ucapi.StatusCodes:
+        """Set absolute volume level, range 0..100."""
+        if volume_abs is None:
             return ucapi.StatusCodes.BAD_REQUEST
-        # Volume has to be sent in a format like -50.0. Minimum is -80.0,
-        # maximum is 18.0
-        volume_denon = float(volume - 80)
-        if volume_denon > 18:
-            volume_denon = float(18)
-        await self._receiver.async_set_volume(volume_denon)
-        self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume})
-        if not self._use_telnet or self._update_lock.locked():
-            self._expected_volume = volume
+        # Volume has to be sent in a relative volume scale (-80 dB - 18 dB, or lower if limited by AVR setting)
+        max_volume_rel = self._receiver.max_volume
+        _LOG.debug("[%s] set_volume_level: %s, max_volume_rel=%s", self.id, volume_abs, max_volume_rel)
+        volume_rel = absolute_volume_to_relative(volume_abs)
+        if volume_rel > max_volume_rel:
+            volume_rel = max_volume_rel
+            volume_abs = relative_volume_to_absolute(max_volume_rel)
+            _LOG.debug("[%s] Adjusted max volume %s", self.id, volume_abs)
 
-        await self._start_update_task()
+        await self._receiver.async_set_volume(volume_rel)
+        self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume_abs})
+        if not self._use_telnet or self._update_lock.locked():
+            self._expected_volume = volume_abs
+
+        self._schedule_update_task()
 
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def volume_up(self) -> ucapi.StatusCodes:
         """Send volume-up command to AVR."""
+        # Workaround to stop increasing expected volume when it's already at max volume.
+        # Otherwise, volume_down won't work until it reaches max volume!
+        max_volume_rel = self._receiver.max_volume
+        if self._expected_volume is not None:
+            expected_volume = min(self._expected_volume + self._volume_step, 100)
+            volume_rel = absolute_volume_to_relative(expected_volume)
+            if volume_rel > max_volume_rel:
+                expected_volume = relative_volume_to_absolute(max_volume_rel)
+                _LOG.debug("[%s] Expected volume up reached max: %s", self.id, expected_volume)
+            self._expected_volume = expected_volume
+
         if self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
-            self._expected_volume = min(self._expected_volume + self._volume_step, 100)
             await self.set_volume_level(self._expected_volume)
         else:
             await self._receiver.async_volume_up()
-            if self._expected_volume is not None:
-                self._expected_volume = min(self._expected_volume + self._volume_step, 100)
-            # Send updated volume if no update task in progress
-            if not self._update_lock.locked():
-                self._event_loop.create_task(self._receiver.async_update())
+            self._schedule_update_task()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
     async def volume_down(self) -> ucapi.StatusCodes:
         """Send volume-down command to AVR."""
-        if self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
+        if self._expected_volume is not None:
             self._expected_volume = max(self._expected_volume - self._volume_step, 0)
+
+        if self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
             await self.set_volume_level(self._expected_volume)
         else:
             await self._receiver.async_volume_down()
-            if self._expected_volume is not None:
-                self._expected_volume = max(self._expected_volume - self._volume_step, 0)
-            # Send updated volume if no update task in progress
-            if not self._update_lock.locked():
-                self._event_loop.create_task(self._receiver.async_update())
+            self._schedule_update_task()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
@@ -801,7 +817,7 @@ class DenonDevice:
         if not self._use_telnet:
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
 
-        await self._start_update_task()
+        self._schedule_update_task()
 
         return ucapi.StatusCodes.OK
 
@@ -941,7 +957,13 @@ class DenonDevice:
         """Return True if telnet connection is enabled and healthy."""
         return self._use_telnet and self._receiver.telnet_connected and self._receiver.telnet_healthy
 
-    async def _start_update_task(self):
+    def _schedule_update_task(self):
         if not self._telnet_healthy:
+            # Check if an update task is already running or pending
+            if self._update_task is not None and not self._update_task.done():
+                _LOG.debug("[%s] Update task already running, skipping", self.id)
+                return
+
             # kick off an update in case of http communication, or if the telnet connection is not healthy
-            await self._event_loop.create_task(self.async_update_receiver_data())
+            # _update_task will be cleared by async_update_receiver_data when it completes
+            self._update_task = self._event_loop.create_task(self.async_update_receiver_data())
