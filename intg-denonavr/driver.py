@@ -15,9 +15,10 @@ import avr
 import config
 import denon_remote
 import media_player
+import sensor
 import setup_flow
 import ucapi
-from config import avr_from_entity_id
+from config import SensorType, avr_from_entity_id, create_entity_id
 from i18n import _a
 from ucapi.media_player import Attributes as MediaAttr
 
@@ -124,6 +125,9 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
             elif isinstance(configured_entity, denon_remote.DenonRemote):
                 state = denon_remote.DenonRemote.state_from_avr(receiver.state)
                 api.configured_entities.update_attributes(entity_id, {ucapi.remote.Attributes.STATE: state})
+            elif isinstance(configured_entity, sensor.DenonSensor):
+                state = sensor.DenonSensor.state_from_avr(receiver.state)
+                api.configured_entities.update_attributes(entity_id, {ucapi.sensor.Attributes.STATE: state})
             continue
 
         device = config.devices.get(avr_id)
@@ -162,63 +166,56 @@ async def on_avr_connected(avr_id: str):
 
     await api.set_device_state(ucapi.DeviceStates.CONNECTED)  # just to make sure the device state is set
 
-    for entity_id in _entities_from_avr(avr_id):
-        configured_entity = api.configured_entities.get(entity_id)
-        if configured_entity is None:
-            continue
-
-        state = configured_entity.attributes[ucapi.media_player.Attributes.STATE]
-        if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
+    for entity in _configured_entities_from_device(avr_id):
+        if entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
+            state = entity.attributes.get(ucapi.media_player.Attributes.STATE)
             if state != ucapi.media_player.States.UNKNOWN:
                 api.configured_entities.update_attributes(
-                    entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNKNOWN}
+                    entity.id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNKNOWN}
                 )
-        elif configured_entity.entity_type == ucapi.EntityTypes.REMOTE:
+        elif entity.entity_type == ucapi.EntityTypes.REMOTE:
+            state = entity.attributes.get(ucapi.remote.Attributes.STATE)
             if state != ucapi.remote.States.UNKNOWN:
                 api.configured_entities.update_attributes(
-                    entity_id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNKNOWN}
+                    entity.id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNKNOWN}
                 )
+        elif entity.entity_type == ucapi.EntityTypes.SENSOR:
+            state = entity.attributes.get(ucapi.sensor.Attributes.STATE)
+            if state != ucapi.remote.States.UNKNOWN and isinstance(entity, sensor.DenonSensor):
+                attributes = entity.update_attributes({ucapi.remote.Attributes.STATE: ucapi.remote.States.UNKNOWN})
+                if attributes:
+                    api.configured_entities.update_attributes(entity.id, attributes)
 
 
-async def on_avr_disconnected(avr_id: str):
+def on_avr_disconnected(avr_id: str):
     """Handle AVR disconnection."""
     _LOG.debug("AVR disconnected: %s", avr_id)
-
-    for entity_id in _entities_from_avr(avr_id):
-        configured_entity = api.configured_entities.get(entity_id)
-        if configured_entity is None:
-            continue
-
-        if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
-            api.configured_entities.update_attributes(
-                entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
-            )
-        elif configured_entity.entity_type == ucapi.EntityTypes.REMOTE:
-            api.configured_entities.update_attributes(
-                entity_id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNAVAILABLE}
-            )
+    _mark_entities_unavailable(avr_id)
 
 
-async def on_avr_connection_error(avr_id: str, message):
+def on_avr_connection_error(avr_id: str, message):
     """Set entities of AVR to state UNAVAILABLE if AVR connection error occurred."""
     _LOG.error(message)
+    _mark_entities_unavailable(avr_id)
 
-    for entity_id in _entities_from_avr(avr_id):
-        configured_entity = api.configured_entities.get(entity_id)
-        if configured_entity is None:
-            continue
 
-        if configured_entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
+def _mark_entities_unavailable(avr_id: str):
+    for entity in _configured_entities_from_device(avr_id):
+        if entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
             api.configured_entities.update_attributes(
-                entity_id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
+                entity.id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
             )
-        elif configured_entity.entity_type == ucapi.EntityTypes.REMOTE:
+        elif entity.entity_type == ucapi.EntityTypes.REMOTE:
             api.configured_entities.update_attributes(
-                entity_id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNAVAILABLE}
+                entity.id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNAVAILABLE}
+            )
+        elif entity.entity_type == ucapi.EntityTypes.SENSOR:
+            api.configured_entities.update_attributes(
+                entity.id, {ucapi.sensor.Attributes.STATE: ucapi.sensor.States.UNAVAILABLE}
             )
 
 
-async def handle_avr_address_change(avr_id: str, address: str) -> None:
+def handle_avr_address_change(avr_id: str, address: str) -> None:
     """Update device configuration with changed IP address."""
     device = config.devices.get(avr_id)
     if device and device.address != address:
@@ -227,7 +224,7 @@ async def handle_avr_address_change(avr_id: str, address: str) -> None:
         config.devices.update(device)
 
 
-async def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
+def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
     """
     Update attributes of configured media-player entity if AVR properties changed.
 
@@ -248,8 +245,10 @@ async def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             MediaAttr.SOURCE: receiver.source,
             MediaAttr.SOURCE_LIST: receiver.source_list,
             MediaAttr.SOUND_MODE: receiver.sound_mode,
+            "RAW_SOUND_MODE": receiver.sound_mode_raw,
             MediaAttr.SOUND_MODE_LIST: receiver.sound_mode_list,
             MediaAttr.VOLUME: receiver.volume_level,
+            "SLEEP_TIMER": receiver.sleep,
         }
     else:
         _LOG.info("[%s] AVR update: %s", avr_id, update)
@@ -257,18 +256,19 @@ async def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
     attributes = None
 
     # TODO awkward logic: this needs better support from the integration library
-    for entity_id in _entities_from_avr(avr_id):
-        configured_entity = api.configured_entities.get(entity_id)
-        if configured_entity is None:
-            return
-
-        if isinstance(configured_entity, media_player.DenonMediaPlayer):
-            attributes = configured_entity.filter_changed_attributes(update)
-        elif isinstance(configured_entity, denon_remote.DenonRemote):
-            attributes = configured_entity.filter_changed_attributes(update)
+    for entity in _configured_entities_from_device(avr_id):
+        if isinstance(entity, media_player.DenonMediaPlayer):
+            attributes = entity.filter_changed_attributes(update)
+        elif isinstance(entity, denon_remote.DenonRemote):
+            attributes = entity.filter_changed_attributes(update)
+        elif isinstance(entity, sensor.DenonSensor):
+            attributes = entity.update_attributes(update)
 
         if attributes:
-            api.configured_entities.update_attributes(entity_id, attributes)
+            api.configured_entities.update_attributes(entity.id, attributes)
+
+
+MAPPED_AVR_ENTITIES = {}
 
 
 def _entities_from_avr(avr_id: str) -> list[str]:
@@ -280,7 +280,22 @@ def _entities_from_avr(avr_id: str) -> list[str]:
     """
     # dead simple for now: one media_player entity per device!
     # TODO #21 support multiple zones: one media-player per zone
-    return [f"media_player.{avr_id}", f"remote.{avr_id}"]
+    avr_entities = MAPPED_AVR_ENTITIES.get(avr_id)
+    if avr_entities is None:
+        avr_entities = [
+            create_entity_id(avr_id, ucapi.EntityTypes.MEDIA_PLAYER),
+            create_entity_id(avr_id, ucapi.EntityTypes.REMOTE),
+            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.VOLUME_DB.value),
+            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.SOUND_MODE.value),
+            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.INPUT_SOURCE.value),
+            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.DIMMER.value),
+            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.ECO_MODE.value),
+            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.SLEEP_TIMER.value),
+            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.AUDIO_DELAY.value),
+            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.MUTE.value),
+        ]
+        MAPPED_AVR_ENTITIES[avr_id] = avr_entities
+    return avr_entities
 
 
 def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> None:
@@ -324,9 +339,10 @@ def _register_available_entities(device: config.AvrDevice, receiver: avr.DenonDe
     # plain and simple for now: only one media_player per AVR device
     # entity = media_player.create_entity(device)
     denon_media_player = media_player.DenonMediaPlayer(device, receiver)
-    entities = [
+    entities: list[media_player.DenonMediaPlayer | denon_remote.DenonRemote | sensor.DenonSensor] = [
         denon_media_player,
         denon_remote.DenonRemote(device, receiver, denon_media_player),
+        *sensor.create_sensors(device, receiver),
     ]
 
     for entity in entities:
@@ -367,6 +383,21 @@ async def _async_remove(receiver: avr.DenonDevice) -> None:
     receiver.events.remove_all_listeners()
 
 
+def _configured_entities_from_device(avr_id: str) -> list[ucapi.Entity]:
+    """
+    Return all configured entities of the given device.
+
+    :param avr_id: the avr identifier
+    :return: list of configured entities
+    """
+    entities = []
+    for entity_id in _entities_from_avr(avr_id):
+        configured_entity = api.configured_entities.get(entity_id)
+        if configured_entity:
+            entities.append(configured_entity)
+    return entities
+
+
 async def main():
     """Start the Remote Two/3 integration driver."""
     logging.basicConfig()  # when running on the device: timestamps are added by the journal
@@ -385,6 +416,7 @@ async def main():
     logging.getLogger("media_player").setLevel(level)
     logging.getLogger("receiver").setLevel(level)
     logging.getLogger("setup_flow").setLevel(level)
+    logging.getLogger("sensor").setLevel(level)
 
     config.devices = config.Devices(api.config_dir_path, on_device_added, on_device_removed)
     for device in config.devices.all():

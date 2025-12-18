@@ -97,6 +97,10 @@ TELNET_EVENTS = {
     "ZM",  # Zone Main
     "Z2",  # Zone 2
     "Z3",  # Zone 3
+    "DIM",  # Dimmer
+    "ECO",  # Eco Mode
+    "SLP",  # Sleep Timer
+    "VS",  # Video Setting
 }
 
 SUBSCRIBED_TELNET_EVENTS = {
@@ -105,6 +109,11 @@ SUBSCRIBED_TELNET_EVENTS = {
     "MU",  # Muted
     "SI",  # Select Input source
     "MS",  # surround Mode Setting
+    "DIM",  # Dimmer
+    "ECO",  # Eco Mode
+    "SLP",  # Sleep Timer
+    "PS",  # Parameter Setting
+    "VS",  # Video Setting
 }
 
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
@@ -344,6 +353,11 @@ class DenonDevice:
         return relative_volume_to_absolute(self._receiver.volume)
 
     @property
+    def sleep(self) -> int | str | None:
+        """Return the current sleep timer value."""
+        return self._receiver.sleep
+
+    @property
     def source(self) -> str:
         """Return the current input source."""
         if self._receiver.input_func is not None:
@@ -361,6 +375,11 @@ class DenonDevice:
         if self._receiver.sound_mode is not None:
             return self._receiver.sound_mode
         return ""
+
+    @property
+    def sound_mode_raw(self) -> str | None:
+        """Return the current sound mode."""
+        return self._receiver.sound_mode_raw
 
     @property
     def media_image_url(self) -> str:
@@ -630,8 +649,15 @@ class DenonDevice:
         elif event == "MS":  # surround Mode Setting
             self._set_expected_state(States.ON)
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.SOUND_MODE: self._receiver.sound_mode})
+            # RAW_SOUND_MODE to display the actual sound mode on the sensor
+            self.events.emit(Events.UPDATE, self.id, {"RAW_SOUND_MODE": self._receiver.sound_mode_raw})
         elif event == "PS":  # Parameter Setting
-            return  # TODO check if we need to handle certain parameters, likely Audyssey
+            if not parameter or not parameter.startswith("DELAY"):
+                return  # TODO check if we need to handle certain parameters, likely Audyssey
+        elif event == "VS" and not parameter.startswith("MONI"):
+            return  # No need to process other video settings
+        elif event == "SLP":  # Sleep Timer
+            self.events.emit(Events.UPDATE, self.id, {"SLEEP_TIMER": self._receiver.sleep})
 
         self._notify_updated_data()
 
