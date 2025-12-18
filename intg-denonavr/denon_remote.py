@@ -58,7 +58,7 @@ class DenonRemote(Remote):
             ui_pages=DenonRemote._get_remote_ui_pages(device.is_denon),
         )
 
-    async def command(self, cmd_id: str, params: dict[str, Any] | None = None) -> StatusCodes:
+    async def command(self, cmd_id: str, params: dict[str, Any] | None = None, *, websocket: Any) -> StatusCodes:
         """
         Remote entity command handler.
 
@@ -66,6 +66,7 @@ class DenonRemote(Remote):
 
         :param cmd_id: command
         :param params: optional command parameters
+        :param websocket: websocket connection (not used)
         :return: status code of the command request
         """
         # pylint: disable=R0911
