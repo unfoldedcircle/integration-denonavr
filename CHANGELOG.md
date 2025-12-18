@@ -11,9 +11,15 @@ _Changes in the next release_
 
 ---
 
+## v0.13.0 - 2025-12-18
+### Added
+- Sensors for volume, sound mode, input source, dimmer, eco, sleep, audio delay, mute, monitor by @henrikwidlund ([#146](https://github.com/unfoldedcircle/integration-denonavr/pull/146), [#156](https://github.com/unfoldedcircle/integration-denonavr/pull/156)).
+### Changed
+- Update ucapi library to 0.5.0 ([#155](https://github.com/unfoldedcircle/integration-denonavr/pull/155)).
+
 ## v0.12.3 - 2025-12-10
 ### Fixed
-- Remove max volume event caching for guaranteed event handling when running on the Remote device. Events are not always emitted at the same time or order ([#150](https://github.com/unfoldedcircle/integration-denonavr/pull/150))..
+- Remove max volume event caching for guaranteed event handling when running on the Remote device. Events are not always emitted at the same time or order ([#150](https://github.com/unfoldedcircle/integration-denonavr/pull/150)).
 
 ## v0.12.2 - 2025-12-09
 ### Fixed
