@@ -129,7 +129,7 @@ class DenonSensor(Sensor):
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MUTE.value),
                     "name": f"{device.name} Mute Status",
-                    "device_class": DeviceClasses.CUSTOM,
+                    "device_class": DeviceClasses.BINARY,  # without a unit it's a generic on / off binary sensor
                 }
             case SensorType.MONITOR_OUTPUT:
                 sensor = {
@@ -208,7 +208,7 @@ class DenonSensor(Sensor):
                 return self._update_state_and_create_return_value(audio_delay), None
 
             if self._sensor_type == SensorType.MUTE:
-                on_off = "On" if self._receiver._receiver.muted else "Off"
+                on_off = "on" if self._receiver._receiver.muted else "off"
                 return self._update_state_and_create_return_value(on_off), None
 
             if self._sensor_type == SensorType.MONITOR_OUTPUT:
