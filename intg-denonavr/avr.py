@@ -22,15 +22,15 @@ from pyee.asyncio import AsyncIOEventEmitter
 from simplecommand import SimpleCommand
 from ucapi.media_player import Attributes as MediaAttr
 
-from denonavrlib import denonavr
-from denonavrlib.denonavr.const import (
+from denonavr import denonavr, exceptions
+from denonavr.const import (
     ALL_ZONES,
     STATE_OFF,
     STATE_ON,
     STATE_PAUSED,
     STATE_PLAYING,
 )
-from denonavrlib.denonavr.exceptions import (
+from denonavr.exceptions import (
     AvrCommandError,
     AvrForbiddenError,
     AvrNetworkError,
@@ -541,7 +541,7 @@ class DenonDevice:
                 except ValueError:
                     pass
                 await self._receiver.async_telnet_disconnect()
-        except denonavr.exceptions.DenonAvrError:
+        except exceptions.DenonAvrError:
             pass
         if self.id:
             self.events.emit(Events.DISCONNECTED, self.id)

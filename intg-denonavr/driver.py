@@ -409,7 +409,7 @@ async def main():
 
     level = os.getenv("UC_LOG_LEVEL", "DEBUG").upper()
     logging.getLogger("denonavr.ssdp").setLevel(level)
-    logging.getLogger("denonavrlib.denonavr").setLevel("INFO")
+    logging.getLogger("denonavr").setLevel("INFO")
     logging.getLogger("avr").setLevel(level)
     logging.getLogger("denon_remote").setLevel(level)
     logging.getLogger("discover").setLevel(level)

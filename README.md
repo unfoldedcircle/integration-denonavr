@@ -395,8 +395,6 @@ git submodule update
 
 ```shell
 pip3 install -r requirements.txt
-pip3 install -r denonavrlib/requirements.txt
-pip3 install ./denonavrlib
 ```
 
 - The integration is runnable without updating the language files or compiling the .po files!  
@@ -465,8 +463,6 @@ docker run --rm --name builder \
     bash -c \
       "PYTHON_VERSION=\$(python --version | cut -d' ' -f2 | cut -d. -f1,2) && \
       python -m pip install --user -r requirements.txt && \
-      python -m pip install --user -r denonavrlib/requirements.txt && \
-      python -m pip install --user ./denonavrlib && \
       PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir --name intg-denonavr -y \
         --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
 ```
@@ -483,8 +479,6 @@ docker run --rm --name builder \
     bash -c \
       "PYTHON_VERSION=\$(python --version | cut -d' ' -f2 | cut -d. -f1,2) && \
       python -m pip install --user -r requirements.txt && \
-      python -m pip install --user -r denonavrlib/requirements.txt && \
-      python -m pip install --user ./denonavrlib && \
       PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir --name intg-denonavr -y \
         --add-data intg-denonavr/locales:locales intg-denonavr/driver.py"
 ```

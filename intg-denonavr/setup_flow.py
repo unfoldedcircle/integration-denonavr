@@ -27,7 +27,7 @@ from ucapi import (
     UserDataResponse,
 )
 
-from denonavrlib.denonavr.exceptions import AvrNetworkError, AvrTimoutError
+from denonavr.exceptions import AvrNetworkError, AvrTimoutError
 
 _LOG = logging.getLogger(__name__)
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 
-from denonavrlib.denonavr import DenonAVR
+from denonavr import DenonAVR
 
 _LOGGER = logging.getLogger(__name__)
 

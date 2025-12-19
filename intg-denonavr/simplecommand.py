@@ -20,7 +20,7 @@ from command_constants import (
 )
 from config import AvrDevice
 
-from denonavrlib import denonavr
+from denonavr import denonavr
 
 
 class DeviceProtocol(Enum):
