@@ -11,6 +11,13 @@ _Changes in the next release_
 
 ---
 
+## v0.13.1 - 2025-12-19
+### Fixed
+- Sensor entity subscribe handling to get the correct initial entity state ([#157](https://github.com/unfoldedcircle/integration-denonavr/pull/157)). 
+
+### Changed
+- Define mute sensor as a generic binary sensor for translated on / off values ([#158](https://github.com/unfoldedcircle/integration-denonavr/pull/158)).
+
 ## v0.13.0 - 2025-12-18
 ### Added
 - Sensors for volume, sound mode, input source, dimmer, eco, sleep, audio delay, mute, monitor by @henrikwidlund ([#146](https://github.com/unfoldedcircle/integration-denonavr/pull/146), [#156](https://github.com/unfoldedcircle/integration-denonavr/pull/156)).
