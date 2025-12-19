@@ -14,6 +14,8 @@ from functools import wraps
 from typing import Any, Awaitable, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
 from urllib import parse
 
+import denonavr
+
 import discover
 import ucapi
 from config import AvrDevice
@@ -22,7 +24,6 @@ from pyee.asyncio import AsyncIOEventEmitter
 from simplecommand import SimpleCommand
 from ucapi.media_player import Attributes as MediaAttr
 
-from denonavr import denonavr, exceptions
 from denonavr.const import (
     ALL_ZONES,
     STATE_OFF,
@@ -541,7 +542,7 @@ class DenonDevice:
                 except ValueError:
                     pass
                 await self._receiver.async_telnet_disconnect()
-        except exceptions.DenonAvrError:
+        except denonavr.exceptions.DenonAvrError:
             pass
         if self.id:
             self.events.emit(Events.DISCONNECTED, self.id)
