@@ -5,10 +5,20 @@ from ucapi import EntityTypes
 
 
 class TestConfig(unittest.TestCase):
-    def test_avr_from_entity_id_with_valid_entity(self):
+    def test_avr_from_entity_id_with_valid_media_player_entity(self):
         entity_id = "media_player.denon_avr_1"
         result = avr_from_entity_id(entity_id)
         self.assertEqual("denon_avr_1", result, "Expected AVR suffix from a valid entity ID")
+
+    def test_avr_from_entity_id_with_valid_sensor_entity(self):
+        entity_id = "sensor.volume_db.denon_avr_1"
+        result = avr_from_entity_id(entity_id)
+        self.assertEqual("denon_avr_1", result, "Expected AVR suffix from a valid entity ID")
+
+    def test_avr_from_entity_id_with_invalid_sensor_entity_missing_sensor_type(self):
+        entity_id = "sensor.denon_avr_1"
+        result = avr_from_entity_id(entity_id)
+        self.assertEqual("denon_avr_1", result, "Expected AVR suffix from an invalid sensor entity ID")
 
     def test_avr_from_entity_id_with_invalid_entity_missing_dot(self):
         entity_id = "media_player_denon_avr_1"
