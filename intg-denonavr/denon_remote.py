@@ -125,7 +125,7 @@ class DenonRemote(Remote):
             return StatusCodes.BAD_REQUEST
 
         # send "raw" commands as is to the receiver
-        return await self._denon_media_player.command(cmd_id)
+        return await self._denon_media_player.command(cmd_id, params=None, websocket=None)
 
     @staticmethod
     def state_from_avr(avr_state: avr.States) -> ucapi.remote.States:

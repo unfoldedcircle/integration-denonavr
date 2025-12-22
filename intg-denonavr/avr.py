@@ -14,29 +14,28 @@ from functools import wraps
 from typing import Any, Awaitable, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
 from urllib import parse
 
+import denonavr
 import discover
 import ucapi
 from config import AvrDevice
-from helpers import absolute_volume_to_relative, relative_volume_to_absolute
-from pyee.asyncio import AsyncIOEventEmitter
-from simplecommand import SimpleCommand
-from ucapi.media_player import Attributes as MediaAttr
-
-from denonavrlib import denonavr
-from denonavrlib.denonavr.const import (
+from denonavr.const import (
     ALL_ZONES,
     STATE_OFF,
     STATE_ON,
     STATE_PAUSED,
     STATE_PLAYING,
 )
-from denonavrlib.denonavr.exceptions import (
+from denonavr.exceptions import (
     AvrCommandError,
     AvrForbiddenError,
     AvrNetworkError,
     AvrTimoutError,
     DenonAvrError,
 )
+from helpers import absolute_volume_to_relative, relative_volume_to_absolute
+from pyee.asyncio import AsyncIOEventEmitter
+from simplecommand import SimpleCommand
+from ucapi.media_player import Attributes as MediaAttr
 
 _LOG = logging.getLogger(__name__)
 

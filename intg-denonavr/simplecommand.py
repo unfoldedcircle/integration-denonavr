@@ -10,6 +10,7 @@ from enum import Enum
 # pylint: disable=C0302
 from typing import Awaitable, Callable
 
+import denonavr
 import ucapi
 from command_constants import (
     AudysseyCommands,
@@ -19,8 +20,6 @@ from command_constants import (
     VolumeCommands,
 )
 from config import AvrDevice
-
-from denonavrlib import denonavr
 
 
 class DeviceProtocol(Enum):
