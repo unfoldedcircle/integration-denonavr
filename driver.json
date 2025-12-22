@@ -1,6 +1,6 @@
 {
   "driver_id": "denonavr",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "min_core_api": "0.20.0",
   "name": {
     "en": "Denon and Marantz AVR Network Receivers"

@@ -11,6 +11,13 @@ _Changes in the next release_
 
 ---
 
+## v0.13.2 - 2025-12-22
+### Fixed
+- Remote-entity commands are working again after regression in 0.13.0
+
+### Changed
+- Remove denonavr Git submodule and use regular requirements.txt file instead ([#160](https://github.com/unfoldedcircle/integration-denonavr/pull/160)).
+
 ## v0.13.1 - 2025-12-19
 ### Fixed
 - Sensor entity subscribe handling to get the correct initial entity state ([#157](https://github.com/unfoldedcircle/integration-denonavr/pull/157)). 
