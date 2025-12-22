@@ -1,6 +1,6 @@
 # Denon AVR integration for Remote Two/3
 
-Using [denonavr](https://github.com/henrikwidlund/denonavr)
+Using a forked [denonavr](https://github.com/henrikwidlund/denonavr) library
 and [uc-integration-api](https://github.com/aitatoi/integration-python-library),
 [Crowdin translations](https://crowdin.com/project/uc-integration-denon-avr).
 
@@ -384,6 +384,12 @@ integration, which uses the same [denonavr](https://github.com/ol-iver/denonavr)
 
 ```shell
 pip3 install -r requirements.txt
+```
+
+When updating from an older version, it might be required to reinstall the libraries (because the forked `denonavr`
+library was moved from a Git submodule to a regular GitHub dependency):
+```shell
+pip install --upgrade --force-reinstall -r requirements.txt
 ```
 
 - The integration is runnable without updating the language files or compiling the .po files!  
