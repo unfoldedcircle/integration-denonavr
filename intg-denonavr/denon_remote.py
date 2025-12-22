@@ -72,11 +72,11 @@ class DenonRemote(Remote):
         # pylint: disable=R0911
         match cmd_id:
             case Commands.ON:
-                return await self._denon_media_player.command(Commands.ON)
+                return await self._denon_media_player.command(Commands.ON, websocket=websocket)
             case Commands.OFF:
-                return await self._denon_media_player.command(Commands.OFF)
+                return await self._denon_media_player.command(Commands.OFF, websocket=websocket)
             case Commands.TOGGLE:
-                return await self._denon_media_player.command(Commands.TOGGLE)
+                return await self._denon_media_player.command(Commands.TOGGLE, websocket=websocket)
 
         if cmd_id.startswith("remote."):
             _LOG.error("Command %s is not allowed.", cmd_id)
@@ -103,7 +103,9 @@ class DenonRemote(Remote):
 
             success = True
             for _ in range(0, repeat):
-                success |= await self._denon_media_player.command(command_or_status) == StatusCodes.OK
+                success |= (
+                    await self._denon_media_player.command(command_or_status, websocket=websocket) == StatusCodes.OK
+                )
 
             if success:
                 return StatusCodes.OK
@@ -117,7 +119,7 @@ class DenonRemote(Remote):
                     if isinstance(command_or_status, StatusCodes):
                         success = False
                     else:
-                        res = await self._denon_media_player.command(command_or_status)
+                        res = await self._denon_media_player.command(command_or_status, websocket=websocket)
                         if res != StatusCodes.OK:
                             success = False
             if success:
@@ -125,7 +127,7 @@ class DenonRemote(Remote):
             return StatusCodes.BAD_REQUEST
 
         # send "raw" commands as is to the receiver
-        return await self._denon_media_player.command(cmd_id, params=None, websocket=None)
+        return await self._denon_media_player.command(cmd_id, websocket=websocket)
 
     @staticmethod
     def state_from_avr(avr_state: avr.States) -> ucapi.remote.States:

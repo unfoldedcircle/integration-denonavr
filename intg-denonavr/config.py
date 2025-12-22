@@ -22,6 +22,8 @@ _CFG_FILENAME = "config.json"
 
 def create_entity_id(avr_id: str, entity_type: EntityTypes, sub_type: Optional[str] = None) -> str:
     """Create a unique entity identifier for the given receiver and entity type."""
+    # Warning: only works for a single media-player entity. Doesn't work for #21 multiple zones!
+    #          Zone parameter will be required.
     if sub_type:
         return f"{entity_type.value}.{sub_type}.{avr_id}"
     return f"{entity_type.value}.{avr_id}"
