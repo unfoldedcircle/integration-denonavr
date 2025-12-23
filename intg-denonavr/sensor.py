@@ -9,6 +9,7 @@ import logging
 from typing import Any
 
 import avr
+import helpers
 from config import AvrDevice, SensorType, create_entity_id
 from ucapi import EntityTypes, Sensor
 from ucapi.media_player import Attributes as MediaAttr
@@ -19,7 +20,7 @@ _LOG = logging.getLogger(__name__)
 # Mapping of an AVR state to a sensor entity state
 SENSOR_STATE_MAPPING = {
     avr.States.ON: States.ON,
-    avr.States.OFF: States.ON,
+    avr.States.OFF: States.ON,  # a sensor does not have an OFF state
     avr.States.PAUSED: States.ON,
     avr.States.PLAYING: States.ON,
     avr.States.UNAVAILABLE: States.UNAVAILABLE,
@@ -143,24 +144,16 @@ class DenonSensor(Sensor):
 
     def update_attributes(self, update: dict[str, Any]) -> dict[str, Any] | None:
         """Get current sensor value from receiver."""
-        if not self._receiver.available:
-            return {
-                Attributes.STATE: States.UNAVAILABLE,
-                Attributes.VALUE: None,
-            }
+        attributes = {}
+
+        if Attributes.STATE in update:
+            state = self.state_from_avr(update[Attributes.STATE])
+            attributes = helpers.key_update_helper(Attributes.STATE, state, attributes, self.attributes)
 
         value, unit = self._get_sensor_value(update)
 
-        if value is None:
-            return None
-
-        attributes = {
-            Attributes.STATE: States.ON,
-            Attributes.VALUE: value,
-        }
-
-        if unit is not None:
-            attributes[Attributes.UNIT] = unit
+        attributes = helpers.key_update_helper(Attributes.VALUE, value, attributes, self.attributes)
+        attributes = helpers.key_update_helper(Attributes.UNIT, unit, attributes, self.attributes)
 
         return attributes
 
