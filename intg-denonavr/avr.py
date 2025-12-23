@@ -270,6 +270,7 @@ class DenonDevice:
         """Set device availability and emit CONNECTED / DISCONNECTED event on change."""
         if self._attr_available != value:
             self._attr_available = value
+            _LOG.debug("AVR '%s' availability changed to %s", self.id, value)
             self.events.emit(Events.CONNECTED if value else Events.DISCONNECTED, self.id)
 
     @property
@@ -498,6 +499,9 @@ class DenonDevice:
             connect_duration,
             ex,
         )
+
+        # make sure entity states of that AVR are in the well-known state `UNAVAILABLE`
+        self.events.emit(Events.UPDATE, self.id, {MediaAttr.STATE: States.UNAVAILABLE})
 
         # try resolving IP address from device name if we keep failing to connect, maybe the IP address changed
         if self._connection_attempts % DISCOVERY_AFTER_CONNECTION_ERRORS == 0:
