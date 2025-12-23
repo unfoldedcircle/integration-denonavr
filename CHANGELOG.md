@@ -11,6 +11,11 @@ _Changes in the next release_
 
 ---
 
+## v0.13.3 - 2025-12-23
+### Fixed
+- Fix sensor entity state handling when AVR is unavailable ([#161](https://github.com/unfoldedcircle/integration-denonavr/pull/161)).
+- Prevent log flooding with stack traces when AVR is unavailable ([#162](https://github.com/unfoldedcircle/integration-denonavr/pull/162)).
+
 ## v0.13.2 - 2025-12-22
 ### Fixed
 - Remote-entity commands are working again after regression in 0.13.0
