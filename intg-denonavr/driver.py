@@ -126,7 +126,7 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
             if isinstance(configured_entity, DenonEntity):
                 state = configured_entity.state_from_avr(receiver.state)
                 # It doesn't matter if we use the media_player.Attributes enum. It's called the same for all entities
-                api.configured_entities.update_attributes(entity_id, {ucapi.media_player.Attributes.STATE: state})
+                configured_entity.update_attributes({ucapi.media_player.Attributes.STATE: state}, force=True)
             continue
 
         device = config.devices.get(avr_id)
@@ -169,9 +169,7 @@ async def on_avr_connected(avr_id: str):
     update = {MediaAttr.STATE: avr.States.UNKNOWN}
     for entity in _configured_entities_from_device(avr_id):
         if isinstance(entity, DenonEntity):
-            attributes = entity.filter_changed_attributes(update)
-            if attributes:
-                api.configured_entities.update_attributes(entity.id, attributes)
+            entity.update_attributes(update)
 
 
 def on_avr_disconnected(avr_id: str):
@@ -188,17 +186,9 @@ def on_avr_connection_error(avr_id: str, message):
 
 def _mark_entities_unavailable(avr_id: str):
     for entity in _configured_entities_from_device(avr_id):
-        if entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
-            api.configured_entities.update_attributes(
-                entity.id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}
-            )
-        elif entity.entity_type == ucapi.EntityTypes.REMOTE:
-            api.configured_entities.update_attributes(
-                entity.id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNAVAILABLE}
-            )
-        elif entity.entity_type == ucapi.EntityTypes.SENSOR:
-            api.configured_entities.update_attributes(
-                entity.id, {ucapi.sensor.Attributes.STATE: ucapi.sensor.States.UNAVAILABLE}
+        if isinstance(entity, DenonEntity):
+            entity.update_attributes(
+                {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}, force=True
             )
 
 
@@ -240,14 +230,9 @@ def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
     else:
         _LOG.info("[%s] AVR update: %s", avr_id, update)
 
-    attributes = None
-
-    # TODO awkward logic: this needs better support from the integration library
     for entity in _configured_entities_from_device(avr_id):
         if isinstance(entity, DenonEntity):
-            attributes = entity.filter_changed_attributes(update)
-            if attributes:
-                api.configured_entities.update_attributes(entity.id, attributes)
+            entity.update_attributes(update)
 
 
 MAPPED_AVR_ENTITIES = {}
@@ -321,11 +306,11 @@ def _register_available_entities(device: config.AvrDevice, receiver: avr.DenonDe
     """
     # plain and simple for now: only one media_player per AVR device
     # entity = media_player.create_entity(device)
-    denon_media_player = media_player.DenonMediaPlayer(device, receiver)
+    denon_media_player = media_player.DenonMediaPlayer(device, receiver, api)
     entities: list[media_player.DenonMediaPlayer | denon_remote.DenonRemote | sensor.DenonSensor] = [
         denon_media_player,
-        denon_remote.DenonRemote(device, receiver, denon_media_player),
-        *sensor.create_sensors(device, receiver),
+        denon_remote.DenonRemote(device, receiver, denon_media_player, api),
+        *sensor.create_sensors(device, receiver, api),
     ]
 
     for entity in entities:

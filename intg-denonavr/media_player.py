@@ -13,7 +13,7 @@ import helpers
 import simplecommand
 from config import AvrDevice, create_entity_id
 from entities import DenonEntity
-from ucapi import EntityTypes, MediaPlayer, StatusCodes
+from ucapi import EntityTypes, IntegrationAPI, MediaPlayer, StatusCodes
 from ucapi.media_player import (
     Attributes,
     Commands,
@@ -39,7 +39,7 @@ MEDIA_PLAYER_STATE_MAPPING = {
 class DenonMediaPlayer(MediaPlayer, DenonEntity):
     """Representation of a Denon/Marantz Media Player entity."""
 
-    def __init__(self, device: AvrDevice, receiver: avr.DenonDevice):
+    def __init__(self, device: AvrDevice, receiver: avr.DenonDevice, api: IntegrationAPI):
         """Initialize the class."""
         self._receiver: avr.DenonDevice = receiver
         self._device: AvrDevice = device
@@ -99,6 +99,7 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
             device_class=DeviceClasses.RECEIVER,
             options=options,
         )
+        DenonEntity.__init__(self, api)
 
     async def command(self, cmd_id: str, params: dict[str, Any] | None = None, *, websocket: Any) -> StatusCodes:
         """

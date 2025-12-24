@@ -20,7 +20,7 @@ from command_constants import (
 from config import AvrDevice, create_entity_id
 from entities import DenonEntity
 from media_player import DenonMediaPlayer
-from ucapi import EntityTypes, Remote, StatusCodes, media_player
+from ucapi import EntityTypes, IntegrationAPI, Remote, StatusCodes, media_player
 from ucapi.remote import Attributes, Commands, Features
 from ucapi.ui import Buttons
 
@@ -41,7 +41,9 @@ _LOG = logging.getLogger("denon_remote")  # avoid having __main__ in log message
 class DenonRemote(Remote, DenonEntity):
     """Representation of a Denon/Marantz AVR Remote entity."""
 
-    def __init__(self, device: AvrDevice, receiver: avr.DenonDevice, denon_media_player: DenonMediaPlayer):
+    def __init__(
+        self, device: AvrDevice, receiver: avr.DenonDevice, denon_media_player: DenonMediaPlayer, api: IntegrationAPI
+    ):
         """Initialize the class."""
         self._device: avr.DenonDevice = receiver
         self._denon_media_player: DenonMediaPlayer = denon_media_player
@@ -58,6 +60,7 @@ class DenonRemote(Remote, DenonEntity):
             button_mapping=REMOTE_BUTTONS_MAPPING,
             ui_pages=DenonRemote._get_remote_ui_pages(device.is_denon),
         )
+        DenonEntity.__init__(self, api)
 
     async def command(self, cmd_id: str, params: dict[str, Any] | None = None, *, websocket: Any) -> StatusCodes:
         """
