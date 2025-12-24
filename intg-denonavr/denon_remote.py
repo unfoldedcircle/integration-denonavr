@@ -18,6 +18,7 @@ from command_constants import (
     VolumeCommands,
 )
 from config import AvrDevice, create_entity_id
+from entities import DenonEntity
 from media_player import DenonMediaPlayer
 from ucapi import EntityTypes, Remote, StatusCodes, media_player
 from ucapi.remote import Attributes, Commands, Features
@@ -37,7 +38,7 @@ _LOG = logging.getLogger("denon_remote")  # avoid having __main__ in log message
 
 
 # pylint: disable=R0903
-class DenonRemote(Remote):
+class DenonRemote(Remote, DenonEntity):
     """Representation of a Denon/Marantz AVR Remote entity."""
 
     def __init__(self, device: AvrDevice, receiver: avr.DenonDevice, denon_media_player: DenonMediaPlayer):

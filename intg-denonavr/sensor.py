@@ -11,6 +11,7 @@ from typing import Any
 import avr
 import helpers
 from config import AvrDevice, SensorType, create_entity_id
+from entities import DenonEntity
 from ucapi import EntityTypes, Sensor
 from ucapi.media_player import Attributes as MediaAttr
 from ucapi.sensor import Attributes, DeviceClasses, Options, States
@@ -28,7 +29,7 @@ SENSOR_STATE_MAPPING = {
 }
 
 
-class DenonSensor(Sensor):
+class DenonSensor(Sensor, DenonEntity):
     """Representation of a Denon/Marantz AVR Sensor entity."""
 
     def __init__(
@@ -142,8 +143,16 @@ class DenonSensor(Sensor):
                 raise ValueError(f"Unsupported sensor type: {sensor_type}")
         return sensor
 
-    def update_attributes(self, update: dict[str, Any]) -> dict[str, Any] | None:
-        """Get current sensor value from receiver."""
+    def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
+        """
+        Filter the given attributes from an AVR update and return only the changed values.
+
+        For each update, the current sensor value is retrieved from the receiver and included in the returned
+        dictionary if changed.
+
+        :param update: dictionary containing the updated properties.
+        :return: dictionary containing only the changed attributes.
+        """
         attributes = {}
 
         if Attributes.STATE in update:
@@ -169,6 +178,12 @@ class DenonSensor(Sensor):
         try:
             if self._sensor_type == SensorType.VOLUME_DB:
                 volume = self._get_value_or_default(self._receiver._receiver.volume, 0.0)
+                if volume < -80.0:
+                    _LOG.info("Sensor volume is below -80 dB (%s), setting to min", volume)
+                    volume = -80.0
+                elif volume > 18.0:
+                    _LOG.info("Sensor volume is above 18 dB (%s), setting to max", volume)
+                    volume = 18.0
                 return self._update_state_and_create_return_value(volume), None
 
             if self._sensor_type == SensorType.SOUND_MODE:

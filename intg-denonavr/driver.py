@@ -19,6 +19,7 @@ import sensor
 import setup_flow
 import ucapi
 from config import SensorType, avr_from_entity_id, create_entity_id
+from entities import DenonEntity
 from i18n import _a
 from ucapi.media_player import Attributes as MediaAttr
 
@@ -166,25 +167,13 @@ async def on_avr_connected(avr_id: str):
 
     await api.set_device_state(ucapi.DeviceStates.CONNECTED)  # just to make sure the device state is set
 
+    # set the initial entity state to UNKNOWN, concrete state is set when updates are triggered / fetched
+    update = {MediaAttr.STATE: avr.States.UNKNOWN}
     for entity in _configured_entities_from_device(avr_id):
-        if entity.entity_type == ucapi.EntityTypes.MEDIA_PLAYER:
-            state = entity.attributes.get(ucapi.media_player.Attributes.STATE)
-            if state != ucapi.media_player.States.UNKNOWN:
-                api.configured_entities.update_attributes(
-                    entity.id, {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNKNOWN}
-                )
-        elif entity.entity_type == ucapi.EntityTypes.REMOTE:
-            state = entity.attributes.get(ucapi.remote.Attributes.STATE)
-            if state != ucapi.remote.States.UNKNOWN:
-                api.configured_entities.update_attributes(
-                    entity.id, {ucapi.remote.Attributes.STATE: ucapi.remote.States.UNKNOWN}
-                )
-        elif entity.entity_type == ucapi.EntityTypes.SENSOR:
-            state = entity.attributes.get(ucapi.sensor.Attributes.STATE)
-            if state != ucapi.remote.States.UNKNOWN and isinstance(entity, sensor.DenonSensor):
-                attributes = entity.update_attributes({ucapi.remote.Attributes.STATE: ucapi.remote.States.UNKNOWN})
-                if attributes:
-                    api.configured_entities.update_attributes(entity.id, attributes)
+        if isinstance(entity, DenonEntity):
+            attributes = entity.filter_changed_attributes(update)
+            if attributes:
+                api.configured_entities.update_attributes(entity.id, attributes)
 
 
 def on_avr_disconnected(avr_id: str):
@@ -257,15 +246,10 @@ def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
 
     # TODO awkward logic: this needs better support from the integration library
     for entity in _configured_entities_from_device(avr_id):
-        if isinstance(entity, media_player.DenonMediaPlayer):
+        if isinstance(entity, DenonEntity):
             attributes = entity.filter_changed_attributes(update)
-        elif isinstance(entity, denon_remote.DenonRemote):
-            attributes = entity.filter_changed_attributes(update)
-        elif isinstance(entity, sensor.DenonSensor):
-            attributes = entity.update_attributes(update)
-
-        if attributes:
-            api.configured_entities.update_attributes(entity.id, attributes)
+            if attributes:
+                api.configured_entities.update_attributes(entity.id, attributes)
 
 
 MAPPED_AVR_ENTITIES = {}

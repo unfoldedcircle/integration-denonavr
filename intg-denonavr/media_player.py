@@ -12,6 +12,7 @@ import avr
 import helpers
 import simplecommand
 from config import AvrDevice, create_entity_id
+from entities import DenonEntity
 from ucapi import EntityTypes, MediaPlayer, StatusCodes
 from ucapi.media_player import (
     Attributes,
@@ -35,7 +36,7 @@ MEDIA_PLAYER_STATE_MAPPING = {
 }
 
 
-class DenonMediaPlayer(MediaPlayer):
+class DenonMediaPlayer(MediaPlayer, DenonEntity):
     """Representation of a Denon/Marantz Media Player entity."""
 
     def __init__(self, device: AvrDevice, receiver: avr.DenonDevice):
