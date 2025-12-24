@@ -8,6 +8,8 @@ Common entity interface for Denon/Marantz integration.
 from abc import ABC, abstractmethod
 from typing import Any
 
+import avr
+
 
 # pylint: disable=R0903
 class DenonEntity(ABC):
@@ -20,4 +22,13 @@ class DenonEntity(ABC):
 
         :param update: dictionary containing the updated properties.
         :return: dictionary containing only the changed attributes.
+        """
+
+    @abstractmethod
+    def state_from_avr(self, avr_state: avr.States) -> Any:
+        """
+        Convert an AVR state to a UC API entity state.
+
+        :param avr_state: Denon/Marantz AVR state
+        :return: UC API entity state
         """

@@ -218,7 +218,7 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
         attributes = {}
 
         if Attributes.STATE in update:
-            state = state_from_avr(update[Attributes.STATE])
+            state = self.state_from_avr(update[Attributes.STATE])
             attributes = helpers.key_update_helper(Attributes.STATE, state, attributes, self.attributes)
 
         for attr in [
@@ -259,14 +259,13 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
 
         return attributes
 
+    def state_from_avr(self, avr_state: avr.States) -> States:
+        """
+        Convert AVR state to UC API media-player state.
 
-def state_from_avr(avr_state: avr.States) -> States:
-    """
-    Convert AVR state to UC API media-player state.
-
-    :param avr_state: Denon/Marantz AVR state
-    :return: UC API media_player state
-    """
-    if avr_state in MEDIA_PLAYER_STATE_MAPPING:
-        return MEDIA_PLAYER_STATE_MAPPING[avr_state]
-    return States.UNKNOWN
+        :param avr_state: Denon/Marantz AVR state
+        :return: UC API media_player state
+        """
+        if avr_state in MEDIA_PLAYER_STATE_MAPPING:
+            return MEDIA_PLAYER_STATE_MAPPING[avr_state]
+        return States.UNKNOWN

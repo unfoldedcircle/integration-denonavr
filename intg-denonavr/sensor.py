@@ -59,8 +59,7 @@ class DenonSensor(Sensor, DenonEntity):
             options=sensor_config.get("options", {}),
         )
 
-    @staticmethod
-    def state_from_avr(avr_state: avr.States) -> States:
+    def state_from_avr(self, avr_state: avr.States) -> States:
         """
         Convert AVR state to UC API sensor state.
 
