@@ -11,6 +11,15 @@ _Changes in the next release_
 
 ---
 
+## v0.13.4 - 2025-12-24
+### Fixed
+- Update volume logic to better handle limits ([#163](https://github.com/unfoldedcircle/integration-denonavr/pull/163)).
+- unsubscribe_entities logic with multiple entities ([#165](https://github.com/unfoldedcircle/integration-denonavr/pull/165)).
+
+### Changed
+- Use a common entity base class for attribute updates ([#164](https://github.com/unfoldedcircle/integration-denonavr/pull/164)).
+- Use journald log levels if running as a systemd service ([#166](https://github.com/unfoldedcircle/integration-denonavr/pull/166)).
+
 ## v0.13.3 - 2025-12-23
 ### Fixed
 - Fix sensor entity state handling when AVR is unavailable ([#161](https://github.com/unfoldedcircle/integration-denonavr/pull/161)).
