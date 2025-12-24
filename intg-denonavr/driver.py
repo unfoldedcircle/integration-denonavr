@@ -175,20 +175,20 @@ async def on_avr_connected(avr_id: str):
 def on_avr_disconnected(avr_id: str):
     """Handle AVR disconnection."""
     _LOG.debug("AVR disconnected: %s", avr_id)
-    _mark_entities_unavailable(avr_id)
+    _mark_entities_unavailable(avr_id, force=True)
 
 
 def on_avr_connection_error(avr_id: str, message):
     """Set entities of AVR to state UNAVAILABLE if AVR connection error occurred."""
     _LOG.error(message)
-    _mark_entities_unavailable(avr_id)
+    _mark_entities_unavailable(avr_id, force=False)
 
 
-def _mark_entities_unavailable(avr_id: str):
+def _mark_entities_unavailable(avr_id: str, *, force: bool):
     for entity in _configured_entities_from_device(avr_id):
         if isinstance(entity, DenonEntity):
             entity.update_attributes(
-                {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}, force=True
+                {ucapi.media_player.Attributes.STATE: ucapi.media_player.States.UNAVAILABLE}, force=force
             )
 
 
@@ -305,7 +305,6 @@ def _register_available_entities(device: config.AvrDevice, receiver: avr.DenonDe
     :param device: Receiver
     """
     # plain and simple for now: only one media_player per AVR device
-    # entity = media_player.create_entity(device)
     denon_media_player = media_player.DenonMediaPlayer(device, receiver, api)
     entities: list[media_player.DenonMediaPlayer | denon_remote.DenonRemote | sensor.DenonSensor] = [
         denon_media_player,
