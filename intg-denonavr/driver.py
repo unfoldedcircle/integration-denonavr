@@ -139,21 +139,30 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
 
 @api.listens_to(ucapi.Events.UNSUBSCRIBE_ENTITIES)
 async def on_unsubscribe_entities(entity_ids: list[str]) -> None:
-    """On unsubscribe, we disconnect the objects and remove listeners for events."""
+    """On unsubscribe, we disconnect the devices and remove listeners for events."""
     _LOG.debug("Unsubscribe entities event: %s", entity_ids)
+    avrs_to_remove = set()
     for entity_id in entity_ids:
         avr_id = avr_from_entity_id(entity_id)
         if avr_id is None:
             continue
+        avrs_to_remove.add(avr_id)
+
+    # Keep devices that are used by other configured entities not in this list
+    for entity in api.configured_entities.get_all():
+        entity_id = entity.get("entity_id", "")
+        if entity_id in entity_ids:
+            continue
+        avr_id = avr_from_entity_id(entity_id)
+        if avr_id is None:
+            continue
+        if avr_id in avrs_to_remove:
+            avrs_to_remove.remove(avr_id)
+
+    for avr_id in avrs_to_remove:
         if avr_id in _configured_avrs:
-            # TODO #21 this doesn't work once we have more than one entity per device!
-            # --- START HACK ---
-            # Since an AVR instance only provides exactly one media-player, it's save to disconnect if the entity is
-            # unsubscribed. This should be changed to a more generic logic, also as template for other integrations!
-            # Otherwise this sets a bad copy-paste example and leads to more issues in the future.
-            # --> correct logic: check configured_entities, if empty: disconnect
-            await _configured_avrs[entity_id].disconnect()
-            _configured_avrs[entity_id].events.remove_all_listeners()
+            await _configured_avrs[avr_id].disconnect()
+            _configured_avrs[avr_id].events.remove_all_listeners()
 
 
 async def on_avr_connected(avr_id: str):
