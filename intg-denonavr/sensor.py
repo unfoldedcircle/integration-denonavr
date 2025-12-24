@@ -11,7 +11,8 @@ from typing import Any
 import avr
 import helpers
 from config import AvrDevice, SensorType, create_entity_id
-from ucapi import EntityTypes, Sensor
+from entities import DenonEntity
+from ucapi import EntityTypes, IntegrationAPI, Sensor
 from ucapi.media_player import Attributes as MediaAttr
 from ucapi.sensor import Attributes, DeviceClasses, Options, States
 
@@ -28,14 +29,11 @@ SENSOR_STATE_MAPPING = {
 }
 
 
-class DenonSensor(Sensor):
+class DenonSensor(Sensor, DenonEntity):
     """Representation of a Denon/Marantz AVR Sensor entity."""
 
     def __init__(
-        self,
-        device: AvrDevice,
-        receiver: avr.DenonDevice,
-        sensor_type: SensorType,
+        self, device: AvrDevice, receiver: avr.DenonDevice, api: IntegrationAPI, sensor_type: SensorType
     ) -> None:
         """Initialize the DenonSensor entity."""
         self._receiver = receiver
@@ -57,9 +55,9 @@ class DenonSensor(Sensor):
             device_class=sensor_config["device_class"],
             options=sensor_config.get("options", {}),
         )
+        DenonEntity.__init__(self, api)
 
-    @staticmethod
-    def state_from_avr(avr_state: avr.States) -> States:
+    def state_from_avr(self, avr_state: avr.States) -> States:
         """
         Convert AVR state to UC API sensor state.
 
@@ -142,8 +140,16 @@ class DenonSensor(Sensor):
                 raise ValueError(f"Unsupported sensor type: {sensor_type}")
         return sensor
 
-    def update_attributes(self, update: dict[str, Any]) -> dict[str, Any] | None:
-        """Get current sensor value from receiver."""
+    def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
+        """
+        Filter the given attributes from an AVR update and return only the changed values.
+
+        For each update, the current sensor value is retrieved from the receiver and included in the returned
+        dictionary if changed.
+
+        :param update: dictionary containing the updated properties.
+        :return: dictionary containing only the changed attributes.
+        """
         attributes = {}
 
         if Attributes.STATE in update:
@@ -230,27 +236,28 @@ class DenonSensor(Sensor):
         return value if value is not None else default
 
 
-def create_sensors(device: AvrDevice, receiver: avr.DenonDevice) -> list[DenonSensor]:
+def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: IntegrationAPI) -> list[DenonSensor]:
     """
     Create all applicable sensor entities for the given receiver.
 
     :param device: Device configuration
     :param receiver: DenonDevice instance
+    :param api: IntegrationAPI instance
     :return: List of sensor entities
     """
     sensors = [
-        DenonSensor(device, receiver, SensorType.VOLUME_DB),
-        DenonSensor(device, receiver, SensorType.SOUND_MODE),
-        DenonSensor(device, receiver, SensorType.INPUT_SOURCE),
-        DenonSensor(device, receiver, SensorType.MUTE),
+        DenonSensor(device, receiver, api, SensorType.VOLUME_DB),
+        DenonSensor(device, receiver, api, SensorType.SOUND_MODE),
+        DenonSensor(device, receiver, api, SensorType.INPUT_SOURCE),
+        DenonSensor(device, receiver, api, SensorType.MUTE),
     ]
 
     # Only create telnet-based sensors if telnet is used
     if device.use_telnet:
-        sensors.append(DenonSensor(device, receiver, SensorType.DIMMER))
-        sensors.append(DenonSensor(device, receiver, SensorType.ECO_MODE))
-        sensors.append(DenonSensor(device, receiver, SensorType.SLEEP_TIMER))
-        sensors.append(DenonSensor(device, receiver, SensorType.AUDIO_DELAY))
-        sensors.append(DenonSensor(device, receiver, SensorType.MONITOR_OUTPUT))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.DIMMER))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.ECO_MODE))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.SLEEP_TIMER))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_DELAY))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT))
 
     return sensors
