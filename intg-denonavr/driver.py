@@ -42,10 +42,7 @@ async def receiver_status_poller(interval: float = 10.0) -> None:
         if not _REMOTE_IN_STANDBY:
             try:
                 tasks = [
-                    receiver.async_update_receiver_data()
-                    for receiver in _configured_avrs.values()
-                    # pylint: disable=W0212
-                    if receiver.active and not (receiver._telnet_healthy)
+                    receiver.async_update_receiver_data() for receiver in _configured_avrs.values() if receiver.active
                 ]
                 await asyncio.gather(*tasks)
             except (KeyError, ValueError):  # TODO check parallel access / modification while iterating a dict
@@ -261,15 +258,7 @@ def _entities_from_avr(avr_id: str) -> list[str]:
         avr_entities = [
             create_entity_id(avr_id, ucapi.EntityTypes.MEDIA_PLAYER),
             create_entity_id(avr_id, ucapi.EntityTypes.REMOTE),
-            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.VOLUME_DB.value),
-            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.SOUND_MODE.value),
-            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.INPUT_SOURCE.value),
-            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.DIMMER.value),
-            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.ECO_MODE.value),
-            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.SLEEP_TIMER.value),
-            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.AUDIO_DELAY.value),
-            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.MUTE.value),
-            create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, SensorType.MONITOR_OUTPUT.value),
+            *(create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, sensor_type.value) for sensor_type in SensorType),
         ]
         MAPPED_AVR_ENTITIES[avr_id] = avr_entities
     return avr_entities
