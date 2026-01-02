@@ -124,6 +124,30 @@ class DenonSensor(Sensor, DenonEntity):
                         Options.DECIMALS: 0,
                     },
                 }
+            case SensorType.AUDIO_INPUT_MODE:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_INPUT_MODE.value),
+                    "name": f"{device.name} Audio Input Mode",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.AUDIO_SIGNAL:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_SIGNAL.value),
+                    "name": f"{device.name} Audio Signal",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.AUDIO_SOUND:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_SOUND.value),
+                    "name": f"{device.name} Audio Sound",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.AUDIO_SAMPLING_RATE:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_SAMPLING_RATE.value),
+                    "name": f"{device.name} Audio Sampling Rate",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
             case SensorType.MUTE:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MUTE.value),
@@ -134,6 +158,18 @@ class DenonSensor(Sensor, DenonEntity):
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MONITOR_OUTPUT.value),
                     "name": f"{device.name} Monitor Output",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.VIDEO_HDMI_SIGNAL_IN:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.VIDEO_HDMI_SIGNAL_IN.value),
+                    "name": f"{device.name} Video HDMI Signal In",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.VIDEO_HDMI_SIGNAL_OUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.VIDEO_HDMI_SIGNAL_OUT.value),
+                    "name": f"{device.name} Video HDMI Signal Out",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case _:
@@ -165,7 +201,7 @@ class DenonSensor(Sensor, DenonEntity):
 
     SensorStates: dict[SensorType, Any] = {}
 
-    # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access
+    # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access, too-many-locals
     def _get_sensor_value(self, update: dict[str, Any]) -> tuple[Any, str | None]:
         """Get the current value and unit for this sensor type."""
         # If receiver is turned off, clear stored sensor state
@@ -206,12 +242,38 @@ class DenonSensor(Sensor, DenonEntity):
                 audio_delay = self._get_value_or_default(self._receiver._receiver.delay, 0)
                 return self._update_state_and_create_return_value(audio_delay), None
 
+            if self._sensor_type == SensorType.AUDIO_INPUT_MODE:
+                audio_input_mode = self._get_value_or_default(self._receiver._receiver.audio_input_mode, "--")
+                return self._update_state_and_create_return_value(audio_input_mode), None
+
+            if self._sensor_type == SensorType.AUDIO_SIGNAL:
+                audio_signal = self._get_value_or_default(self._receiver._receiver.audio_signal, "--")
+                return self._update_state_and_create_return_value(audio_signal), None
+
+            if self._sensor_type == SensorType.AUDIO_SOUND:
+                audio_sound = self._get_value_or_default(self._receiver._receiver.audio_sound, "--")
+                return self._update_state_and_create_return_value(audio_sound), None
+
+            if self._sensor_type == SensorType.AUDIO_SAMPLING_RATE:
+                audio_sampling_rate = self._get_value_or_default(self._receiver._receiver.audio_sampling_rate, "--")
+                return self._update_state_and_create_return_value(audio_sampling_rate), None
+
             if self._sensor_type == SensorType.MUTE:
                 on_off = "on" if self._receiver._receiver.muted else "off"
                 return self._update_state_and_create_return_value(on_off), None
 
             if self._sensor_type == SensorType.MONITOR_OUTPUT:
+                if self._receiver._receiver.video_output:
+                    return self._update_state_and_create_return_value(self._receiver._receiver.video_output), None
                 return self._update_state_and_create_return_value(self._receiver._receiver.hdmi_output), None
+
+            if self._sensor_type == SensorType.VIDEO_HDMI_SIGNAL_IN:
+                hdmi_in_signal = self._get_value_or_default(self._receiver._receiver.video_hdmi_signal_in, "--")
+                return self._update_state_and_create_return_value(hdmi_in_signal), None
+
+            if self._sensor_type == SensorType.VIDEO_HDMI_SIGNAL_OUT:
+                hdmi_out_signal = self._get_value_or_default(self._receiver._receiver.video_hdmi_signal_out, "--")
+                return self._update_state_and_create_return_value(hdmi_out_signal), None
 
         except Exception as ex:
             _LOG.warning("Error getting sensor value for %s: %s", self._sensor_type.value, ex)
@@ -250,6 +312,12 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         DenonSensor(device, receiver, api, SensorType.SOUND_MODE),
         DenonSensor(device, receiver, api, SensorType.INPUT_SOURCE),
         DenonSensor(device, receiver, api, SensorType.MUTE),
+        DenonSensor(device, receiver, api, SensorType.AUDIO_INPUT_MODE),
+        DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL),
+        DenonSensor(device, receiver, api, SensorType.AUDIO_SOUND),
+        DenonSensor(device, receiver, api, SensorType.AUDIO_SAMPLING_RATE),
+        DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN),
+        DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT),
     ]
 
     # Only create telnet-based sensors if telnet is used
