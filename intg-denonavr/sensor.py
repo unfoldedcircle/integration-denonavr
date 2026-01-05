@@ -312,12 +312,6 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         DenonSensor(device, receiver, api, SensorType.SOUND_MODE),
         DenonSensor(device, receiver, api, SensorType.INPUT_SOURCE),
         DenonSensor(device, receiver, api, SensorType.MUTE),
-        DenonSensor(device, receiver, api, SensorType.AUDIO_INPUT_MODE),
-        DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL),
-        DenonSensor(device, receiver, api, SensorType.AUDIO_SOUND),
-        DenonSensor(device, receiver, api, SensorType.AUDIO_SAMPLING_RATE),
-        DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN),
-        DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT),
     ]
 
     # Only create telnet-based sensors if telnet is used
@@ -327,5 +321,15 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         sensors.append(DenonSensor(device, receiver, api, SensorType.SLEEP_TIMER))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_DELAY))
         sensors.append(DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT))
+
+    # Audio and video sensors are only available on AVR 2016 and newer models
+    # pylint: disable=protected-access
+    if receiver._receiver._device.use_avr_2016_update:
+        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_INPUT_MODE))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SOUND))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SAMPLING_RATE))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT))
 
     return sensors

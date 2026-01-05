@@ -515,7 +515,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         timeout=timeout,
         is_denon=__is_denon_device(receiver.manufacturer),
     )
-    config.devices.add_or_update(device)  # triggers DenonAVR instance creation
+    await config.devices.add_or_update(device)  # triggers DenonAVR instance creation
 
     # AVR device connection will be triggered with subscribe_entities request
 

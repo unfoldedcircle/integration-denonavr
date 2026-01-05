@@ -485,6 +485,10 @@ class DenonDevice:
         finally:
             self._connecting = False
 
+    async def setup_receiver(self):
+        """Set up the AVR device without connect logic."""
+        await self._receiver.async_setup()
+
     async def _handle_connection_failure(self, connect_duration: float, ex):
         self._connection_attempts += 1
         # backoff delay must deduct time spent in the connection attempt

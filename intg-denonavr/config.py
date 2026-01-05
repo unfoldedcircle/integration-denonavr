@@ -135,7 +135,7 @@ class Devices:
                 return True
         return False
 
-    def add_or_update(self, avr: AvrDevice) -> None:
+    async def add_or_update(self, avr: AvrDevice) -> None:
         """
         Add a newly configured device and persist configuration.
 
@@ -145,12 +145,12 @@ class Devices:
             if self._remove_handler is not None:
                 self._remove_handler(avr)
             if self._add_handler is not None:
-                self._add_handler(avr)
+                await self._add_handler(avr)
         else:
             self._config.append(avr)
             self.store()
             if self._add_handler is not None:
-                self._add_handler(avr)
+                await self._add_handler(avr)
 
     def get(self, avr_id: str) -> AvrDevice | None:
         """Get device configuration for given identifier."""
