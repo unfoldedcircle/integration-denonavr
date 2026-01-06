@@ -136,12 +136,6 @@ class DenonSensor(Sensor, DenonEntity):
                     "name": f"{device.name} Audio Signal",
                     "device_class": DeviceClasses.CUSTOM,
                 }
-            case SensorType.AUDIO_SOUND:
-                sensor = {
-                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_SOUND.value),
-                    "name": f"{device.name} Audio Sound",
-                    "device_class": DeviceClasses.CUSTOM,
-                }
             case SensorType.AUDIO_SAMPLING_RATE:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_SAMPLING_RATE.value),
@@ -250,10 +244,6 @@ class DenonSensor(Sensor, DenonEntity):
                 audio_signal = self._get_value_or_default(self._receiver._receiver.audio_signal, "--")
                 return self._update_state_and_create_return_value(audio_signal), None
 
-            if self._sensor_type == SensorType.AUDIO_SOUND:
-                audio_sound = self._get_value_or_default(self._receiver._receiver.audio_sound, "--")
-                return self._update_state_and_create_return_value(audio_sound), None
-
             if self._sensor_type == SensorType.AUDIO_SAMPLING_RATE:
                 audio_sampling_rate = self._get_value_or_default(self._receiver._receiver.audio_sampling_rate, "--")
                 return self._update_state_and_create_return_value(audio_sampling_rate), None
@@ -326,7 +316,6 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
     if device.support_2016_update:
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_INPUT_MODE))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SOUND))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SAMPLING_RATE))
         sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN))
         sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT))
