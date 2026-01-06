@@ -432,12 +432,12 @@ class DenonDevice:
         return self._receiver.hdmi_output
 
     @property
-    def dimmer(self):
+    def dimmer(self) -> str | None:
         """Return the current dimmer setting."""
         return self._receiver.dimmer
 
     @property
-    def eco_mode(self):
+    def eco_mode(self) -> str | None:
         """Return the current eco mode setting."""
         return self._receiver.eco_mode
 
