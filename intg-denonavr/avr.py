@@ -92,7 +92,7 @@ TELNET_EVENTS = {
     "NSE",  # Onscreen display information (mServer/iRadio)
     "PS",  # Parameter Setting
     "SI",  # Select Input source
-    "SS",  # ??
+    "SS",  # Used for video and audio settings
     "TF",  # Tuner Frequency (?)
     "ZM",  # Zone Main
     "Z2",  # Zone 2
@@ -101,6 +101,7 @@ TELNET_EVENTS = {
     "ECO",  # Eco Mode
     "SLP",  # Sleep Timer
     "VS",  # Video Setting
+    "SY",  # Also audio settings
 }
 
 SUBSCRIBED_TELNET_EVENTS = {
@@ -114,6 +115,8 @@ SUBSCRIBED_TELNET_EVENTS = {
     "SLP",  # Sleep Timer
     "PS",  # Parameter Setting
     "VS",  # Video Setting
+    "SS",  # Used for video and audio settings
+    "SY",  # Also audio settings
 }
 
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
