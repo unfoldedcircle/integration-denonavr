@@ -208,7 +208,10 @@ class DenonSensor(Sensor, DenonEntity):
                 return self._update_state_and_create_return_value(volume), None
 
             if self._sensor_type == SensorType.SOUND_MODE:
-                sound_mode = update.get("RAW_SOUND_MODE", None)
+                # Prefer audio_sound as it works better with online music sources
+                sound_mode = self._receiver._receiver.audio_sound
+                if sound_mode is None:
+                    sound_mode = update.get("RAW_SOUND_MODE", None)
                 if sound_mode is None:
                     return None, None
                 return self._update_state_and_create_return_value(sound_mode), None
