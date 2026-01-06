@@ -128,7 +128,7 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
 
         device = config.devices.get(avr_id)
         if device:
-            await _configure_new_avr(device, connect=True)
+            _configure_new_avr(device, connect=True)
         else:
             _LOG.error("Failed to subscribe entity %s: no AVR configuration found", entity_id)
 
@@ -264,7 +264,7 @@ def _entities_from_avr(avr_id: str) -> list[str]:
     return avr_entities
 
 
-async def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> None:
+def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> None:
     """
     Create and configure a new AVR device.
 
@@ -277,7 +277,7 @@ async def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> 
     if device.id in _configured_avrs:
         receiver = _configured_avrs[device.id]
         if not connect:
-            await receiver.disconnect()
+            _LOOP.create_task(receiver.disconnect())
     else:
         receiver = avr.DenonDevice(device, loop=_LOOP)
 
@@ -290,10 +290,8 @@ async def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> 
         _configured_avrs[device.id] = receiver
 
     if connect:
-        await receiver.connect()
-    else:
-        # call setup so that we know device capabilities (needed for sensors)
-        await receiver.setup_receiver()
+        # start background connection task
+        _LOOP.create_task(receiver.connect())
 
     _register_available_entities(device, receiver)
 
@@ -318,11 +316,11 @@ def _register_available_entities(device: config.AvrDevice, receiver: avr.DenonDe
         api.available_entities.add(entity)
 
 
-async def on_device_added(device: config.AvrDevice) -> None:
+def on_device_added(device: config.AvrDevice) -> None:
     """Handle a newly added device in the configuration."""
     _LOG.debug("New device added: %s", device)
     _LOOP.create_task(api.set_device_state(ucapi.DeviceStates.CONNECTED))  # just to make sure the device state is set
-    await _configure_new_avr(device, connect=False)
+    _configure_new_avr(device, connect=False)
 
 
 def on_device_removed(device: config.AvrDevice | None) -> None:
@@ -410,7 +408,7 @@ async def main():
 
     config.devices = config.Devices(api.config_dir_path, on_device_added, on_device_removed)
     for device in config.devices.all():
-        await _configure_new_avr(device, connect=False)
+        _configure_new_avr(device, connect=False)
 
     # Note: this is useful when using telnet in case the connection is unhealthy
     # and changes are made from another source

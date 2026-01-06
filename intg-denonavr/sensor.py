@@ -323,8 +323,7 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         sensors.append(DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT))
 
     # Audio and video sensors are only available on AVR 2016 and newer models
-    # pylint: disable=protected-access
-    if receiver._receiver._device.use_avr_2016_update:
+    if device.support_2016_update:
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_INPUT_MODE))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SOUND))

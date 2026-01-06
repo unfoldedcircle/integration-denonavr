@@ -67,6 +67,7 @@ class AvrDevice:
     timeout: int
     """Connection and command timeout in milliseconds."""
     is_denon: bool
+    support_2016_update: bool
 
 
 class SensorType(str, Enum):
@@ -135,7 +136,7 @@ class Devices:
                 return True
         return False
 
-    async def add_or_update(self, avr: AvrDevice) -> None:
+    def add_or_update(self, avr: AvrDevice) -> None:
         """
         Add a newly configured device and persist configuration.
 
@@ -145,12 +146,12 @@ class Devices:
             if self._remove_handler is not None:
                 self._remove_handler(avr)
             if self._add_handler is not None:
-                await self._add_handler(avr)
+                self._add_handler(avr)
         else:
             self._config.append(avr)
             self.store()
             if self._add_handler is not None:
-                await self._add_handler(avr)
+                self._add_handler(avr)
 
     def get(self, avr_id: str) -> AvrDevice | None:
         """Get device configuration for given identifier."""
@@ -175,6 +176,7 @@ class Devices:
                 item.volume_step = avr.volume_step
                 item.timeout = avr.timeout
                 item.is_denon = avr.is_denon
+                item.support_2016_update = avr.support_2016_update
                 return self.store()
         return False
 
@@ -244,6 +246,7 @@ class Devices:
                     item.get("volume_step", 0.5),
                     item.get("timeout", 2000),
                     item.get("is_denon", True),
+                    item.get("support_2016_update", False),
                 )
                 needs_migration |= item.get("use_telnet_for_events") is not None or item.get("is_denon") is None
                 self._config.append(avr)
