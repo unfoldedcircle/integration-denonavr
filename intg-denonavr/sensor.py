@@ -124,12 +124,6 @@ class DenonSensor(Sensor, DenonEntity):
                         Options.DECIMALS: 0,
                     },
                 }
-            case SensorType.AUDIO_INPUT_MODE:
-                sensor = {
-                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_INPUT_MODE.value),
-                    "name": f"{device.name} Audio Input Mode",
-                    "device_class": DeviceClasses.CUSTOM,
-                }
             case SensorType.AUDIO_SIGNAL:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_SIGNAL.value),
@@ -239,10 +233,6 @@ class DenonSensor(Sensor, DenonEntity):
                 audio_delay = self._get_value_or_default(self._receiver._receiver.delay, 0)
                 return self._update_state_and_create_return_value(audio_delay), None
 
-            if self._sensor_type == SensorType.AUDIO_INPUT_MODE:
-                audio_input_mode = self._get_value_or_default(self._receiver._receiver.audio_input_mode, "--")
-                return self._update_state_and_create_return_value(audio_input_mode), None
-
             if self._sensor_type == SensorType.AUDIO_SIGNAL:
                 audio_signal = self._get_value_or_default(self._receiver._receiver.audio_signal, "--")
                 return self._update_state_and_create_return_value(audio_signal), None
@@ -256,9 +246,8 @@ class DenonSensor(Sensor, DenonEntity):
                 return self._update_state_and_create_return_value(on_off), None
 
             if self._sensor_type == SensorType.MONITOR_OUTPUT:
-                if self._receiver._receiver.video_output:
-                    return self._update_state_and_create_return_value(self._receiver._receiver.video_output), None
-                return self._update_state_and_create_return_value(self._receiver._receiver.hdmi_output), None
+                monitor_output = self._get_value_or_default(self._receiver._receiver.hdmi_output, "--")
+                return self._update_state_and_create_return_value(monitor_output), None
 
             if self._sensor_type == SensorType.VIDEO_HDMI_SIGNAL_IN:
                 hdmi_in_signal = self._get_value_or_default(self._receiver._receiver.video_hdmi_signal_in, "--")
@@ -313,13 +302,9 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         sensors.append(DenonSensor(device, receiver, api, SensorType.ECO_MODE))
         sensors.append(DenonSensor(device, receiver, api, SensorType.SLEEP_TIMER))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_DELAY))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT))
-
-    # Audio and video sensors are only available on AVR 2016 and newer models
-    if device.support_2016_update:
-        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_INPUT_MODE))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SAMPLING_RATE))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT))
         sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN))
         sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT))
 

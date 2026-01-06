@@ -427,8 +427,8 @@ class DenonDevice:
     @property
     def video_output(self) -> str | None:
         """Return the current video output setting."""
-        if self._receiver.video_output is not None:
-            return self._receiver.video_output
+        if self._receiver.video_hdmi_signal_out is not None:
+            return self._receiver.video_hdmi_signal_out
         return self._receiver.hdmi_output
 
     @property
