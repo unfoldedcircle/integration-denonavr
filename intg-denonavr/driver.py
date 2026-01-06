@@ -42,7 +42,10 @@ async def receiver_status_poller(interval: float = 10.0) -> None:
         if not _REMOTE_IN_STANDBY:
             try:
                 tasks = [
-                    receiver.async_update_receiver_data() for receiver in _configured_avrs.values() if receiver.active
+                    receiver.async_update_receiver_data()
+                    for receiver in _configured_avrs.values()
+                    # pylint: disable=W0212
+                    if receiver.active and not (receiver._telnet_healthy)
                 ]
                 await asyncio.gather(*tasks)
             except (KeyError, ValueError):  # TODO check parallel access / modification while iterating a dict
