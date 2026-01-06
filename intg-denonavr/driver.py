@@ -42,7 +42,10 @@ async def receiver_status_poller(interval: float = 10.0) -> None:
         if not _REMOTE_IN_STANDBY:
             try:
                 tasks = [
-                    receiver.async_update_receiver_data() for receiver in _configured_avrs.values() if receiver.active
+                    # force True to get updates from http API even when using Telnet
+                    receiver.async_update_receiver_data(force=True)
+                    for receiver in _configured_avrs.values()
+                    if receiver.active
                 ]
                 await asyncio.gather(*tasks)
             except (KeyError, ValueError):  # TODO check parallel access / modification while iterating a dict
@@ -232,6 +235,10 @@ def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             MediaAttr.SOUND_MODE_LIST: receiver.sound_mode_list,
             MediaAttr.VOLUME: receiver.volume_level,
             "SLEEP_TIMER": receiver.sleep,
+            "DELAY": receiver.audio_delay,
+            "MONI": receiver.video_output,
+            "DIMMER": receiver.dimmer,
+            "ECO_MODE": receiver.eco_mode,
         }
     else:
         _LOG.info("[%s] AVR update: %s", avr_id, update)

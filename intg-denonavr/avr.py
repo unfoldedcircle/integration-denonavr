@@ -5,6 +5,7 @@ This module implements the Denon/Marantz AVR receiver communication of the Remot
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
 """
 
+# pylint: disable=too-many-lines
 import asyncio
 import logging
 import time
@@ -418,6 +419,28 @@ class DenonDevice:
             return self._receiver.station
         return ""
 
+    @property
+    def audio_delay(self) -> float | None:
+        """Return the current audio delay value in milliseconds."""
+        return self._receiver.delay
+
+    @property
+    def video_output(self) -> str | None:
+        """Return the current video output setting."""
+        if self._receiver.video_output is not None:
+            return self._receiver.video_output
+        return self._receiver.hdmi_output
+
+    @property
+    def dimmer(self):
+        """Return the current dimmer setting."""
+        return self._receiver.dimmer
+
+    @property
+    def eco_mode(self):
+        """Return the current eco mode setting."""
+        return self._receiver.eco_mode
+
     async def connect(self):
         """
         Connect to AVR.
@@ -655,10 +678,19 @@ class DenonDevice:
             # RAW_SOUND_MODE to display the actual sound mode on the sensor
             self.events.emit(Events.UPDATE, self.id, {"RAW_SOUND_MODE": self._receiver.sound_mode_raw})
         elif event == "PS":  # Parameter Setting
-            if not parameter or not parameter.startswith("DELAY"):
+            if parameter and parameter.startswith("DELAY"):
+                self.events.emit(Events.UPDATE, self.id, {"DELAY": self._receiver.delay})
+            else:
                 return  # TODO check if we need to handle certain parameters, likely Audyssey
-        elif event == "VS" and not parameter.startswith("MONI"):
-            return  # No need to process other video settings
+        elif event == "VS":
+            if parameter.startswith("MONI"):
+                self.events.emit(Events.UPDATE, self.id, {"MONI": self._receiver.hdmi_output})
+            else:
+                return  # No need to process other video settings
+        elif event == "DIM":  # Dimmer
+            self.events.emit(Events.UPDATE, self.id, {"DIMMER": self._receiver.dimmer})
+        elif event == "ECO":  # Eco Mode
+            self.events.emit(Events.UPDATE, self.id, {"ECO_MODE": self._receiver.eco_mode})
         elif event == "SLP":  # Sleep Timer
             self.events.emit(Events.UPDATE, self.id, {"SLEEP_TIMER": self._receiver.sleep})
 

@@ -209,9 +209,9 @@ class DenonSensor(Sensor, DenonEntity):
 
             if self._sensor_type == SensorType.SOUND_MODE:
                 # Prefer audio_sound as it works better with online music sources
-                sound_mode = self._receiver._receiver.audio_sound
-                if sound_mode is None:
-                    sound_mode = update.get("RAW_SOUND_MODE", None)
+                sound_mode = self._get_value_or_default(
+                    self._receiver._receiver.audio_sound, update.get("RAW_SOUND_MODE", None)
+                )
                 if sound_mode is None:
                     return None, None
                 return self._update_state_and_create_return_value(sound_mode), None
@@ -221,11 +221,11 @@ class DenonSensor(Sensor, DenonEntity):
                 return self._update_state_and_create_return_value(input_source), None
 
             if self._sensor_type == SensorType.DIMMER:
-                dimmer_state = self._get_value_or_default(self._receiver._receiver.dimmer, "Off")
+                dimmer_state = self._get_value_or_default(self._receiver._receiver.dimmer, "--")
                 return self._update_state_and_create_return_value(dimmer_state), None
 
             if self._sensor_type == SensorType.ECO_MODE:
-                eco_mode = self._get_value_or_default(self._receiver._receiver.eco_mode, "Off")
+                eco_mode = self._get_value_or_default(self._receiver._receiver.eco_mode, "--")
                 return self._update_state_and_create_return_value(eco_mode), None
 
             if self._sensor_type == SensorType.SLEEP_TIMER:
