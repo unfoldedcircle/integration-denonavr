@@ -195,7 +195,7 @@ class DenonSensor(Sensor, DenonEntity):
         # If receiver is turned off, clear stored sensor state
         if update.get(MediaAttr.STATE, None) and self._receiver._receiver.state == "off":
             self.SensorStates.pop(self._sensor_type, None)
-            if self._sensor_type != SensorType.MONITOR_OUTPUT:
+            if self._sensor_type not in (SensorType.MONITOR_OUTPUT, SensorType.INPUT_SOURCE):
                 return self._update_state_and_create_return_value("--"), None
 
         try:
