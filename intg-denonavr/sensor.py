@@ -10,7 +10,7 @@ from typing import Any
 
 import avr
 import helpers
-from config import AvrDevice, SensorType, create_entity_id
+from config import AdditionalEventType, AvrDevice, SensorType, create_entity_id
 from entities import DenonEntity
 from ucapi import EntityTypes, IntegrationAPI, Sensor
 from ucapi.media_player import Attributes as MediaAttr
@@ -204,7 +204,7 @@ class DenonSensor(Sensor, DenonEntity):
             if self._sensor_type == SensorType.SOUND_MODE:
                 # Prefer audio_sound as it works better with online music sources
                 sound_mode = self._get_value_or_default(
-                    self._receiver._receiver.audio_sound, update.get("RAW_SOUND_MODE", None)
+                    self._receiver._receiver.audio_sound, update.get(AdditionalEventType.RAW_SOUND_MODE, None)
                 )
                 if sound_mode is None:
                     return None, None
@@ -223,7 +223,7 @@ class DenonSensor(Sensor, DenonEntity):
                 return self._update_state_and_create_return_value(eco_mode), None
 
             if self._sensor_type == SensorType.SLEEP_TIMER:
-                sleep = update.get("SLEEP_TIMER", self._receiver._receiver.sleep)
+                sleep = update.get(AdditionalEventType.SLEEP_TIMER, self._receiver._receiver.sleep)
                 if sleep is not None:
                     if isinstance(sleep, int):
                         return self._update_state_and_create_return_value(sleep), "min"

@@ -18,7 +18,7 @@ import media_player
 import sensor
 import setup_flow
 import ucapi
-from config import SensorType, avr_from_entity_id, create_entity_id
+from config import AdditionalEventType, SensorType, avr_from_entity_id, create_entity_id
 from entities import DenonEntity
 from i18n import _a
 from ucapi.media_player import Attributes as MediaAttr
@@ -231,14 +231,19 @@ def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             MediaAttr.SOURCE: receiver.source,
             MediaAttr.SOURCE_LIST: receiver.source_list,
             MediaAttr.SOUND_MODE: receiver.sound_mode,
-            "RAW_SOUND_MODE": receiver.sound_mode_raw,
+            AdditionalEventType.RAW_SOUND_MODE: receiver.sound_mode_raw,
             MediaAttr.SOUND_MODE_LIST: receiver.sound_mode_list,
             MediaAttr.VOLUME: receiver.volume_level,
-            "SLEEP_TIMER": receiver.sleep,
-            "DELAY": receiver.audio_delay,
-            "MONI": receiver.video_output,
-            "DIMMER": receiver.dimmer,
-            "ECO_MODE": receiver.eco_mode,
+            AdditionalEventType.SLEEP_TIMER: receiver.sleep,
+            AdditionalEventType.AUDIO_DELAY: receiver.audio_delay,
+            AdditionalEventType.MONITOR: receiver.video_output,
+            AdditionalEventType.DIMMER: receiver.dimmer,
+            AdditionalEventType.ECO_MODE: receiver.eco_mode,
+            AdditionalEventType.VIDEO_SIGNAL_IN: receiver.video_hdmi_signal_in,
+            AdditionalEventType.VIDEO_SIGNAL_OUT: receiver.video_hdmi_signal_out,
+            AdditionalEventType.AUDIO_SAMPLING_RATE: receiver.audio_sampling_rate,
+            AdditionalEventType.AUDIO_SIGNAL: receiver.audio_signal,
+            AdditionalEventType.AUDIO_SOUND: receiver.audio_sound,
         }
     else:
         _LOG.info("[%s] AVR update: %s", avr_id, update)
