@@ -85,7 +85,7 @@ class DenonSensor(Sensor, DenonEntity):
             case SensorType.SOUND_MODE:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.SOUND_MODE.value),
-                    "name": f"{device.name} Sound Mode",
+                    "name": f"{device.name} Audio Output",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case SensorType.INPUT_SOURCE:
@@ -145,19 +145,19 @@ class DenonSensor(Sensor, DenonEntity):
             case SensorType.MONITOR_OUTPUT:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MONITOR_OUTPUT.value),
-                    "name": f"{device.name} Monitor Output",
+                    "name": f"{device.name} Video Out Port",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case SensorType.VIDEO_HDMI_SIGNAL_IN:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.VIDEO_HDMI_SIGNAL_IN.value),
-                    "name": f"{device.name} Video HDMI Signal In",
+                    "name": f"{device.name} Video In Format",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case SensorType.VIDEO_HDMI_SIGNAL_OUT:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.VIDEO_HDMI_SIGNAL_OUT.value),
-                    "name": f"{device.name} Video HDMI Signal Out",
+                    "name": f"{device.name} Video Out Format",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case _:
@@ -195,6 +195,8 @@ class DenonSensor(Sensor, DenonEntity):
         # If receiver is turned off, clear stored sensor state
         if update.get(MediaAttr.STATE, None) and self._receiver._receiver.state == "off":
             self.SensorStates.pop(self._sensor_type, None)
+            if self._sensor_type != SensorType.MONITOR_OUTPUT:
+                return self._update_state_and_create_return_value("--"), None
 
         try:
             if self._sensor_type == SensorType.VOLUME_DB:
