@@ -1,3 +1,4 @@
+# pylint: disable=too-many-lines
 """
 This module implements the Denon/Marantz AVR receiver communication of the Remote Two/3 integration driver.
 
@@ -17,7 +18,7 @@ from urllib import parse
 import denonavr
 import discover
 import ucapi
-from config import AvrDevice
+from config import AdditionalEventType, AvrDevice
 from denonavr.const import (
     ALL_ZONES,
     STATE_OFF,
@@ -91,7 +92,7 @@ TELNET_EVENTS = {
     "NSE",  # Onscreen display information (mServer/iRadio)
     "PS",  # Parameter Setting
     "SI",  # Select Input source
-    "SS",  # ??
+    "SS",  # Used for video and audio settings
     "TF",  # Tuner Frequency (?)
     "ZM",  # Zone Main
     "Z2",  # Zone 2
@@ -100,6 +101,7 @@ TELNET_EVENTS = {
     "ECO",  # Eco Mode
     "SLP",  # Sleep Timer
     "VS",  # Video Setting
+    "SY",  # Also audio settings
 }
 
 SUBSCRIBED_TELNET_EVENTS = {
@@ -113,6 +115,8 @@ SUBSCRIBED_TELNET_EVENTS = {
     "SLP",  # Sleep Timer
     "PS",  # Parameter Setting
     "VS",  # Video Setting
+    "SS",  # Used for video and audio settings
+    "SY",  # Also audio settings
 }
 
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
@@ -418,6 +422,53 @@ class DenonDevice:
             return self._receiver.station
         return ""
 
+    @property
+    def audio_delay(self) -> float | None:
+        """Return the current audio delay value in milliseconds."""
+        return self._receiver.delay
+
+    @property
+    def video_output(self) -> str | None:
+        """Return the current video output setting."""
+        if self._receiver.video_hdmi_signal_out is not None:
+            return self._receiver.video_hdmi_signal_out
+        return self._receiver.hdmi_output
+
+    @property
+    def dimmer(self) -> str | None:
+        """Return the current dimmer setting."""
+        return self._receiver.dimmer
+
+    @property
+    def eco_mode(self) -> str | None:
+        """Return the current eco mode setting."""
+        return self._receiver.eco_mode
+
+    @property
+    def video_hdmi_signal_in(self) -> str | None:
+        """Return the current HDMI video signal input status."""
+        return self._receiver.video_hdmi_signal_in
+
+    @property
+    def video_hdmi_signal_out(self) -> str | None:
+        """Return the current HDMI video signal output status."""
+        return self._receiver.video_hdmi_signal_out
+
+    @property
+    def audio_sampling_rate(self) -> str | None:
+        """Return the current audio sampling rate."""
+        return self._receiver.audio_sampling_rate
+
+    @property
+    def audio_signal(self) -> str | None:
+        """Return the current audio signal status."""
+        return self._receiver.audio_signal
+
+    @property
+    def audio_sound(self) -> str | None:
+        """Return the current audio sound status."""
+        return self._receiver.audio_sound
+
     async def connect(self):
         """
         Connect to AVR.
@@ -616,6 +667,7 @@ class DenonDevice:
 
     def _telnet_callback(self, zone: str, event: str, parameter: str) -> None:
         """Process a telnet command callback."""
+        # pylint: disable=too-many-statements
         _LOG.debug("[%s] zone: %s, event: %s, parameter: %s", self.id, zone, event, parameter)
 
         # *** Start logic from HA
@@ -653,14 +705,47 @@ class DenonDevice:
             self._set_expected_state(States.ON)
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.SOUND_MODE: self._receiver.sound_mode})
             # RAW_SOUND_MODE to display the actual sound mode on the sensor
-            self.events.emit(Events.UPDATE, self.id, {"RAW_SOUND_MODE": self._receiver.sound_mode_raw})
+            self.events.emit(
+                Events.UPDATE, self.id, {AdditionalEventType.RAW_SOUND_MODE: self._receiver.sound_mode_raw}
+            )
         elif event == "PS":  # Parameter Setting
-            if not parameter or not parameter.startswith("DELAY"):
+            if parameter and parameter.startswith("DELAY"):
+                self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.AUDIO_DELAY: self._receiver.delay})
+            else:
                 return  # TODO check if we need to handle certain parameters, likely Audyssey
-        elif event == "VS" and not parameter.startswith("MONI"):
-            return  # No need to process other video settings
+        elif event == "VS":
+            if parameter.startswith("MONI"):
+                self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.MONITOR: self._receiver.hdmi_output})
+            else:
+                return  # No need to process other video settings
+        elif event == "DIM":  # Dimmer
+            self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.DIMMER: self._receiver.dimmer})
+        elif event == "ECO":  # Eco Mode
+            self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.ECO_MODE: self._receiver.eco_mode})
         elif event == "SLP":  # Sleep Timer
-            self.events.emit(Events.UPDATE, self.id, {"SLEEP_TIMER": self._receiver.sleep})
+            self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.SLEEP_TIMER: self._receiver.sleep})
+        elif event == "SS":
+            if parameter.startswith("INFSIGRES I"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.VIDEO_SIGNAL_IN: self._receiver.video_hdmi_signal_in}
+                )
+            elif parameter.startswith("INFSIGRES O"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.VIDEO_SIGNAL_OUT: self._receiver.video_hdmi_signal_out}
+                )
+            elif parameter.startswith("INFAISFSV"):
+                self.events.emit(
+                    Events.UPDATE,
+                    self.id,
+                    {AdditionalEventType.AUDIO_SAMPLING_RATE: self._receiver.audio_sampling_rate},
+                )
+        elif event == "SY":
+            if parameter.startswith("SDA"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.AUDIO_SIGNAL: self._receiver.audio_signal}
+                )
+            elif parameter.startswith("SMI"):
+                self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.AUDIO_SOUND: self._receiver.audio_sound})
 
         self._notify_updated_data()
 

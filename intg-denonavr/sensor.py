@@ -10,7 +10,7 @@ from typing import Any
 
 import avr
 import helpers
-from config import AvrDevice, SensorType, create_entity_id
+from config import AdditionalEventType, AvrDevice, SensorType, create_entity_id
 from entities import DenonEntity
 from ucapi import EntityTypes, IntegrationAPI, Sensor
 from ucapi.media_player import Attributes as MediaAttr
@@ -85,7 +85,7 @@ class DenonSensor(Sensor, DenonEntity):
             case SensorType.SOUND_MODE:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.SOUND_MODE.value),
-                    "name": f"{device.name} Sound Mode",
+                    "name": f"{device.name} Audio Output",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case SensorType.INPUT_SOURCE:
@@ -124,6 +124,18 @@ class DenonSensor(Sensor, DenonEntity):
                         Options.DECIMALS: 0,
                     },
                 }
+            case SensorType.AUDIO_SIGNAL:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_SIGNAL.value),
+                    "name": f"{device.name} Audio Signal",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.AUDIO_SAMPLING_RATE:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_SAMPLING_RATE.value),
+                    "name": f"{device.name} Audio Sampling Rate",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
             case SensorType.MUTE:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MUTE.value),
@@ -133,7 +145,19 @@ class DenonSensor(Sensor, DenonEntity):
             case SensorType.MONITOR_OUTPUT:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MONITOR_OUTPUT.value),
-                    "name": f"{device.name} Monitor Output",
+                    "name": f"{device.name} Video Out Port",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.VIDEO_HDMI_SIGNAL_IN:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.VIDEO_HDMI_SIGNAL_IN.value),
+                    "name": f"{device.name} Video In Format",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.VIDEO_HDMI_SIGNAL_OUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.VIDEO_HDMI_SIGNAL_OUT.value),
+                    "name": f"{device.name} Video Out Format",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case _:
@@ -165,12 +189,14 @@ class DenonSensor(Sensor, DenonEntity):
 
     SensorStates: dict[SensorType, Any] = {}
 
-    # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access
+    # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access, too-many-locals
     def _get_sensor_value(self, update: dict[str, Any]) -> tuple[Any, str | None]:
         """Get the current value and unit for this sensor type."""
         # If receiver is turned off, clear stored sensor state
         if update.get(MediaAttr.STATE, None) and self._receiver._receiver.state == "off":
             self.SensorStates.pop(self._sensor_type, None)
+            if self._sensor_type not in (SensorType.MONITOR_OUTPUT, SensorType.INPUT_SOURCE):
+                return self._update_state_and_create_return_value("--"), None
 
         try:
             if self._sensor_type == SensorType.VOLUME_DB:
@@ -178,7 +204,10 @@ class DenonSensor(Sensor, DenonEntity):
                 return self._update_state_and_create_return_value(volume), None
 
             if self._sensor_type == SensorType.SOUND_MODE:
-                sound_mode = update.get("RAW_SOUND_MODE", None)
+                # Prefer audio_sound as it works better with online music sources
+                sound_mode = self._get_value_or_default(
+                    self._receiver._receiver.audio_sound, update.get(AdditionalEventType.RAW_SOUND_MODE, None)
+                )
                 if sound_mode is None:
                     return None, None
                 return self._update_state_and_create_return_value(sound_mode), None
@@ -188,15 +217,15 @@ class DenonSensor(Sensor, DenonEntity):
                 return self._update_state_and_create_return_value(input_source), None
 
             if self._sensor_type == SensorType.DIMMER:
-                dimmer_state = self._get_value_or_default(self._receiver._receiver.dimmer, "Off")
+                dimmer_state = self._get_value_or_default(self._receiver._receiver.dimmer, "--")
                 return self._update_state_and_create_return_value(dimmer_state), None
 
             if self._sensor_type == SensorType.ECO_MODE:
-                eco_mode = self._get_value_or_default(self._receiver._receiver.eco_mode, "Off")
+                eco_mode = self._get_value_or_default(self._receiver._receiver.eco_mode, "--")
                 return self._update_state_and_create_return_value(eco_mode), None
 
             if self._sensor_type == SensorType.SLEEP_TIMER:
-                sleep = update.get("SLEEP_TIMER", self._receiver._receiver.sleep)
+                sleep = update.get(AdditionalEventType.SLEEP_TIMER, self._receiver._receiver.sleep)
                 if sleep is not None:
                     if isinstance(sleep, int):
                         return self._update_state_and_create_return_value(sleep), "min"
@@ -206,12 +235,29 @@ class DenonSensor(Sensor, DenonEntity):
                 audio_delay = self._get_value_or_default(self._receiver._receiver.delay, 0)
                 return self._update_state_and_create_return_value(audio_delay), None
 
+            if self._sensor_type == SensorType.AUDIO_SIGNAL:
+                audio_signal = self._get_value_or_default(self._receiver._receiver.audio_signal, "--")
+                return self._update_state_and_create_return_value(audio_signal), None
+
+            if self._sensor_type == SensorType.AUDIO_SAMPLING_RATE:
+                audio_sampling_rate = self._get_value_or_default(self._receiver._receiver.audio_sampling_rate, "--")
+                return self._update_state_and_create_return_value(audio_sampling_rate), None
+
             if self._sensor_type == SensorType.MUTE:
                 on_off = "on" if self._receiver._receiver.muted else "off"
                 return self._update_state_and_create_return_value(on_off), None
 
             if self._sensor_type == SensorType.MONITOR_OUTPUT:
-                return self._update_state_and_create_return_value(self._receiver._receiver.hdmi_output), None
+                monitor_output = self._get_value_or_default(self._receiver._receiver.hdmi_output, "--")
+                return self._update_state_and_create_return_value(monitor_output), None
+
+            if self._sensor_type == SensorType.VIDEO_HDMI_SIGNAL_IN:
+                hdmi_in_signal = self._get_value_or_default(self._receiver._receiver.video_hdmi_signal_in, "--")
+                return self._update_state_and_create_return_value(hdmi_in_signal), None
+
+            if self._sensor_type == SensorType.VIDEO_HDMI_SIGNAL_OUT:
+                hdmi_out_signal = self._get_value_or_default(self._receiver._receiver.video_hdmi_signal_out, "--")
+                return self._update_state_and_create_return_value(hdmi_out_signal), None
 
         except Exception as ex:
             _LOG.warning("Error getting sensor value for %s: %s", self._sensor_type.value, ex)
@@ -258,6 +304,10 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         sensors.append(DenonSensor(device, receiver, api, SensorType.ECO_MODE))
         sensors.append(DenonSensor(device, receiver, api, SensorType.SLEEP_TIMER))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_DELAY))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SAMPLING_RATE))
         sensors.append(DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT))
 
     return sensors
