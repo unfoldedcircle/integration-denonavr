@@ -102,6 +102,7 @@ TELNET_EVENTS = {
     "SLP",  # Sleep Timer
     "VS",  # Video Setting
     "SY",  # Also audio settings
+    "OP",  # Input/Output Channel Info
 }
 
 SUBSCRIBED_TELNET_EVENTS = {
@@ -117,6 +118,7 @@ SUBSCRIBED_TELNET_EVENTS = {
     "VS",  # Video Setting
     "SS",  # Used for video and audio settings
     "SY",  # Also audio settings
+    "OP",  # Input/Output Channel Info
 }
 
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
@@ -469,6 +471,21 @@ class DenonDevice:
         """Return the current audio sound status."""
         return self._receiver.audio_sound
 
+    @property
+    def input_channels(self) -> str | None:
+        """Return the current input channel information."""
+        return self._receiver.input_channels
+
+    @property
+    def output_channels(self) -> str | None:
+        """Return the current output channel information."""
+        return self._receiver.output_channels
+
+    @property
+    def max_resolution(self) -> str | None:
+        """Return the maximum supported resolution."""
+        return self._receiver.max_resolution
+
     async def connect(self):
         """
         Connect to AVR.
@@ -746,6 +763,19 @@ class DenonDevice:
                 )
             elif parameter.startswith("SMI"):
                 self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.AUDIO_SOUND: self._receiver.audio_sound})
+            elif parameter.startswith("HDMIDIAGMAXRES"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.MAX_RESOLUTION: self._receiver.max_resolution}
+                )
+        elif event == "OP":
+            if parameter.startswith("INFINS"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.INPUT_CHANNELS: self._receiver.input_channels}
+                )
+            elif parameter.startswith("INFASP"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.OUTPUT_CHANNELS: self._receiver.output_channels}
+                )
 
         self._notify_updated_data()
 

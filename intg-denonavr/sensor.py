@@ -160,6 +160,24 @@ class DenonSensor(Sensor, DenonEntity):
                     "name": f"{device.name} Video Out Format",
                     "device_class": DeviceClasses.CUSTOM,
                 }
+            case SensorType.INPUT_CHANNELS:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.INPUT_CHANNELS.value),
+                    "name": f"{device.name} Input Channels (Beta)",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.OUTPUT_CHANNELS:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.OUTPUT_CHANNELS.value),
+                    "name": f"{device.name} Output Channels (Beta)",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.MAX_RESOLUTION:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MAX_RESOLUTION.value),
+                    "name": f"{device.name} Resolution/Bandwidth",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
             case _:
                 raise ValueError(f"Unsupported sensor type: {sensor_type}")
         return sensor
@@ -259,6 +277,18 @@ class DenonSensor(Sensor, DenonEntity):
                 hdmi_out_signal = self._get_value_or_default(self._receiver._receiver.video_hdmi_signal_out, "--")
                 return self._update_state_and_create_return_value(hdmi_out_signal), None
 
+            if self._sensor_type == SensorType.INPUT_CHANNELS:
+                input_channels = self._get_value_or_default(self._receiver._receiver.input_channels, "--")
+                return self._update_state_and_create_return_value(input_channels), None
+
+            if self._sensor_type == SensorType.OUTPUT_CHANNELS:
+                output_channels = self._get_value_or_default(self._receiver._receiver.output_channels, "--")
+                return self._update_state_and_create_return_value(output_channels), None
+
+            if self._sensor_type == SensorType.MAX_RESOLUTION:
+                max_resolution = self._get_value_or_default(self._receiver._receiver.max_resolution, "--")
+                return self._update_state_and_create_return_value(max_resolution), None
+
         except Exception as ex:
             _LOG.warning("Error getting sensor value for %s: %s", self._sensor_type.value, ex)
             return None, None
@@ -309,5 +339,8 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         sensors.append(DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT))
         sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN))
         sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.INPUT_CHANNELS))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.OUTPUT_CHANNELS))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_RESOLUTION))
 
     return sensors

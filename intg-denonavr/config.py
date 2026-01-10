@@ -85,6 +85,9 @@ class SensorType(str, Enum):
     MONITOR_OUTPUT = "monitor_output"
     VIDEO_HDMI_SIGNAL_IN = "video_hdmi_signal_in"
     VIDEO_HDMI_SIGNAL_OUT = "video_hdmi_signal_out"
+    INPUT_CHANNELS = "input_channels"
+    OUTPUT_CHANNELS = "output_channels"
+    MAX_RESOLUTION = "max_resolution"
 
 
 class AdditionalEventType(str, Enum):
@@ -101,6 +104,9 @@ class AdditionalEventType(str, Enum):
     AUDIO_SAMPLING_RATE = "AUDIO_SAMPLING_RATE"
     AUDIO_SIGNAL = "AUDIO_SIGNAL"
     AUDIO_SOUND = "AUDIO_SOUND"
+    INPUT_CHANNELS = "INPUT_CHANNELS"
+    OUTPUT_CHANNELS = "OUTPUT_CHANNELS"
+    MAX_RESOLUTION = "MAX_RESOLUTION"
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):

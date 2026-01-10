@@ -244,6 +244,9 @@ def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             AdditionalEventType.AUDIO_SAMPLING_RATE: receiver.audio_sampling_rate,
             AdditionalEventType.AUDIO_SIGNAL: receiver.audio_signal,
             AdditionalEventType.AUDIO_SOUND: receiver.audio_sound,
+            AdditionalEventType.INPUT_CHANNELS: receiver.input_channels,
+            AdditionalEventType.OUTPUT_CHANNELS: receiver.output_channels,
+            AdditionalEventType.MAX_RESOLUTION: receiver.max_resolution,
         }
     else:
         _LOG.info("[%s] AVR update: %s", avr_id, update)
