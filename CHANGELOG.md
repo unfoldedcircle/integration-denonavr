@@ -11,6 +11,22 @@ _Changes in the next release_
 
 ---
 
+## v0.13.5 - 2026-01-11
+### Fixed
+- Max volume parameter parsing by @henrikwidlund ([#168](https://github.com/unfoldedcircle/integration-denonavr/pull/168)).
+- Improved sensor value handling by @henrikwidlund ([#169](https://github.com/unfoldedcircle/integration-denonavr/pull/169)):
+  - Use "--" when values are note available for sensors.
+  - Clear most sensors when powering off
+- SSDP discovery: Filter already configured AVRs by @henrikwidlund ([#170](https://github.com/unfoldedcircle/integration-denonavr/pull/170)).
+
+### Added
+- Discovering devices via mDNS by @henrikwidlund ([#51](https://github.com/unfoldedcircle/integration-denonavr/issues/51)).
+- New sensors when using Telnet by @henrikwidlund ([#169](https://github.com/unfoldedcircle/integration-denonavr/pull/169)):
+  - Audio Signal (Dolby Digital, DTS etc),
+  - Audio Sampling Rate (48 kHz etc),
+  - Video signal in and out (4K24 for example),
+  - Note that not all receivers support all values.
+
 ## v0.13.4 - 2025-12-24
 ### Fixed
 - Update volume logic to better handle limits ([#163](https://github.com/unfoldedcircle/integration-denonavr/pull/163)).
