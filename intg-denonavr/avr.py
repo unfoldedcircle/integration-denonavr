@@ -764,6 +764,14 @@ class DenonDevice:
                 )
             elif parameter.startswith("SMI"):
                 self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.AUDIO_SOUND: self._receiver.audio_sound})
+            elif parameter.startswith("SDVIN"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.VIDEO_SIGNAL_IN: self._receiver.video_hdmi_signal_in}
+                )
+            elif parameter.startswith("SDVOUT"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.VIDEO_SIGNAL_OUT: self._receiver.video_hdmi_signal_out}
+                )
             elif parameter.startswith("HDMIDIAGMAXRES"):
                 self.events.emit(
                     Events.UPDATE, self.id, {AdditionalEventType.MAX_RESOLUTION: self._receiver.max_resolution}
