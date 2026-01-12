@@ -515,6 +515,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         timeout=timeout,
         is_denon=__is_denon_device(receiver.manufacturer),
         support_2016_update=receiver._device.use_avr_2016_update,  # pylint: disable=protected-access
+        support_advanced_video_info=receiver._device.advanced_video_info_supported,  # pylint: disable=protected-access
     )
     config.devices.add_or_update(device)  # triggers DenonAVR instance creation
 
@@ -574,6 +575,7 @@ async def _handle_device_reconfigure(
     await connect_denonavr.async_init_receiver_class()
     # pylint: disable=protected-access
     _RECONFIGURED_DEVICE.support_2016_update = connect_denonavr.receiver._device.use_avr_2016_update
+    _RECONFIGURED_DEVICE.support_advanced_video_info = connect_denonavr.receiver._device.advanced_video_info_supported
 
     config.devices.update(_RECONFIGURED_DEVICE)  # triggers receiver instance update
     await asyncio.sleep(1)
