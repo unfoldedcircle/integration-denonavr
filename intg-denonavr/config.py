@@ -89,6 +89,12 @@ class SensorType(str, Enum):
     INPUT_CHANNELS = "input_channels"
     OUTPUT_CHANNELS = "output_channels"
     MAX_RESOLUTION = "max_resolution"
+    HDR_INPUT = "hdr_input"
+    HDR_OUTPUT = "hdr_output"
+    PIXEL_DEPTH_INPUT = "pixel_depth_input"
+    PIXEL_DEPTH_OUTPUT = "pixel_depth_output"
+    MAX_FRL_INPUT = "max_frl_input"
+    MAX_FRL_OUTPUT = "max_frl_output"
 
 
 class AdditionalEventType(str, Enum):
@@ -108,6 +114,12 @@ class AdditionalEventType(str, Enum):
     INPUT_CHANNELS = "INPUT_CHANNELS"
     OUTPUT_CHANNELS = "OUTPUT_CHANNELS"
     MAX_RESOLUTION = "MAX_RESOLUTION"
+    HDR_INPUT = "HDR_INPUT"
+    HDR_OUTPUT = "HDR_OUTPUT"
+    PIXEL_DEPTH_INPUT = "PIXEL_DEPTH_INPUT"
+    PIXEL_DEPTH_OUTPUT = "PIXEL_DEPTH_OUTPUT"
+    MAX_FRL_INPUT = "MAX_FRL_INPUT"
+    MAX_FRL_OUTPUT = "MAX_FRL_OUTPUT"
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):

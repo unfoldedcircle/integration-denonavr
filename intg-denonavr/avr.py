@@ -483,6 +483,36 @@ class DenonDevice:
         return self._receiver.output_channels
 
     @property
+    def hdr_input(self) -> str | None:
+        """Return the current HDR input status."""
+        return self._receiver.hdr_input
+
+    @property
+    def hdr_output(self) -> str | None:
+        """Return the current HDR output status."""
+        return self._receiver.hdr_output
+
+    @property
+    def pixel_depth_input(self) -> str | None:
+        """Return the current pixel depth input status."""
+        return self._receiver.pixel_depth_input
+
+    @property
+    def pixel_depth_output(self) -> str | None:
+        """Return the current pixel depth output status."""
+        return self._receiver.pixel_depth_output
+
+    @property
+    def max_frl_input(self) -> str | None:
+        """Return the current max FRL input status."""
+        return self._receiver.max_frl_input
+
+    @property
+    def max_frl_output(self) -> str | None:
+        """Return the current max FRL output status."""
+        return self._receiver.max_frl_output
+
+    @property
     def max_resolution(self) -> str | None:
         """Return the maximum supported resolution."""
         return self._receiver.max_resolution
@@ -756,6 +786,25 @@ class DenonDevice:
                     Events.UPDATE,
                     self.id,
                     {AdditionalEventType.AUDIO_SAMPLING_RATE: self._receiver.audio_sampling_rate},
+                )
+            elif parameter.startswith("INFSIGHDR I"):
+                self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.HDR_INPUT: self._receiver.hdr_input})
+            elif parameter.startswith("INFSIGHDR O"):
+                self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.HDR_OUTPUT: self._receiver.hdr_output})
+            elif parameter.startswith("INFSIGPIX"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.PIXEL_DEPTH_INPUT: self._receiver.pixel_depth_input}
+                )
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.PIXEL_DEPTH_OUTPUT: self._receiver.pixel_depth_output}
+                )
+            elif parameter.startswith("INFSIGFRL I"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.MAX_FRL_INPUT: self._receiver.max_frl_input}
+                )
+            elif parameter.startswith("INFSIGFRL O"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.MAX_FRL_OUTPUT: self._receiver.max_frl_output}
                 )
         elif event == "SY":
             if parameter.startswith("SDA"):

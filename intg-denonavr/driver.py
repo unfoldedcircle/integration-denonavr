@@ -248,6 +248,12 @@ def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             AdditionalEventType.INPUT_CHANNELS: receiver.input_channels,
             AdditionalEventType.OUTPUT_CHANNELS: receiver.output_channels,
             AdditionalEventType.MAX_RESOLUTION: receiver.max_resolution,
+            AdditionalEventType.HDR_INPUT: receiver.hdr_input,
+            AdditionalEventType.HDR_OUTPUT: receiver.hdr_output,
+            AdditionalEventType.PIXEL_DEPTH_INPUT: receiver.pixel_depth_input,
+            AdditionalEventType.PIXEL_DEPTH_OUTPUT: receiver.pixel_depth_output,
+            AdditionalEventType.MAX_FRL_INPUT: receiver.max_frl_input,
+            AdditionalEventType.MAX_FRL_OUTPUT: receiver.max_frl_output,
         }
     else:
         _LOG.info("[%s] AVR update: %s", avr_id, update)
