@@ -373,6 +373,25 @@ Note that the toggle commands only are available when using Telnet.
 Please see the [Home Assistant Denon AVR Network Receivers](https://www.home-assistant.io/integrations/denonavr/)
 integration, which uses the same [denonavr](https://github.com/ol-iver/denonavr) communication library.
 
+## Sensors
+
+> [!NOTE]
+> Sensor entities were introduced with version 0.13.0.
+
+Sensor entities provide an easy overview of the current volume, sound mode, the current input source and mute state.
+
+If you use Telnet you'll also have access to the following sensors:
+- Dimmer status (the dimmer mode of the unit's display)
+- ECO mode (Auto, On, Off, note that Auto will remain even if the volume is increased above -30db)
+- Sleep timer (how long it's left until the device will power down)
+- Audio Delay (shows the amount of ms audio is delayed to match the video)
+- Audio Signal (Dolby Digital, DTS etc)
+- Audio Sampling Rate (48 kHz etc)
+- Monitor output (the port currently used to output video)
+- Video signal in and out (4K24 for example)
+
+Note that not all receivers support all values.
+
 ## Usage
 
 ### Setup
