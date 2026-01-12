@@ -548,6 +548,7 @@ class DenonDevice:
                     request_start = time.time()
 
                     if self.device_config.support_advanced_video_info is not None:
+                        # pylint: disable=protected-access
                         self._receiver._device.set_advanced_video_info_supported(
                             self.device_config.support_advanced_video_info
                         )
