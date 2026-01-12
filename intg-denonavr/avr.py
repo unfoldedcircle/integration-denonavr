@@ -221,7 +221,7 @@ class DenonDevice:
         loop: AbstractEventLoop | None = None,
     ):
         """Create instance with given IP or hostname of AVR."""
-        self.device = device
+        self.device_config = device
         # identifier from configuration
         self.id: str = device.id
         # friendly name from configuration
