@@ -247,9 +247,10 @@ class DenonSensor(Sensor, DenonEntity):
     # pylint: disable=too-many-statements
     def _get_sensor_value(self, update: dict[str, Any]) -> tuple[Any, str | None]:
         """Get the current value and unit for this sensor type."""
-        # If receiver is turned off, clear stored sensor state
-        if update.get(MediaAttr.STATE, None) and self._receiver._receiver.state == "off":
-            self.SensorStates.pop(self._sensor_type, None)
+        if self._receiver._receiver.state == "off":
+            # If receiver is turned off, clear stored sensor state
+            if update.get(MediaAttr.STATE, None):
+                self.SensorStates.pop(self._sensor_type, None)
             if self._sensor_type not in (SensorType.MONITOR_OUTPUT, SensorType.INPUT_SOURCE):
                 return self._update_state_and_create_return_value("--"), None
 
