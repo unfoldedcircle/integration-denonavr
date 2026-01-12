@@ -378,9 +378,9 @@ integration, which uses the same [denonavr](https://github.com/ol-iver/denonavr)
 > [!NOTE]
 > Sensor entities were introduced with version 0.13.0.
 
-Sensor entities provide an easy overview of the current volume, sound mode, the current input source and mute state.
+Sensor entities provide an easy overview of the current volume, sound mode, the current input source, and mute state.
 
-If you use Telnet you'll also have access to the following sensors:
+If you use Telnet, you'll also have access to the following sensors:
 - Dimmer status (the dimmer mode of the unit's display)
 - ECO mode (Auto, On, Off, note that Auto will remain even if the volume is increased above -30db)
 - Sleep timer (how long it's left until the device will power down)
@@ -389,6 +389,11 @@ If you use Telnet you'll also have access to the following sensors:
 - Audio Sampling Rate (48 kHz etc)
 - Monitor output (the port currently used to output video)
 - Video signal in and out (4K24 for example)
+- Channel input/output info (5.1, 7.1.4 etc)
+- HDR format (HDR10, Dolby Vision)
+- Pixel depth (8-bit, 10-bit, 12-bit)
+- Max FRL
+- Max Resolution and Bandwidth (4K18Gbit)
 
 Note that not all receivers support all values.
 

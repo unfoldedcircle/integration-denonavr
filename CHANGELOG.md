@@ -11,6 +11,15 @@ _Changes in the next release_
 
 ---
 
+## v0.13.6 - 2026-01-12
+### Added
+- New sensors when using Telnet by @henrikwidlund ([#171](https://github.com/unfoldedcircle/integration-denonavr/pull/171)):
+  - Channel input/output info (5.1, 7.1.4 etc)
+  - HDR format (HDR10, Dolby Vision)
+  - Pixel depth (8-bit, 10-bit, 12-bit)
+  - Max FRL
+  - Max Resolution and Bandwidth (4K18Gbit)
+
 ## v0.13.5 - 2026-01-11
 ### Fixed
 - Max volume parameter parsing by @henrikwidlund ([#168](https://github.com/unfoldedcircle/integration-denonavr/pull/168)).
