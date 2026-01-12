@@ -547,6 +547,10 @@ class DenonDevice:
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
 
+                    if self.device_config.support_advanced_video_info is not None:
+                        self._receiver._device.set_advanced_video_info_supported(
+                            self.device_config.support_advanced_video_info
+                        )
                     if self._use_telnet:
                         await self._receiver.async_telnet_connect()
                         await self._receiver.async_update()

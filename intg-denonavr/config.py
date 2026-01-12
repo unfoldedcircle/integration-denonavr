@@ -68,7 +68,7 @@ class AvrDevice:
     """Connection and command timeout in milliseconds."""
     is_denon: bool
     support_2016_update: bool
-    support_advanced_video_info: bool
+    support_advanced_video_info: bool | None
 
 
 class SensorType(str, Enum):
@@ -281,7 +281,7 @@ class Devices:
                     item.get("timeout", 2000),
                     item.get("is_denon", True),
                     item.get("support_2016_update", True),
-                    item.get("support_advanced_video_info", False),
+                    item.get("support_advanced_video_info", None),
                 )
                 needs_migration |= item.get("use_telnet_for_events") is not None or item.get("is_denon") is None
                 self._config.append(avr)
