@@ -337,10 +337,12 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SAMPLING_RATE))
         sensors.append(DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT))
         sensors.append(DenonSensor(device, receiver, api, SensorType.INPUT_CHANNELS))
         sensors.append(DenonSensor(device, receiver, api, SensorType.OUTPUT_CHANNELS))
         sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_RESOLUTION))
+
+    if device.support_2016_update:
+        sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT))
 
     return sensors
