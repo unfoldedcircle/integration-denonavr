@@ -160,6 +160,60 @@ class DenonSensor(Sensor, DenonEntity):
                     "name": f"{device.name} Video Out Format",
                     "device_class": DeviceClasses.CUSTOM,
                 }
+            case SensorType.INPUT_CHANNELS:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.INPUT_CHANNELS.value),
+                    "name": f"{device.name} Input Channels (Beta)",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.OUTPUT_CHANNELS:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.OUTPUT_CHANNELS.value),
+                    "name": f"{device.name} Output Channels (Beta)",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.MAX_RESOLUTION:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MAX_RESOLUTION.value),
+                    "name": f"{device.name} Resolution/Bandwidth",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.HDR_INPUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.HDR_INPUT.value),
+                    "name": f"{device.name} HDR Input",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.HDR_OUTPUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.HDR_OUTPUT.value),
+                    "name": f"{device.name} HDR Output",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.PIXEL_DEPTH_INPUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.PIXEL_DEPTH_INPUT.value),
+                    "name": f"{device.name} Pixel Depth Input",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.PIXEL_DEPTH_OUTPUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.PIXEL_DEPTH_OUTPUT.value),
+                    "name": f"{device.name} Pixel Depth Output",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.MAX_FRL_INPUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MAX_FRL_INPUT.value),
+                    "name": f"{device.name} Max FRL Input",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.MAX_FRL_OUTPUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MAX_FRL_OUTPUT.value),
+                    "name": f"{device.name} Max FRL Output",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
             case _:
                 raise ValueError(f"Unsupported sensor type: {sensor_type}")
         return sensor
@@ -190,11 +244,13 @@ class DenonSensor(Sensor, DenonEntity):
     SensorStates: dict[SensorType, Any] = {}
 
     # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access, too-many-locals
+    # pylint: disable=too-many-statements
     def _get_sensor_value(self, update: dict[str, Any]) -> tuple[Any, str | None]:
         """Get the current value and unit for this sensor type."""
-        # If receiver is turned off, clear stored sensor state
-        if update.get(MediaAttr.STATE, None) and self._receiver._receiver.state == "off":
-            self.SensorStates.pop(self._sensor_type, None)
+        if self._receiver._receiver.state == "off":
+            # If receiver is turned off, clear stored sensor state
+            if update.get(MediaAttr.STATE, None):
+                self.SensorStates.pop(self._sensor_type, None)
             if self._sensor_type not in (SensorType.MONITOR_OUTPUT, SensorType.INPUT_SOURCE):
                 return self._update_state_and_create_return_value("--"), None
 
@@ -259,6 +315,42 @@ class DenonSensor(Sensor, DenonEntity):
                 hdmi_out_signal = self._get_value_or_default(self._receiver._receiver.video_hdmi_signal_out, "--")
                 return self._update_state_and_create_return_value(hdmi_out_signal), None
 
+            if self._sensor_type == SensorType.INPUT_CHANNELS:
+                input_channels = self._get_value_or_default(self._receiver._receiver.input_channels, "--")
+                return self._update_state_and_create_return_value(input_channels), None
+
+            if self._sensor_type == SensorType.OUTPUT_CHANNELS:
+                output_channels = self._get_value_or_default(self._receiver._receiver.output_channels, "--")
+                return self._update_state_and_create_return_value(output_channels), None
+
+            if self._sensor_type == SensorType.MAX_RESOLUTION:
+                max_resolution = self._get_value_or_default(self._receiver._receiver.max_resolution, "--")
+                return self._update_state_and_create_return_value(max_resolution), None
+
+            if self._sensor_type == SensorType.HDR_INPUT:
+                hdr_input = self._get_value_or_default(self._receiver._receiver.hdr_input, "--")
+                return self._update_state_and_create_return_value(hdr_input), None
+
+            if self._sensor_type == SensorType.HDR_OUTPUT:
+                hdr_output = self._get_value_or_default(self._receiver._receiver.hdr_output, "--")
+                return self._update_state_and_create_return_value(hdr_output), None
+
+            if self._sensor_type == SensorType.PIXEL_DEPTH_INPUT:
+                pixel_depth_input = self._get_value_or_default(self._receiver._receiver.pixel_depth_input, "--")
+                return self._update_state_and_create_return_value(pixel_depth_input), None
+
+            if self._sensor_type == SensorType.PIXEL_DEPTH_OUTPUT:
+                pixel_depth_output = self._get_value_or_default(self._receiver._receiver.pixel_depth_output, "--")
+                return self._update_state_and_create_return_value(pixel_depth_output), None
+
+            if self._sensor_type == SensorType.MAX_FRL_INPUT:
+                max_frl_input = self._get_value_or_default(self._receiver._receiver.max_frl_input, "--")
+                return self._update_state_and_create_return_value(max_frl_input), None
+
+            if self._sensor_type == SensorType.MAX_FRL_OUTPUT:
+                max_frl_output = self._get_value_or_default(self._receiver._receiver.max_frl_output, "--")
+                return self._update_state_and_create_return_value(max_frl_output), None
+
         except Exception as ex:
             _LOG.warning("Error getting sensor value for %s: %s", self._sensor_type.value, ex)
             return None, None
@@ -307,7 +399,19 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL))
         sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SAMPLING_RATE))
         sensors.append(DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.INPUT_CHANNELS))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.OUTPUT_CHANNELS))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_RESOLUTION))
+
+    if device.support_2016_update:
         sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN))
         sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT))
+        if device.support_advanced_video_info:
+            sensors.append(DenonSensor(device, receiver, api, SensorType.HDR_INPUT))
+            sensors.append(DenonSensor(device, receiver, api, SensorType.HDR_OUTPUT))
+            sensors.append(DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_INPUT))
+            sensors.append(DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_OUTPUT))
+            sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_FRL_INPUT))
+            sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_FRL_OUTPUT))
 
     return sensors

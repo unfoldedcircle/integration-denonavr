@@ -42,10 +42,11 @@ async def receiver_status_poller(interval: float = 10.0) -> None:
         if not _REMOTE_IN_STANDBY:
             try:
                 tasks = [
-                    receiver.async_update_receiver_data()
+                    # force True to get updates from http API even when using Telnet
+                    receiver.async_update_receiver_data(force=True)
                     for receiver in _configured_avrs.values()
                     # pylint: disable=W0212
-                    if receiver.active and not (receiver._telnet_healthy)
+                    if receiver.active and (not receiver._telnet_healthy or receiver.device_config.support_2016_update)
                 ]
                 await asyncio.gather(*tasks)
             except (KeyError, ValueError):  # TODO check parallel access / modification while iterating a dict
@@ -244,6 +245,15 @@ def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             AdditionalEventType.AUDIO_SAMPLING_RATE: receiver.audio_sampling_rate,
             AdditionalEventType.AUDIO_SIGNAL: receiver.audio_signal,
             AdditionalEventType.AUDIO_SOUND: receiver.audio_sound,
+            AdditionalEventType.INPUT_CHANNELS: receiver.input_channels,
+            AdditionalEventType.OUTPUT_CHANNELS: receiver.output_channels,
+            AdditionalEventType.MAX_RESOLUTION: receiver.max_resolution,
+            AdditionalEventType.HDR_INPUT: receiver.hdr_input,
+            AdditionalEventType.HDR_OUTPUT: receiver.hdr_output,
+            AdditionalEventType.PIXEL_DEPTH_INPUT: receiver.pixel_depth_input,
+            AdditionalEventType.PIXEL_DEPTH_OUTPUT: receiver.pixel_depth_output,
+            AdditionalEventType.MAX_FRL_INPUT: receiver.max_frl_input,
+            AdditionalEventType.MAX_FRL_OUTPUT: receiver.max_frl_output,
         }
     else:
         _LOG.info("[%s] AVR update: %s", avr_id, update)

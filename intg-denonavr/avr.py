@@ -102,6 +102,7 @@ TELNET_EVENTS = {
     "SLP",  # Sleep Timer
     "VS",  # Video Setting
     "SY",  # Also audio settings
+    "OP",  # Input/Output Channel Info
 }
 
 SUBSCRIBED_TELNET_EVENTS = {
@@ -117,6 +118,7 @@ SUBSCRIBED_TELNET_EVENTS = {
     "VS",  # Video Setting
     "SS",  # Used for video and audio settings
     "SY",  # Also audio settings
+    "OP",  # Input/Output Channel Info
 }
 
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
@@ -219,6 +221,7 @@ class DenonDevice:
         loop: AbstractEventLoop | None = None,
     ):
         """Create instance with given IP or hostname of AVR."""
+        self.device_config = device
         # identifier from configuration
         self.id: str = device.id
         # friendly name from configuration
@@ -469,6 +472,51 @@ class DenonDevice:
         """Return the current audio sound status."""
         return self._receiver.audio_sound
 
+    @property
+    def input_channels(self) -> str | None:
+        """Return the current input channel information."""
+        return self._receiver.input_channels
+
+    @property
+    def output_channels(self) -> str | None:
+        """Return the current output channel information."""
+        return self._receiver.output_channels
+
+    @property
+    def hdr_input(self) -> str | None:
+        """Return the current HDR input status."""
+        return self._receiver.hdr_input
+
+    @property
+    def hdr_output(self) -> str | None:
+        """Return the current HDR output status."""
+        return self._receiver.hdr_output
+
+    @property
+    def pixel_depth_input(self) -> str | None:
+        """Return the current pixel depth input status."""
+        return self._receiver.pixel_depth_input
+
+    @property
+    def pixel_depth_output(self) -> str | None:
+        """Return the current pixel depth output status."""
+        return self._receiver.pixel_depth_output
+
+    @property
+    def max_frl_input(self) -> str | None:
+        """Return the current max FRL input status."""
+        return self._receiver.max_frl_input
+
+    @property
+    def max_frl_output(self) -> str | None:
+        """Return the current max FRL output status."""
+        return self._receiver.max_frl_output
+
+    @property
+    def max_resolution(self) -> str | None:
+        """Return the maximum supported resolution."""
+        return self._receiver.max_resolution
+
     async def connect(self):
         """
         Connect to AVR.
@@ -499,6 +547,11 @@ class DenonDevice:
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
 
+                    if self.device_config.support_advanced_video_info is not None:
+                        # pylint: disable=protected-access
+                        self._receiver._device.set_advanced_video_info_supported(
+                            self.device_config.support_advanced_video_info
+                        )
                     if self._use_telnet:
                         await self._receiver.async_telnet_connect()
                         await self._receiver.async_update()
@@ -739,6 +792,25 @@ class DenonDevice:
                     self.id,
                     {AdditionalEventType.AUDIO_SAMPLING_RATE: self._receiver.audio_sampling_rate},
                 )
+            elif parameter.startswith("INFSIGHDR I"):
+                self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.HDR_INPUT: self._receiver.hdr_input})
+            elif parameter.startswith("INFSIGHDR O"):
+                self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.HDR_OUTPUT: self._receiver.hdr_output})
+            elif parameter.startswith("INFSIGPIX"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.PIXEL_DEPTH_INPUT: self._receiver.pixel_depth_input}
+                )
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.PIXEL_DEPTH_OUTPUT: self._receiver.pixel_depth_output}
+                )
+            elif parameter.startswith("INFSIGFRL I"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.MAX_FRL_INPUT: self._receiver.max_frl_input}
+                )
+            elif parameter.startswith("INFSIGFRL O"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.MAX_FRL_OUTPUT: self._receiver.max_frl_output}
+                )
         elif event == "SY":
             if parameter.startswith("SDA"):
                 self.events.emit(
@@ -746,6 +818,27 @@ class DenonDevice:
                 )
             elif parameter.startswith("SMI"):
                 self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.AUDIO_SOUND: self._receiver.audio_sound})
+            elif parameter.startswith("SDVIN"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.VIDEO_SIGNAL_IN: self._receiver.video_hdmi_signal_in}
+                )
+            elif parameter.startswith("SDVOUT"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.VIDEO_SIGNAL_OUT: self._receiver.video_hdmi_signal_out}
+                )
+            elif parameter.startswith("HDMIDIAGMAXRES"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.MAX_RESOLUTION: self._receiver.max_resolution}
+                )
+        elif event == "OP":
+            if parameter.startswith("INFINS"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.INPUT_CHANNELS: self._receiver.input_channels}
+                )
+            elif parameter.startswith("INFASP"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.OUTPUT_CHANNELS: self._receiver.output_channels}
+                )
 
         self._notify_updated_data()
 

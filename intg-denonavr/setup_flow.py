@@ -514,6 +514,8 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         volume_step=volume_step,
         timeout=timeout,
         is_denon=__is_denon_device(receiver.manufacturer),
+        support_2016_update=receiver._device.use_avr_2016_update,  # pylint: disable=protected-access
+        support_advanced_video_info=receiver._device.advanced_video_info_supported,  # pylint: disable=protected-access
     )
     config.devices.add_or_update(device)  # triggers DenonAVR instance creation
 
@@ -558,6 +560,22 @@ async def _handle_device_reconfigure(
     _RECONFIGURED_DEVICE.use_telnet = connection_mode == "use_telnet"
     _RECONFIGURED_DEVICE.volume_step = volume_step
     _RECONFIGURED_DEVICE.timeout = int(msg.input_values.get("timeout", 2000))
+
+    # Update use_avr_2016_update so that we know which sensors are supported
+    # Telnet connection isn't required for this
+    connect_denonavr = ConnectDenonAVR(
+        _RECONFIGURED_DEVICE.address,
+        avr.SETUP_TIMEOUT,
+        _RECONFIGURED_DEVICE.show_all_inputs,
+        _RECONFIGURED_DEVICE.zone2,
+        _RECONFIGURED_DEVICE.zone3,
+        use_telnet=False,  # always False, connection only used to retrieve model information
+        update_audyssey=False,  # always False, connection only used to retrieve model information
+    )
+    await connect_denonavr.async_init_receiver_class()
+    # pylint: disable=protected-access
+    _RECONFIGURED_DEVICE.support_2016_update = connect_denonavr.receiver._device.use_avr_2016_update
+    _RECONFIGURED_DEVICE.support_advanced_video_info = connect_denonavr.receiver._device.advanced_video_info_supported
 
     config.devices.update(_RECONFIGURED_DEVICE)  # triggers receiver instance update
     await asyncio.sleep(1)

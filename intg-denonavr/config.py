@@ -67,6 +67,8 @@ class AvrDevice:
     timeout: int
     """Connection and command timeout in milliseconds."""
     is_denon: bool
+    support_2016_update: bool
+    support_advanced_video_info: bool | None
 
 
 class SensorType(str, Enum):
@@ -85,6 +87,15 @@ class SensorType(str, Enum):
     MONITOR_OUTPUT = "monitor_output"
     VIDEO_HDMI_SIGNAL_IN = "video_hdmi_signal_in"
     VIDEO_HDMI_SIGNAL_OUT = "video_hdmi_signal_out"
+    INPUT_CHANNELS = "input_channels"
+    OUTPUT_CHANNELS = "output_channels"
+    MAX_RESOLUTION = "max_resolution"
+    HDR_INPUT = "hdr_input"
+    HDR_OUTPUT = "hdr_output"
+    PIXEL_DEPTH_INPUT = "pixel_depth_input"
+    PIXEL_DEPTH_OUTPUT = "pixel_depth_output"
+    MAX_FRL_INPUT = "max_frl_input"
+    MAX_FRL_OUTPUT = "max_frl_output"
 
 
 class AdditionalEventType(str, Enum):
@@ -101,6 +112,15 @@ class AdditionalEventType(str, Enum):
     AUDIO_SAMPLING_RATE = "AUDIO_SAMPLING_RATE"
     AUDIO_SIGNAL = "AUDIO_SIGNAL"
     AUDIO_SOUND = "AUDIO_SOUND"
+    INPUT_CHANNELS = "INPUT_CHANNELS"
+    OUTPUT_CHANNELS = "OUTPUT_CHANNELS"
+    MAX_RESOLUTION = "MAX_RESOLUTION"
+    HDR_INPUT = "HDR_INPUT"
+    HDR_OUTPUT = "HDR_OUTPUT"
+    PIXEL_DEPTH_INPUT = "PIXEL_DEPTH_INPUT"
+    PIXEL_DEPTH_OUTPUT = "PIXEL_DEPTH_OUTPUT"
+    MAX_FRL_INPUT = "MAX_FRL_INPUT"
+    MAX_FRL_OUTPUT = "MAX_FRL_OUTPUT"
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
@@ -189,6 +209,8 @@ class Devices:
                 item.volume_step = avr.volume_step
                 item.timeout = avr.timeout
                 item.is_denon = avr.is_denon
+                item.support_2016_update = avr.support_2016_update
+                item.support_advanced_video_info = avr.support_advanced_video_info
                 return self.store()
         return False
 
@@ -258,6 +280,8 @@ class Devices:
                     item.get("volume_step", 0.5),
                     item.get("timeout", 2000),
                     item.get("is_denon", True),
+                    item.get("support_2016_update", True),
+                    item.get("support_advanced_video_info", None),
                 )
                 needs_migration |= item.get("use_telnet_for_events") is not None or item.get("is_denon") is None
                 self._config.append(avr)
