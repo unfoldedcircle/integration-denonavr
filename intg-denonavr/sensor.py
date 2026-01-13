@@ -402,16 +402,13 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         sensors.append(DenonSensor(device, receiver, api, SensorType.INPUT_CHANNELS))
         sensors.append(DenonSensor(device, receiver, api, SensorType.OUTPUT_CHANNELS))
         sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_RESOLUTION))
-
-    if device.support_2016_update:
         sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN))
         sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT))
-        if device.support_advanced_video_info:
-            sensors.append(DenonSensor(device, receiver, api, SensorType.HDR_INPUT))
-            sensors.append(DenonSensor(device, receiver, api, SensorType.HDR_OUTPUT))
-            sensors.append(DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_INPUT))
-            sensors.append(DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_OUTPUT))
-            sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_FRL_INPUT))
-            sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_FRL_OUTPUT))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.HDR_INPUT))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.HDR_OUTPUT))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_INPUT))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_OUTPUT))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_FRL_INPUT))
+        sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_FRL_OUTPUT))
 
     return sensors

@@ -221,7 +221,6 @@ class DenonDevice:
         loop: AbstractEventLoop | None = None,
     ):
         """Create instance with given IP or hostname of AVR."""
-        self.device_config = device
         # identifier from configuration
         self.id: str = device.id
         # friendly name from configuration
@@ -547,11 +546,6 @@ class DenonDevice:
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
 
-                    if self.device_config.support_advanced_video_info is not None:
-                        # pylint: disable=protected-access
-                        self._receiver._device.set_advanced_video_info_supported(
-                            self.device_config.support_advanced_video_info
-                        )
                     if self._use_telnet:
                         await self._receiver.async_telnet_connect()
                         await self._receiver.async_update()
@@ -686,6 +680,7 @@ class DenonDevice:
             if (telnet_is_healthy := self._telnet_healthy) and self._telnet_was_healthy:
                 if force:
                     await receiver.async_update()
+                await receiver.async_trigger_advanced_video_info_update()
                 self._notify_updated_data()
                 return
 
