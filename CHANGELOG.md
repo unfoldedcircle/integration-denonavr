@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## v0.13.7 - 2026-01-14
+### Changed
+- Use Telnet for advanced video info updates by @henrikwidlund ([#172](https://github.com/unfoldedcircle/integration-denonavr/pull/172)).
+
 ## v0.13.6 - 2026-01-12
 ### Added
 - New sensors when using Telnet by @henrikwidlund ([#171](https://github.com/unfoldedcircle/integration-denonavr/pull/171)):
