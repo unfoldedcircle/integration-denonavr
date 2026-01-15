@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
-### Changed
-- Adapt journald log levels until the Remote supports native debug levels.
-
 ---
+
+## v0.13.8 - 2026-01-15
+### Changed
+- Adapt journald log levels until the Remote supports native debug levels ([#173](https://github.com/unfoldedcircle/integration-denonavr/pull/173)).
 
 ## v0.13.7 - 2026-01-14
 ### Changed
