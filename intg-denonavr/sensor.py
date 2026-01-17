@@ -135,6 +135,9 @@ class DenonSensor(Sensor, DenonEntity):
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.AUDIO_SAMPLING_RATE.value),
                     "name": f"{device.name} Audio Sampling Rate",
                     "device_class": DeviceClasses.CUSTOM,
+                    "options": {
+                        Options.CUSTOM_UNIT: "kHz",
+                    },
                 }
             case SensorType.MUTE:
                 sensor = {
