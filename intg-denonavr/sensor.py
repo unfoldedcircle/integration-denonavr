@@ -265,10 +265,8 @@ class DenonSensor(Sensor, DenonEntity):
             if self._sensor_type == SensorType.SOUND_MODE:
                 # Prefer audio_sound as it works better with online music sources
                 sound_mode = self._get_value_or_default(
-                    self._receiver._receiver.audio_sound, update.get(AdditionalEventType.RAW_SOUND_MODE, None)
+                    self._receiver._receiver.audio_sound, update.get(AdditionalEventType.RAW_SOUND_MODE, "--")
                 )
-                if sound_mode is None:
-                    return None, None
                 return self._update_state_and_create_return_value(sound_mode), None
 
             if self._sensor_type == SensorType.INPUT_SOURCE:
@@ -362,8 +360,9 @@ class DenonSensor(Sensor, DenonEntity):
 
     def _update_state_and_create_return_value(self, value: Any) -> Any:
         """Update sensor state and create return value."""
-        if sensor_value := self.SensorStates.get(self._sensor_type, None):
-            if sensor_value != value:
+        if self._sensor_type in self.SensorStates:
+            current_value = self.SensorStates[self._sensor_type]
+            if current_value != value:
                 self.SensorStates[self._sensor_type] = value
                 return value
         else:
