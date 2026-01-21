@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Fixed
+- Inconsistent sample rate values ([#174](https://github.com/unfoldedcircle/integration-denonavr/issues/174)).
+
+### Changed
+- Avoid waiting for confirmation on advanced video queries ([#175](https://github.com/unfoldedcircle/integration-denonavr/pull/175)).
+
 ---
 
 ## v0.13.8 - 2026-01-15
