@@ -9,13 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## v0.13.9 - 2026-01-23
 ### Fixed
-- Inconsistent sample rate values ([#174](https://github.com/unfoldedcircle/integration-denonavr/issues/174)).
+- Inconsistent sample rate values by @henrikwidlund ([#174](https://github.com/unfoldedcircle/integration-denonavr/issues/174)).
+- Invalid mute sensor value by @henrikwidlund ([#176](https://github.com/unfoldedcircle/integration-denonavr/pull/176)).
 
 ### Changed
-- Avoid waiting for confirmation on advanced video queries ([#175](https://github.com/unfoldedcircle/integration-denonavr/pull/175)).
-
----
+- Avoid waiting for confirmation on advanced video queries by @henrikwidlund ([#175](https://github.com/unfoldedcircle/integration-denonavr/pull/175)).
 
 ## v0.13.8 - 2026-01-15
 ### Changed
