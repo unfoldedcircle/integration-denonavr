@@ -759,13 +759,14 @@ class DenonDevice:
                 Events.UPDATE, self.id, {AdditionalEventType.RAW_SOUND_MODE: self._receiver.sound_mode_raw}
             )
         elif event == "PS":  # Parameter Setting
-            if parameter:
-                if parameter.startswith("DELAY"):
-                    self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.AUDIO_DELAY: self._receiver.delay})
-                elif parameter.startswith("DIRAC"):
-                    self.events.emit(
-                        Events.UPDATE, self.id, {AdditionalEventType.DIRAC_FILTER: self._receiver.dirac.dirac_filter}
-                    )
+            if parameter is None:
+                return
+            if parameter.startswith("DELAY"):
+                self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.AUDIO_DELAY: self._receiver.delay})
+            elif parameter.startswith("DIRAC"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.DIRAC_FILTER: self._receiver.dirac.dirac_filter}
+                )
             else:
                 return  # TODO check if we need to handle certain parameters, likely Audyssey
         elif event == "VS":

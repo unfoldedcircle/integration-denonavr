@@ -35,7 +35,8 @@ def avr_from_entity_id(entity_id: str) -> str | None:
 
     The prefix is the part before the first dot in the name and refers to the entity type (media-player or remote),
     the suffix is the AVR device identifier.
-    Sensor and Select entity identifiers should be in the format ``sensor/select.<sensor_type/select_type>.<avr_id>``.
+    Sensor entity identifiers should be in the format ``sensor.<sensor_type>.<avr_id>`` and Select entity identifiers
+    in the format ``select.<select_type>.<avr_id>``.
 
     :param entity_id: the entity identifier
     :return: the device suffix, or None if entity_id doesn't contain a dot

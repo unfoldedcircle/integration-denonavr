@@ -279,8 +279,8 @@ def _entities_from_avr(avr_id: str) -> list[str]:
             create_entity_id(avr_id, ucapi.EntityTypes.REMOTE),
             *(create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, sensor_type.value) for sensor_type in SensorType),
             *(
-                create_entity_id(avr_id, ucapi.EntityTypes.SELECT, sensor_type.value)
-                for sensor_type in config.SelectType
+                create_entity_id(avr_id, ucapi.EntityTypes.SELECT, select_type.value)
+                for select_type in config.SelectType
             ),
         ]
         MAPPED_AVR_ENTITIES[avr_id] = avr_entities
