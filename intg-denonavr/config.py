@@ -35,7 +35,7 @@ def avr_from_entity_id(entity_id: str) -> str | None:
 
     The prefix is the part before the first dot in the name and refers to the entity type (media-player or remote),
     the suffix is the AVR device identifier.
-    Sensor entity identifiers should be in the format ``sensor.<sensor_type>.<avr_id>``.
+    Sensor and Select entity identifiers should be in the format ``sensor/select.<sensor_type/select_type>.<avr_id>``.
 
     :param entity_id: the entity identifier
     :return: the device suffix, or None if entity_id doesn't contain a dot
@@ -44,7 +44,7 @@ def avr_from_entity_id(entity_id: str) -> str | None:
     avr_id = parts[1] if len(parts) == 2 else None
     if avr_id is None:
         return None
-    if parts[0] == "sensor":
+    if parts[0] in ("sensor", "select"):
         parts = parts[1].split(".")
         avr_id = parts[1] if len(parts) == 2 else parts[0]
     return avr_id
@@ -96,6 +96,18 @@ class SensorType(str, Enum):
     MAX_FRL_OUTPUT = "max_frl_output"
 
 
+class SelectType(str, Enum):
+    """Select types for Denon AVR."""
+
+    SOUND_MODE = "sound_mode"
+    INPUT_SOURCE = "input_source"
+    DIMMER = "dimmer"
+    ECO_MODE = "eco_mode"
+    MONITOR_OUTPUT = "monitor_output"
+    DIRAC_FILTER = "dirac_filter"
+    SPEAKER_PRESET = "speaker_preset"
+
+
 class AdditionalEventType(str, Enum):
     """Additional event types for the integration."""
 
@@ -119,6 +131,8 @@ class AdditionalEventType(str, Enum):
     PIXEL_DEPTH_OUTPUT = "PIXEL_DEPTH_OUTPUT"
     MAX_FRL_INPUT = "MAX_FRL_INPUT"
     MAX_FRL_OUTPUT = "MAX_FRL_OUTPUT"
+    DIRAC_FILTER = "DIRAC_FILTER"
+    SPEAKER_PRESET = "SPEAKER_PRESET"
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
