@@ -76,11 +76,17 @@ class DenonSelect(Select, DenonEntity):
 
         Called by the integration-API if a command is sent to a configured select entity.
 
+        Note: If the receiver is powered off, only input source select commands are processed.
         :param cmd_id: command
         :param params: optional command parameters
         :param websocket: websocket connection (not used)
         :return: status code of the command request
         """
+        # Skip commands that can't be processed when receiver is off
+        if self._receiver._receiver.state == "off" and self._select_type != SelectType.INPUT_SOURCE:
+            _LOG.info("Skipping command for select %s because receiver is off", self._select_type)
+            return StatusCodes.OK
+
         if cmd_id == "select_option":
             option = params.get("option", None) if params else None
             if option is None:
