@@ -46,7 +46,7 @@ SELECT_STATE_MAPPING = {
 }
 
 
-# pylint: disable=protected-access)
+# pylint: disable=protected-access
 class DenonSelect(Select, DenonEntity):
     """Select entity for Denon AVR receivers."""
 
@@ -227,8 +227,9 @@ class DenonSelect(Select, DenonEntity):
                 current_value = self._receiver._receiver.speaker_preset
                 target_list = _speaker_presets
             case SelectType.SLEEP_TIMER:
-                current_value = self._receiver._receiver.sleep
-                target_list = _sleep_timers_reverse_map
+                # Assume off if we can't map the value
+                current_value = _sleep_timers_reverse_map.get(self._receiver.sleep, "Off")
+                target_list = _sleep_timers
 
         new_value = get_new_value(current_value, target_list)
         if new_value is None:
