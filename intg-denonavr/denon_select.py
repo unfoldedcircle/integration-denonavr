@@ -318,7 +318,6 @@ class DenonSelect(Select, DenonEntity):
 
         try:
             if self._select_type == SelectType.SOUND_MODE:
-                # Prefer audio_sound as it works better with online music sources
                 sound_mode = self._get_value_or_default(self._receiver.sound_mode, "--")
                 return self._update_state_and_create_return_value(sound_mode), self._receiver.sound_mode_list
 
