@@ -52,7 +52,7 @@ class DenonSelect(Select, DenonEntity):
         self._receiver = receiver
         self._device = device
         self._select_type = select_type
-        self._select_state: dict[SelectType, Any] = {}
+        self._select_state_key = select_type + receiver.id
 
         # Configure select based on type
         select_config = self._get_select_config(select_type, device, receiver)
@@ -66,6 +66,8 @@ class DenonSelect(Select, DenonEntity):
             },
         )
         DenonEntity.__init__(self, api)
+
+    SelectStates: dict[str, Any] = {}
 
     # pylint: disable=too-many-return-statements, too-many-branches
     async def command(self, cmd_id: str, params: dict[str, Any] | None = None, *, websocket: Any) -> StatusCodes:
@@ -313,7 +315,7 @@ class DenonSelect(Select, DenonEntity):
         if self._receiver._receiver.state == "off":
             # If receiver is turned off, clear stored select state
             if update.get(MediaAttr.STATE, None):
-                self._select_state.pop(self._select_type, None)
+                self.SelectStates.pop(self._select_state_key, None)
             return self._update_state_and_create_return_value("--"), None
 
         try:
@@ -353,13 +355,13 @@ class DenonSelect(Select, DenonEntity):
 
     def _update_state_and_create_return_value(self, value: Any) -> Any:
         """Update select state and create return value."""
-        if self._select_type in self._select_state:
-            current_value = self._select_state[self._select_type]
+        if self._select_state_key in self.SelectStates:
+            current_value = self.SelectStates[self._select_state_key]
             if current_value != value:
-                self._select_state[self._select_type] = value
+                self.SelectStates[self._select_state_key] = value
                 return value
         else:
-            self._select_state[self._select_type] = value
+            self.SelectStates[self._select_state_key] = value
             return value
 
         return None

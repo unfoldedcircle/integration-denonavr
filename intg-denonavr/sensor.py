@@ -39,7 +39,7 @@ class DenonSensor(Sensor, DenonEntity):
         self._receiver = receiver
         self._device = device
         self._sensor_type = sensor_type
-        self._sensor_state: dict[SensorType, Any] = {}
+        self._sensor_state_key = sensor_type + receiver.id
 
         # Configure sensor based on type
         sensor_config = self._get_sensor_config(sensor_type, device, receiver)
@@ -245,6 +245,8 @@ class DenonSensor(Sensor, DenonEntity):
 
         return attributes
 
+    SensorStates: dict[str, Any] = {}
+
     # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access, too-many-locals
     # pylint: disable=too-many-statements
     def _get_sensor_value(self, update: dict[str, Any]) -> tuple[Any, str | None]:
@@ -252,7 +254,7 @@ class DenonSensor(Sensor, DenonEntity):
         if self._receiver._receiver.state == "off":
             # If receiver is turned off, clear stored sensor state
             if update.get(MediaAttr.STATE, None):
-                self._sensor_state.pop(self._sensor_type, None)
+                self.SensorStates.pop(self._sensor_state_key, None)
             if self._sensor_type == SensorType.MUTE:
                 # mute sensor is binary and doesn't support "--"
                 return self._update_state_and_create_return_value("off"), None
@@ -362,13 +364,13 @@ class DenonSensor(Sensor, DenonEntity):
 
     def _update_state_and_create_return_value(self, value: Any) -> Any:
         """Update sensor state and create return value."""
-        if self._sensor_type in self._sensor_state:
-            current_value = self._sensor_state[self._sensor_type]
+        if self._sensor_state_key in self.SensorStates:
+            current_value = self.SensorStates[self._sensor_state_key]
             if current_value != value:
-                self._sensor_state[self._sensor_type] = value
+                self.SensorStates[self._sensor_state_key] = value
                 return value
         else:
-            self._sensor_state[self._sensor_type] = value
+            self.SensorStates[self._sensor_state_key] = value
             return value
 
         return None
