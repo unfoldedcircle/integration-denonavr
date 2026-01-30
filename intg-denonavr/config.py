@@ -107,6 +107,7 @@ class SelectType(str, Enum):
     MONITOR_OUTPUT = "monitor_output"
     DIRAC_FILTER = "dirac_filter"
     SPEAKER_PRESET = "speaker_preset"
+    SLEEP_TIMER = "sleep_timer"
 
 
 class AdditionalEventType(str, Enum):

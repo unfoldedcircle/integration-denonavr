@@ -14,7 +14,6 @@ from config import AvrDevice, SelectType, create_entity_id
 from denonavr.const import DimmerModes, DiracFilters, EcoModes, HDMIOutputs
 from entities import DenonEntity
 from ucapi import EntityTypes, IntegrationAPI, Select, StatusCodes
-from ucapi.media_player import Attributes as MediaAttr
 from ucapi.select import Attributes, States
 
 _LOG = logging.getLogger(__name__)
@@ -24,6 +23,16 @@ _eco_modes = list(get_args(EcoModes))
 _hdmi_outputs = list(get_args(HDMIOutputs))
 _dirac_filters = list(get_args(DiracFilters))
 _speaker_presets = [1, 2]
+_sleep_timers = ["Off", "15min", "30min", "60min", "90min", "120min"]
+_sleep_timers_map = {
+    "Off": "OFF",
+    "15min": 15,
+    "30min": 30,
+    "60min": 60,
+    "90min": 90,
+    "120min": 120,
+}
+_sleep_timers_reverse_map = {v: k for k, v in _sleep_timers_map.items()}
 
 # Mapping of an AVR state to a select entity state
 # pylint: disable=R0801
@@ -52,6 +61,7 @@ class DenonSelect(Select, DenonEntity):
         self._receiver = receiver
         self._device = device
         self._select_type = select_type
+        self._select_state = None
 
         # Configure select based on type
         select_config = self._get_select_config(select_type, device, receiver)
@@ -98,6 +108,38 @@ class DenonSelect(Select, DenonEntity):
         _LOG.warning("Unknown command %s", cmd_id)
         return StatusCodes.BAD_REQUEST
 
+    def state_from_avr(self, avr_state: avr.States) -> States:
+        """
+        Convert AVR state to UC API select state.
+
+        :param avr_state: Denon/Marantz AVR state
+        :return: UC API select state
+        """
+        return SELECT_STATE_MAPPING.get(avr_state, States.UNKNOWN)
+
+    def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
+        """
+        Filter the given attributes from an AVR update and return only the changed values.
+
+        For each update, the current select value is retrieved from the receiver and included in the returned
+        dictionary if changed.
+
+        :param update: dictionary containing the updated properties.
+        :return: dictionary containing only the changed attributes.
+        """
+        attributes = {}
+
+        if Attributes.STATE in update:
+            state = self.state_from_avr(update[Attributes.STATE])
+            attributes = helpers.key_update_helper(Attributes.STATE, state, attributes, self.attributes)
+
+        current_option, options = self._get_select_value()
+
+        attributes = helpers.key_update_helper(Attributes.CURRENT_OPTION, current_option, attributes, self.attributes)
+        attributes = helpers.key_update_helper(Attributes.OPTIONS, options, attributes, self.attributes)
+
+        return attributes
+
     async def _handle_option_command(self, option: Any) -> StatusCodes:
         try:
             match self._select_type:
@@ -114,7 +156,9 @@ class DenonSelect(Select, DenonEntity):
                 case SelectType.DIRAC_FILTER:
                     await self._receiver._receiver.dirac.async_dirac_filter(option)
                 case SelectType.SPEAKER_PRESET:
-                    await self._receiver._receiver.async_speaker_preset(option)
+                    await self._receiver._receiver.async_speaker_preset(int(option))
+                case SelectType.SLEEP_TIMER:
+                    await self._receiver._receiver.async_sleep(_sleep_timers_map[option])
 
             return StatusCodes.OK
 
@@ -140,6 +184,8 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(_dirac_filters[index])
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(1 if use_first else 2)
+                case SelectType.SLEEP_TIMER:
+                    await self._receiver._receiver.async_sleep(_sleep_timers_map[_sleep_timers[index]])
 
             return StatusCodes.OK
 
@@ -180,6 +226,9 @@ class DenonSelect(Select, DenonEntity):
             case SelectType.SPEAKER_PRESET:
                 current_value = self._receiver._receiver.speaker_preset
                 target_list = _speaker_presets
+            case SelectType.SLEEP_TIMER:
+                current_value = self._receiver._receiver.sleep
+                target_list = _sleep_timers_reverse_map
 
         new_value = get_new_value(current_value, target_list)
         if new_value is None:
@@ -202,21 +251,14 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(new_value)
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(new_value)
+                case SelectType.SLEEP_TIMER:
+                    await self._receiver._receiver.async_sleep(_sleep_timers_map[new_value])
 
             return StatusCodes.OK
 
         except Exception as ex:  # pylint: disable=broad-exception-caught
             _LOG.error("Error executing select command for %s: %s", self._select_type.value, ex)
             return StatusCodes.SERVER_ERROR
-
-    def state_from_avr(self, avr_state: avr.States) -> States:
-        """
-        Convert AVR state to UC API select state.
-
-        :param avr_state: Denon/Marantz AVR state
-        :return: UC API select state
-        """
-        return SELECT_STATE_MAPPING.get(avr_state, States.UNKNOWN)
 
     @staticmethod
     def _get_select_config(select_type: SelectType, device: AvrDevice, receiver: avr.DenonDevice) -> dict[str, Any]:
@@ -226,87 +268,72 @@ class DenonSelect(Select, DenonEntity):
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SOUND_MODE.value),
                     "name": f"{device.name} Sound Mode",
-                    "current_option": receiver.sound_mode,
+                    "current_option": DenonSelect._get_value_or_default(receiver.sound_mode, "--"),
                     "options": receiver.sound_mode_list,
                 }
             case SelectType.INPUT_SOURCE:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.INPUT_SOURCE.value),
                     "name": f"{device.name} Input Source",
-                    "current_option": receiver.source,
+                    "current_option": DenonSelect._get_value_or_default(receiver.source, "--"),
                     "options": receiver.source_list,
                 }
             case SelectType.DIMMER:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DIMMER.value),
                     "name": f"{device.name} Dimmer",
-                    "current_option": receiver.dimmer,
+                    "current_option": DenonSelect._get_value_or_default(receiver.dimmer, "--"),
                     "options": _dimmer_modes,
                 }
             case SelectType.ECO_MODE:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.ECO_MODE.value),
                     "name": f"{device.name} Eco Mode",
-                    "current_option": receiver.eco_mode,
+                    "current_option": DenonSelect._get_value_or_default(receiver.eco_mode, "--"),
                     "options": _eco_modes,
                 }
             case SelectType.MONITOR_OUTPUT:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.MONITOR_OUTPUT.value),
                     "name": f"{device.name} Monitor Output",
-                    "current_option": receiver._receiver.hdmi_output,
+                    "current_option": DenonSelect._get_value_or_default(receiver._receiver.hdmi_output, "--"),
                     "options": _hdmi_outputs,
                 }
             case SelectType.DIRAC_FILTER:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DIRAC_FILTER.value),
                     "name": f"{device.name} Dirac Filter",
-                    "current_option": receiver._receiver.dirac.dirac_filter,
+                    "current_option": DenonSelect._get_value_or_default(receiver._receiver.dirac.dirac_filter, "--"),
                     "options": _dirac_filters,
                 }
             case SelectType.SPEAKER_PRESET:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SPEAKER_PRESET.value),
                     "name": f"{device.name} Speaker Preset",
-                    "current_option": receiver._receiver.speaker_preset,
+                    "current_option": DenonSelect._get_value_or_default(receiver._receiver.speaker_preset, "--"),
                     "options": _speaker_presets,
+                }
+            case SelectType.SLEEP_TIMER:
+                return {
+                    "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SLEEP_TIMER.value),
+                    "name": f"{device.name} Sleep Timer",
+                    "current_option": (
+                        "--"
+                        if receiver._receiver.sleep is None
+                        else (_sleep_timers_reverse_map.get(receiver._receiver.sleep, None))
+                    ),
+                    "options": _sleep_timers,
                 }
             case _:
                 raise ValueError(f"Unsupported select type: {select_type}")
 
-    def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
-        """
-        Filter the given attributes from an AVR update and return only the changed values.
-
-        For each update, the current select value is retrieved from the receiver and included in the returned
-        dictionary if changed.
-
-        :param update: dictionary containing the updated properties.
-        :return: dictionary containing only the changed attributes.
-        """
-        attributes = {}
-
-        if Attributes.STATE in update:
-            state = self.state_from_avr(update[Attributes.STATE])
-            attributes = helpers.key_update_helper(Attributes.STATE, state, attributes, self.attributes)
-
-        current_option, options = self._get_select_value(update)
-
-        attributes = helpers.key_update_helper(Attributes.CURRENT_OPTION, current_option, attributes, self.attributes)
-        attributes = helpers.key_update_helper(Attributes.OPTIONS, options, attributes, self.attributes)
-
-        return attributes
-
-    SelectStates: dict[SelectType, Any] = {}
-
     # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access, too-many-locals
     # pylint: disable=too-many-statements
-    def _get_select_value(self, update: dict[str, Any]) -> tuple[Any, list[Any] | None]:
+    def _get_select_value(self) -> tuple[Any, list[Any] | None]:
         """Get the current value and unit for this select type."""
         if self._receiver._receiver.state == "off":
             # If receiver is turned off, clear stored select state
-            if update.get(MediaAttr.STATE, None):
-                self.SelectStates.pop(self._select_type, None)
+            return self._update_state_and_create_return_value("--"), None
 
         try:
             if self._select_type == SelectType.SOUND_MODE:
@@ -338,6 +365,12 @@ class DenonSelect(Select, DenonEntity):
                 speaker_preset = self._get_value_or_default(self._receiver._receiver.speaker_preset, "--")
                 return self._update_state_and_create_return_value(speaker_preset), _speaker_presets
 
+            if self._select_type == SelectType.SLEEP_TIMER:
+                sleep_timer = self._get_value_or_default(self._receiver.sleep, "--")
+                if sleep_timer != "--":
+                    sleep_timer = _sleep_timers_reverse_map[sleep_timer]
+                return self._update_state_and_create_return_value(sleep_timer), _sleep_timers
+
         except Exception as ex:
             _LOG.warning("Error getting select value for %s: %s", self._select_type.value, ex)
             return None, None
@@ -346,15 +379,9 @@ class DenonSelect(Select, DenonEntity):
 
     def _update_state_and_create_return_value(self, value: Any) -> Any:
         """Update select state and create return value."""
-        if self._select_type in self.SelectStates:
-            current_value = self.SelectStates[self._select_type]
-            if current_value != value:
-                self.SelectStates[self._select_type] = value
-                return value
-        else:
-            self.SelectStates[self._select_type] = value
+        if self._select_state != value:
+            self._select_state = value
             return value
-
         return None
 
     @staticmethod
@@ -383,5 +410,6 @@ def create_selects(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         selects.append(DenonSelect(device, receiver, api, SelectType.MONITOR_OUTPUT))
         selects.append(DenonSelect(device, receiver, api, SelectType.DIRAC_FILTER))
         selects.append(DenonSelect(device, receiver, api, SelectType.SPEAKER_PRESET))
+        selects.append(DenonSelect(device, receiver, api, SelectType.SLEEP_TIMER))
 
     return selects
