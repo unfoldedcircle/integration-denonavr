@@ -55,10 +55,10 @@ class DenonSelect(Select, DenonEntity):
         self._select_state_key = select_type + receiver.id
 
         # Configure select based on type
-        select_config = self._get_select_config(select_type, device, receiver)
+        identifier, name = self._get_select_config(select_type, device, receiver)
         super().__init__(
-            identifier=select_config["id"],
-            name=select_config["name"],
+            identifier,
+            name,
             attributes={
                 Attributes.STATE: States.UNAVAILABLE,
                 Attributes.CURRENT_OPTION: None,
@@ -253,44 +253,44 @@ class DenonSelect(Select, DenonEntity):
             return StatusCodes.SERVER_ERROR
 
     @staticmethod
-    def _get_select_config(select_type: SelectType, device: AvrDevice, receiver: avr.DenonDevice) -> dict[str, Any]:
+    def _get_select_config(select_type: SelectType, device: AvrDevice, receiver: avr.DenonDevice) -> tuple[str, str]:
         """Get select configuration based on type."""
         match select_type:
             case SelectType.SOUND_MODE:
-                return {
-                    "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SOUND_MODE.value),
-                    "name": f"{device.name} Sound Mode",
-                }
+                return (
+                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SOUND_MODE.value),
+                    f"{device.name} Sound Mode",
+                )
             case SelectType.INPUT_SOURCE:
-                return {
-                    "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.INPUT_SOURCE.value),
-                    "name": f"{device.name} Input Source",
-                }
+                return (
+                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.INPUT_SOURCE.value),
+                    f"{device.name} Input Source",
+                )
             case SelectType.DIMMER:
-                return {
-                    "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DIMMER.value),
-                    "name": f"{device.name} Dimmer",
-                }
+                return (
+                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DIMMER.value),
+                    f"{device.name} Dimmer",
+                )
             case SelectType.ECO_MODE:
-                return {
-                    "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.ECO_MODE.value),
-                    "name": f"{device.name} Eco Mode",
-                }
+                return (
+                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.ECO_MODE.value),
+                    f"{device.name} Eco Mode",
+                )
             case SelectType.MONITOR_OUTPUT:
-                return {
-                    "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.MONITOR_OUTPUT.value),
-                    "name": f"{device.name} Monitor Output",
-                }
+                return (
+                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.MONITOR_OUTPUT.value),
+                    f"{device.name} Monitor Output",
+                )
             case SelectType.DIRAC_FILTER:
-                return {
-                    "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DIRAC_FILTER.value),
-                    "name": f"{device.name} Dirac Filter",
-                }
+                return (
+                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DIRAC_FILTER.value),
+                    f"{device.name} Dirac Filter",
+                )
             case SelectType.SPEAKER_PRESET:
-                return {
-                    "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SPEAKER_PRESET.value),
-                    "name": f"{device.name} Speaker Preset",
-                }
+                return (
+                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SPEAKER_PRESET.value),
+                    f"{device.name} Speaker Preset",
+                )
             case _:
                 raise ValueError(f"Unsupported select type: {select_type}")
 
