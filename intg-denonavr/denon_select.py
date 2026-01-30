@@ -23,16 +23,6 @@ _eco_modes = list(get_args(EcoModes))
 _hdmi_outputs = list(get_args(HDMIOutputs))
 _dirac_filters = list(get_args(DiracFilters))
 _speaker_presets = [1, 2]
-_sleep_timers = ["Off", "15min", "30min", "60min", "90min", "120min"]
-_sleep_timers_map = {
-    "Off": "OFF",
-    "15min": 15,
-    "30min": 30,
-    "60min": 60,
-    "90min": 90,
-    "120min": 120,
-}
-_sleep_timers_reverse_map = {v: k for k, v in _sleep_timers_map.items()}
 
 # Mapping of an AVR state to a select entity state
 # pylint: disable=R0801
@@ -157,8 +147,6 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(option)
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(int(option))
-                case SelectType.SLEEP_TIMER:
-                    await self._receiver._receiver.async_sleep(_sleep_timers_map[option])
 
             return StatusCodes.OK
 
@@ -184,8 +172,6 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(_dirac_filters[index])
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(1 if use_first else 2)
-                case SelectType.SLEEP_TIMER:
-                    await self._receiver._receiver.async_sleep(_sleep_timers_map[_sleep_timers[index]])
 
             return StatusCodes.OK
 
@@ -194,8 +180,16 @@ class DenonSelect(Select, DenonEntity):
             return StatusCodes.SERVER_ERROR
 
     async def _handle_next_previous_command(self, use_next: bool, cycle: bool) -> StatusCodes:
-        def get_new_value(current_value: Any, index_list: list[Any]) -> Any | None:
-            current_index = index_list.index(current_value)
+        def get_new_value(value: Any, index_list: list[Any]) -> Any | None:
+            try:
+                current_index = index_list.index(value)
+            except ValueError:
+                _LOG.error(
+                    "Current value %s not found in options list for %s select",
+                    value,
+                    self._select_type.value,
+                )
+                return None
             new_index = current_index + 1 if use_next else current_index - 1
             if new_index < 0 or new_index >= len(index_list):
                 if cycle:
@@ -226,10 +220,6 @@ class DenonSelect(Select, DenonEntity):
             case SelectType.SPEAKER_PRESET:
                 current_value = self._receiver._receiver.speaker_preset
                 target_list = _speaker_presets
-            case SelectType.SLEEP_TIMER:
-                # Assume off if we can't map the value
-                current_value = _sleep_timers_reverse_map.get(self._receiver.sleep, "Off")
-                target_list = _sleep_timers
 
         new_value = get_new_value(current_value, target_list)
         if new_value is None:
@@ -252,8 +242,6 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(new_value)
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(new_value)
-                case SelectType.SLEEP_TIMER:
-                    await self._receiver._receiver.async_sleep(_sleep_timers_map[new_value])
 
             return StatusCodes.OK
 
@@ -314,17 +302,6 @@ class DenonSelect(Select, DenonEntity):
                     "current_option": DenonSelect._get_value_or_default(receiver._receiver.speaker_preset, "--"),
                     "options": _speaker_presets,
                 }
-            case SelectType.SLEEP_TIMER:
-                return {
-                    "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SLEEP_TIMER.value),
-                    "name": f"{device.name} Sleep Timer",
-                    "current_option": (
-                        "--"
-                        if receiver._receiver.sleep is None
-                        else (_sleep_timers_reverse_map.get(receiver._receiver.sleep, None))
-                    ),
-                    "options": _sleep_timers,
-                }
             case _:
                 raise ValueError(f"Unsupported select type: {select_type}")
 
@@ -366,12 +343,6 @@ class DenonSelect(Select, DenonEntity):
                 speaker_preset = self._get_value_or_default(self._receiver._receiver.speaker_preset, "--")
                 return self._update_state_and_create_return_value(speaker_preset), _speaker_presets
 
-            if self._select_type == SelectType.SLEEP_TIMER:
-                sleep_timer = self._get_value_or_default(self._receiver.sleep, "--")
-                if sleep_timer != "--":
-                    sleep_timer = _sleep_timers_reverse_map[sleep_timer]
-                return self._update_state_and_create_return_value(sleep_timer), _sleep_timers
-
         except Exception as ex:
             _LOG.warning("Error getting select value for %s: %s", self._select_type.value, ex)
             return None, None
@@ -411,6 +382,5 @@ def create_selects(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         selects.append(DenonSelect(device, receiver, api, SelectType.MONITOR_OUTPUT))
         selects.append(DenonSelect(device, receiver, api, SelectType.DIRAC_FILTER))
         selects.append(DenonSelect(device, receiver, api, SelectType.SPEAKER_PRESET))
-        selects.append(DenonSelect(device, receiver, api, SelectType.SLEEP_TIMER))
 
     return selects
