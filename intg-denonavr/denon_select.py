@@ -308,7 +308,8 @@ class DenonSelect(Select, DenonEntity):
             # If receiver is turned off, clear stored select state
             if update.get(MediaAttr.STATE, None):
                 self.SelectStates.pop(self._select_state_key, None)
-            return self._update_state_and_create_return_value("--"), None
+            offline_options = self._receiver.source_list if self._select_type == SelectType.INPUT_SOURCE else ["--"]
+            return self._update_state_and_create_return_value("--"), offline_options
 
         try:
             if self._select_type == SelectType.SOUND_MODE:
