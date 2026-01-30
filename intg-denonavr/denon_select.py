@@ -14,6 +14,7 @@ from config import AvrDevice, SelectType, create_entity_id
 from denonavr.const import DimmerModes, DiracFilters, EcoModes, HDMIOutputs
 from entities import DenonEntity
 from ucapi import EntityTypes, IntegrationAPI, Select, StatusCodes
+from ucapi.media_player import Attributes as MediaAttr
 from ucapi.select import Attributes, States
 
 _LOG = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ class DenonSelect(Select, DenonEntity):
         self._receiver = receiver
         self._device = device
         self._select_type = select_type
-        self._select_state = None
+        self._select_state: dict[SelectType, Any] = {}
 
         # Configure select based on type
         select_config = self._get_select_config(select_type, device, receiver)
@@ -123,7 +124,7 @@ class DenonSelect(Select, DenonEntity):
             state = self.state_from_avr(update[Attributes.STATE])
             attributes = helpers.key_update_helper(Attributes.STATE, state, attributes, self.attributes)
 
-        current_option, options = self._get_select_value()
+        current_option, options = self._get_select_value(update)
 
         attributes = helpers.key_update_helper(Attributes.CURRENT_OPTION, current_option, attributes, self.attributes)
         attributes = helpers.key_update_helper(Attributes.OPTIONS, options, attributes, self.attributes)
@@ -307,10 +308,12 @@ class DenonSelect(Select, DenonEntity):
 
     # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access, too-many-locals
     # pylint: disable=too-many-statements
-    def _get_select_value(self) -> tuple[Any, list[Any] | None]:
+    def _get_select_value(self, update: dict[str, Any]) -> tuple[Any, list[Any] | None]:
         """Get the current value and unit for this select type."""
         if self._receiver._receiver.state == "off":
             # If receiver is turned off, clear stored select state
+            if update.get(MediaAttr.STATE, None):
+                self._select_state.pop(self._select_type, None)
             return self._update_state_and_create_return_value("--"), None
 
         try:
@@ -351,9 +354,15 @@ class DenonSelect(Select, DenonEntity):
 
     def _update_state_and_create_return_value(self, value: Any) -> Any:
         """Update select state and create return value."""
-        if self._select_state != value:
-            self._select_state = value
+        if self._select_type in self._select_state:
+            current_value = self._select_state[self._select_type]
+            if current_value != value:
+                self._select_state[self._select_type] = value
+                return value
+        else:
+            self._select_state[self._select_type] = value
             return value
+
         return None
 
     @staticmethod
