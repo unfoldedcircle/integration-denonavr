@@ -11,7 +11,7 @@ from typing import Any, get_args
 import avr
 import helpers
 from config import AvrDevice, SelectType, create_entity_id
-from denonavr.const import DimmerModes, DiracFilters, EcoModes, HDMIOutputs
+from denonavr.const import DimmerModes, DiracFilters, EcoModes, HDMIOutputs, InputModes
 from entities import DenonEntity
 from ucapi import EntityTypes, IntegrationAPI, Select, StatusCodes
 from ucapi.media_player import Attributes as MediaAttr
@@ -24,6 +24,7 @@ _eco_modes = list(get_args(EcoModes))
 _hdmi_outputs = list(get_args(HDMIOutputs))
 _dirac_filters = list(get_args(DiracFilters))
 _speaker_presets = [1, 2]
+_input_modes = list(get_args(InputModes))
 
 # Mapping of an AVR state to a select entity state
 # pylint: disable=R0801
@@ -156,6 +157,8 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(option)
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(int(option))
+                case SelectType.INPUT_MODE:
+                    await self._receiver._receiver.async_input_mode(option)
 
             return StatusCodes.OK
 
@@ -181,6 +184,8 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(_dirac_filters[index])
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(1 if use_first else 2)
+                case SelectType.INPUT_MODE:
+                    await self._receiver._receiver.async_input_mode(_input_modes[index])
 
             return StatusCodes.OK
 
@@ -229,6 +234,10 @@ class DenonSelect(Select, DenonEntity):
             case SelectType.SPEAKER_PRESET:
                 current_value = self._receiver._receiver.speaker_preset
                 target_list = _speaker_presets
+            case SelectType.INPUT_MODE:
+                target_list = _input_modes
+                # Current input mode isn't exposed by the AVR API, we rely on stored state and default to first option
+                current_value = self.SelectStates.get(self._select_state_key, "Select")
 
         new_value = get_new_value(current_value, target_list)
         if new_value is None:
@@ -297,6 +306,11 @@ class DenonSelect(Select, DenonEntity):
                     create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SPEAKER_PRESET.value),
                     f"{device.name} Speaker Preset",
                 )
+            case SelectType.INPUT_MODE:
+                return (
+                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.INPUT_MODE.value),
+                    f"{device.name} Input Mode",
+                )
             case _:
                 raise ValueError(f"Unsupported select type: {select_type}")
 
@@ -340,6 +354,11 @@ class DenonSelect(Select, DenonEntity):
                 speaker_preset = self._get_value_or_default(self._receiver._receiver.speaker_preset, "--")
                 return self._update_state_and_create_return_value(speaker_preset), _speaker_presets
 
+            if self._select_type == SelectType.INPUT_MODE:
+                # Current input mode isn't exposed by the AVR API, so we rely on stored state
+                input_mode = self._get_value_or_default(self.SelectStates.get(self._select_state_key, None), "--")
+                return self._update_state_and_create_return_value(input_mode), _input_modes
+
         except Exception as ex:
             _LOG.warning("Error getting select value for %s: %s", self._select_type.value, ex)
             return None, None
@@ -376,6 +395,7 @@ def create_selects(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
     selects = [
         DenonSelect(device, receiver, api, SelectType.SOUND_MODE),
         DenonSelect(device, receiver, api, SelectType.INPUT_SOURCE),
+        DenonSelect(device, receiver, api, SelectType.INPUT_MODE),
     ]
 
     # Only create telnet-based selects if telnet is used
