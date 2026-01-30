@@ -260,50 +260,36 @@ class DenonSelect(Select, DenonEntity):
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SOUND_MODE.value),
                     "name": f"{device.name} Sound Mode",
-                    "current_option": DenonSelect._get_value_or_default(receiver.sound_mode, "--"),
-                    "options": receiver.sound_mode_list,
                 }
             case SelectType.INPUT_SOURCE:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.INPUT_SOURCE.value),
                     "name": f"{device.name} Input Source",
-                    "current_option": DenonSelect._get_value_or_default(receiver.source, "--"),
-                    "options": receiver.source_list,
                 }
             case SelectType.DIMMER:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DIMMER.value),
                     "name": f"{device.name} Dimmer",
-                    "current_option": DenonSelect._get_value_or_default(receiver.dimmer, "--"),
-                    "options": _dimmer_modes,
                 }
             case SelectType.ECO_MODE:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.ECO_MODE.value),
                     "name": f"{device.name} Eco Mode",
-                    "current_option": DenonSelect._get_value_or_default(receiver.eco_mode, "--"),
-                    "options": _eco_modes,
                 }
             case SelectType.MONITOR_OUTPUT:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.MONITOR_OUTPUT.value),
                     "name": f"{device.name} Monitor Output",
-                    "current_option": DenonSelect._get_value_or_default(receiver._receiver.hdmi_output, "--"),
-                    "options": _hdmi_outputs,
                 }
             case SelectType.DIRAC_FILTER:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DIRAC_FILTER.value),
                     "name": f"{device.name} Dirac Filter",
-                    "current_option": DenonSelect._get_value_or_default(receiver._receiver.dirac.dirac_filter, "--"),
-                    "options": _dirac_filters,
                 }
             case SelectType.SPEAKER_PRESET:
                 return {
                     "id": create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SPEAKER_PRESET.value),
                     "name": f"{device.name} Speaker Preset",
-                    "current_option": DenonSelect._get_value_or_default(receiver._receiver.speaker_preset, "--"),
-                    "options": _speaker_presets,
                 }
             case _:
                 raise ValueError(f"Unsupported select type: {select_type}")
