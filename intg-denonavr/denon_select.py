@@ -278,6 +278,8 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(new_value)
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(new_value)
+                case SelectType.INPUT_MODE:
+                    await self._receiver._receiver.async_input_mode(new_value)
                 case SelectType.REFERENCE_LEVEL:
                     await self._receiver._receiver.async_set_reflevoffset(new_value)
                 case SelectType.DYNAMIC_VOLUME:
