@@ -19,12 +19,12 @@ from ucapi.select import Attributes, States
 
 _LOG = logging.getLogger(__name__)
 
-_dimmer_modes = list(get_args(DimmerModes))
-_eco_modes = list(get_args(EcoModes))
-_hdmi_outputs = list(get_args(HDMIOutputs))
-_dirac_filters = list(get_args(DiracFilters))
+_dimmer_modes: list[DimmerModes] = list(get_args(DimmerModes))
+_eco_modes: list[EcoModes] = list(get_args(EcoModes))
+_hdmi_outputs: list[HDMIOutputs] = list(get_args(HDMIOutputs))
+_dirac_filters: list[DiracFilters] = list(get_args(DiracFilters))
 _speaker_presets = [1, 2]
-_input_modes = list(get_args(InputModes))
+_input_modes: list[InputModes] = list(get_args(InputModes))  # type: ignore
 
 # Mapping of an AVR state to a select entity state
 # pylint: disable=R0801
@@ -187,7 +187,7 @@ class DenonSelect(Select, DenonEntity):
                 case SelectType.DIRAC_FILTER:
                     await self._receiver._receiver.dirac.async_dirac_filter(_dirac_filters[index])
                 case SelectType.SPEAKER_PRESET:
-                    await self._receiver._receiver.async_speaker_preset(1 if use_first else 2)
+                    await self._receiver._receiver.async_speaker_preset(_speaker_presets[index])
                 case SelectType.INPUT_MODE:
                     await self._receiver._receiver.async_input_mode(_input_modes[index])
                 case SelectType.REFERENCE_LEVEL:
@@ -390,7 +390,7 @@ class DenonSelect(Select, DenonEntity):
 
             if self._select_type == SelectType.INPUT_MODE:
                 # Current input mode isn't exposed by the AVR API, so we rely on stored state
-                input_mode = self._get_value_or_default(self.SelectStates.get(self._select_state_key, None), "--")
+                input_mode = self.SelectStates.get(self._select_state_key, "--")
                 return self._update_state_and_create_return_value(input_mode), _input_modes
 
             if self._select_type == SelectType.REFERENCE_LEVEL:
