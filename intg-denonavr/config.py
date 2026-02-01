@@ -108,6 +108,8 @@ class SelectType(str, Enum):
     DIRAC_FILTER = "dirac_filter"
     SPEAKER_PRESET = "speaker_preset"
     INPUT_MODE = "input_mode"
+    REFERENCE_LEVEL = "reference_level"
+    DYNAMIC_VOLUME = "dynamic_volume"
 
 
 class AdditionalEventType(str, Enum):
