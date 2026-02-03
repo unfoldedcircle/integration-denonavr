@@ -806,6 +806,13 @@ class DenonDevice:
                 self.events.emit(
                     Events.UPDATE, self.id, {AdditionalEventType.MAX_FRL_OUTPUT: self._receiver.max_frl_output}
                 )
+            elif parameter.startswith("INFSIGCOS"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.COLORSPACE_INPUT: self._receiver.colorspace_input}
+                )
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.COLORSPACE_OUTPUT: self._receiver.colorspace_output}
+                )
         elif event == "SY":
             if parameter.startswith("SDA"):
                 self.events.emit(

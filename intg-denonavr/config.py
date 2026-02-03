@@ -94,6 +94,8 @@ class SensorType(str, Enum):
     PIXEL_DEPTH_OUTPUT = "pixel_depth_output"
     MAX_FRL_INPUT = "max_frl_input"
     MAX_FRL_OUTPUT = "max_frl_output"
+    COLORSPACE_INPUT = "color_space_input"
+    COLORSPACE_OUTPUT = "color_space_output"
 
 
 class AdditionalEventType(str, Enum):
@@ -119,6 +121,8 @@ class AdditionalEventType(str, Enum):
     PIXEL_DEPTH_OUTPUT = "PIXEL_DEPTH_OUTPUT"
     MAX_FRL_INPUT = "MAX_FRL_INPUT"
     MAX_FRL_OUTPUT = "MAX_FRL_OUTPUT"
+    COLORSPACE_INPUT = "color_space_input"
+    COLORSPACE_OUTPUT = "color_space_output"
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
