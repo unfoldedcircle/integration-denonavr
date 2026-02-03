@@ -47,6 +47,8 @@ SELECT_STATE_MAPPING = {
     avr.States.UNKNOWN: States.UNKNOWN,
 }
 
+_EMPTY_VALUE = "--"
+
 
 # pylint: disable=protected-access
 class DenonSelect(Select, DenonEntity):
@@ -362,52 +364,54 @@ class DenonSelect(Select, DenonEntity):
             # If receiver is turned off, clear stored select state
             if update.get(MediaAttr.STATE, None):
                 self.SelectStates.pop(self._select_state_key, None)
-            offline_options = self._receiver.source_list if self._select_type == SelectType.INPUT_SOURCE else ["--"]
-            return self._update_state_and_create_return_value("--"), offline_options
+            offline_options = (
+                self._receiver.source_list if self._select_type == SelectType.INPUT_SOURCE else [_EMPTY_VALUE]
+            )
+            return self._update_state_and_create_return_value(_EMPTY_VALUE), offline_options
 
         try:
             if self._select_type == SelectType.SOUND_MODE:
-                sound_mode = self._get_value_or_default(self._receiver.sound_mode, "--")
+                sound_mode = self._get_value_or_default(self._receiver.sound_mode, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(sound_mode), self._receiver.sound_mode_list
 
             if self._select_type == SelectType.INPUT_SOURCE:
-                input_source = self._get_value_or_default(self._receiver.source, "--")
+                input_source = self._get_value_or_default(self._receiver.source, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(input_source), self._receiver.source_list
 
             if self._select_type == SelectType.DIMMER:
-                dimmer_state = self._get_value_or_default(self._receiver.dimmer, "--")
+                dimmer_state = self._get_value_or_default(self._receiver.dimmer, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(dimmer_state), _dimmer_modes
 
             if self._select_type == SelectType.ECO_MODE:
-                eco_mode = self._get_value_or_default(self._receiver.eco_mode, "--")
+                eco_mode = self._get_value_or_default(self._receiver.eco_mode, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(eco_mode), _eco_modes
 
             if self._select_type == SelectType.MONITOR_OUTPUT:
-                monitor_output = self._get_value_or_default(self._receiver._receiver.hdmi_output, "--")
+                monitor_output = self._get_value_or_default(self._receiver._receiver.hdmi_output, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(monitor_output), _hdmi_outputs
 
             if self._select_type == SelectType.DIRAC_FILTER:
-                dirac_filter = self._get_value_or_default(self._receiver._receiver.dirac.dirac_filter, "--")
+                dirac_filter = self._get_value_or_default(self._receiver._receiver.dirac.dirac_filter, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(dirac_filter), _dirac_filters
 
             if self._select_type == SelectType.SPEAKER_PRESET:
-                speaker_preset = self._get_value_or_default(self._receiver._receiver.speaker_preset, "--")
+                speaker_preset = self._get_value_or_default(self._receiver._receiver.speaker_preset, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(speaker_preset), _speaker_presets
 
             if self._select_type == SelectType.INPUT_MODE:
                 # Current input mode isn't exposed by the AVR API, so we rely on stored state
-                input_mode = self.SelectStates.get(self._select_state_key, "--")
+                input_mode = self.SelectStates.get(self._select_state_key, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(input_mode), _input_modes
 
             if self._select_type == SelectType.REFERENCE_LEVEL_OFFSET:
-                ref_level = self._get_value_or_default(self._receiver._receiver.reference_level_offset, "--")
+                ref_level = self._get_value_or_default(self._receiver._receiver.reference_level_offset, _EMPTY_VALUE)
                 return (
                     self._update_state_and_create_return_value(ref_level),
                     self._receiver._receiver.reference_level_offset_setting_list,
                 )
 
             if self._select_type == SelectType.DYNAMIC_VOLUME:
-                dynamic_vol = self._get_value_or_default(self._receiver._receiver.dynamic_volume, "--")
+                dynamic_vol = self._get_value_or_default(self._receiver._receiver.dynamic_volume, _EMPTY_VALUE)
                 return (
                     self._update_state_and_create_return_value(dynamic_vol),
                     self._receiver._receiver.dynamic_volume_setting_list,
