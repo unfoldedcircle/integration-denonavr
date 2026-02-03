@@ -255,7 +255,7 @@ class DenonSelect(Select, DenonEntity):
             case SelectType.INPUT_MODE:
                 target_list = _input_modes
                 # Current input mode isn't exposed by the AVR API, we rely on stored state and default to first option
-                current_value = self.SelectStates.get(self._select_state_key, "Select")
+                current_value = self.SelectStates.get(self._select_state_key, _input_modes[0] if _input_modes else None)
             case SelectType.REFERENCE_LEVEL_OFFSET:
                 target_list = _reference_level_offsets
                 current_value = self._receiver._receiver.reference_level_offset
@@ -289,7 +289,7 @@ class DenonSelect(Select, DenonEntity):
                 case SelectType.REFERENCE_LEVEL_OFFSET:
                     await self._receiver._receiver.async_set_reflevoffset(new_value)  # type: ignore
                 case SelectType.DYNAMIC_VOLUME:
-                    await self._receiver._receiver.async_set_dynamicvol(new_value)
+                    await self._receiver._receiver.async_set_dynamicvol(new_value)  # type: ignore
 
             return StatusCodes.OK
 
