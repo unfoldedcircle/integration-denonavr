@@ -767,6 +767,16 @@ class DenonDevice:
                 self.events.emit(
                     Events.UPDATE, self.id, {AdditionalEventType.DIRAC_FILTER: self._receiver.dirac.dirac_filter}
                 )
+            elif parameter.startswith("REFLEV"):
+                self.events.emit(
+                    Events.UPDATE,
+                    self.id,
+                    {AdditionalEventType.REFERENCE_LEVEL_OFFSET: self._receiver.reference_level_offset},
+                )
+            elif parameter.startswith("DYNVOL"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.DYNAMIC_VOLUME: self._receiver.dynamic_volume}
+                )
             else:
                 return  # TODO check if we need to handle certain parameters, likely Audyssey
         elif event == "VS":

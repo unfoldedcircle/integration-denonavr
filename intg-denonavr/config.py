@@ -108,7 +108,7 @@ class SelectType(str, Enum):
     DIRAC_FILTER = "dirac_filter"
     SPEAKER_PRESET = "speaker_preset"
     INPUT_MODE = "input_mode"
-    REFERENCE_LEVEL = "reference_level"
+    REFERENCE_LEVEL_OFFSET = "reference_level_offset"
     DYNAMIC_VOLUME = "dynamic_volume"
 
 
@@ -137,6 +137,8 @@ class AdditionalEventType(str, Enum):
     MAX_FRL_OUTPUT = "MAX_FRL_OUTPUT"
     DIRAC_FILTER = "DIRAC_FILTER"
     SPEAKER_PRESET = "SPEAKER_PRESET"
+    REFERENCE_LEVEL_OFFSET = "REFERENCE_LEVEL_OFFSET"
+    DYNAMIC_VOLUME = "DYNAMIC_VOLUME"
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
