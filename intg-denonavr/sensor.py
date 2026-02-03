@@ -437,7 +437,6 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
             DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_OUTPUT),
             DenonSensor(device, receiver, api, SensorType.MAX_FRL_INPUT),
             DenonSensor(device, receiver, api, SensorType.MAX_FRL_OUTPUT),
-            DenonSensor(device, receiver, api, SensorType.MAX_FRL_OUTPUT),
             DenonSensor(device, receiver, api, SensorType.COLORSPACE_INPUT),
             DenonSensor(device, receiver, api, SensorType.COLORSPACE_OUTPUT),
         ]
