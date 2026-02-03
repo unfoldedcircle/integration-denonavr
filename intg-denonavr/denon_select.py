@@ -446,12 +446,12 @@ def create_selects(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         DenonSelect(device, receiver, api, SelectType.INPUT_MODE),
         DenonSelect(device, receiver, api, SelectType.REFERENCE_LEVEL),
         DenonSelect(device, receiver, api, SelectType.DYNAMIC_VOLUME),
+        DenonSelect(device, receiver, api, SelectType.DIMMER),
+        DenonSelect(device, receiver, api, SelectType.ECO_MODE),
     ]
 
     # Only create telnet-based selects if telnet is used
     if device.use_telnet:
-        selects.append(DenonSelect(device, receiver, api, SelectType.DIMMER))
-        selects.append(DenonSelect(device, receiver, api, SelectType.ECO_MODE))
         selects.append(DenonSelect(device, receiver, api, SelectType.MONITOR_OUTPUT))
         selects.append(DenonSelect(device, receiver, api, SelectType.DIRAC_FILTER))
         selects.append(DenonSelect(device, receiver, api, SelectType.SPEAKER_PRESET))
