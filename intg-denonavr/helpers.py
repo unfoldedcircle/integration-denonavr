@@ -8,7 +8,7 @@ Helper functions.
 from typing import Any
 
 
-def key_update_helper(key: str, value: str | None, attributes: dict, original_attributes: dict[str, Any]):
+def key_update_helper(key: str, value: str | list[Any] | None, attributes: dict, original_attributes: dict[str, Any]):
     """Update the attributes dictionary with the given key and value."""
     if value is None:
         return attributes
