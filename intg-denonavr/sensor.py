@@ -166,13 +166,13 @@ class DenonSensor(Sensor, DenonEntity):
             case SensorType.INPUT_CHANNELS:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.INPUT_CHANNELS.value),
-                    "name": f"{device.name} Input Channels (Beta)",
+                    "name": f"{device.name} Input Channels",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case SensorType.OUTPUT_CHANNELS:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.OUTPUT_CHANNELS.value),
-                    "name": f"{device.name} Output Channels (Beta)",
+                    "name": f"{device.name} Output Channels",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case SensorType.MAX_RESOLUTION:
