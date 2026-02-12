@@ -956,10 +956,6 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def play_pause(self) -> ucapi.StatusCodes:
         """Send toggle-play-pause command to AVR."""
-        # Media player power toggle sends play_pause
-
-        if self._receiver.power != "ON":
-            await self.power_on()
         if self._is_denon:
             return await self.send_command("RCKSK0410992")
         await self._receiver.async_toggle_play_pause()
