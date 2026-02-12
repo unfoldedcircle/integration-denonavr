@@ -998,6 +998,13 @@ class DenonDevice:
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
+    async def mute_toggle(self) -> ucapi.StatusCodes:
+        """Send mute command to AVR."""
+        await self._receiver.async_mute_toggle()
+
+        return ucapi.StatusCodes.OK
+
+    @async_handle_denonlib_errors
     async def select_source(self, source: str | None) -> ucapi.StatusCodes:
         """Send input_source command to AVR."""
         if not source:
