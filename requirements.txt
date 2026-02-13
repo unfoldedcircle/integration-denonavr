@@ -1,3 +1,3 @@
 pyee~=13.0.0
 ucapi==0.5.2
-denonavr@git+https://github.com/henrikwidlund/denonavr.git@2969ee83d9316c549c0dacee9f31bf97bfa614a7
+denonavr@git+https://github.com/henrikwidlund/denonavr.git@e34fa7247cdf49ae6d5a2fd966d165369dcef32e
