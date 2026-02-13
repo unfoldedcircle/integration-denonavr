@@ -17,7 +17,6 @@ from denonavr.const import (
     DynamicVolumeSettings,
     EcoModes,
     HDMIOutputs,
-    InputModes,
     ReferenceLevelOffsets,
 )
 from entities import DenonEntity
@@ -32,7 +31,6 @@ _eco_modes: list[EcoModes] = list(get_args(EcoModes))
 _hdmi_outputs: list[HDMIOutputs] = list(get_args(HDMIOutputs))
 _dirac_filters: list[DiracFilters] = list(get_args(DiracFilters))
 _speaker_presets = [1, 2]
-_input_modes: list[InputModes] = list(get_args(InputModes))
 _reference_level_offsets: list[ReferenceLevelOffsets] = list(get_args(ReferenceLevelOffsets))
 _dynamic_volumes: list[DynamicVolumeSettings] = list(get_args(DynamicVolumeSettings))
 
@@ -169,8 +167,6 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(option)
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(int(option))
-                case SelectType.INPUT_MODE:
-                    await self._receiver._receiver.async_input_mode(option)
                 case SelectType.REFERENCE_LEVEL_OFFSET:
                     await self._receiver._receiver.async_set_reflevoffset(option)
                 case SelectType.DYNAMIC_VOLUME:
@@ -200,8 +196,6 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(_dirac_filters[index])
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(_speaker_presets[index])
-                case SelectType.INPUT_MODE:
-                    await self._receiver._receiver.async_input_mode(_input_modes[index])
                 case SelectType.REFERENCE_LEVEL_OFFSET:
                     await self._receiver._receiver.async_set_reflevoffset(_reference_level_offsets[index])
                 case SelectType.DYNAMIC_VOLUME:
@@ -254,10 +248,6 @@ class DenonSelect(Select, DenonEntity):
             case SelectType.SPEAKER_PRESET:
                 target_list = _speaker_presets
                 current_value = self._receiver._receiver.speaker_preset
-            case SelectType.INPUT_MODE:
-                target_list = _input_modes
-                # Current input mode isn't exposed by the AVR API, we rely on stored state and default to first option
-                current_value = self.SelectStates.get(self._select_state_key, _input_modes[0] if _input_modes else None)
             case SelectType.REFERENCE_LEVEL_OFFSET:
                 target_list = _reference_level_offsets
                 current_value = self._receiver._receiver.reference_level_offset
@@ -286,8 +276,6 @@ class DenonSelect(Select, DenonEntity):
                     await self._receiver._receiver.dirac.async_dirac_filter(new_value)  # type: ignore
                 case SelectType.SPEAKER_PRESET:
                     await self._receiver._receiver.async_speaker_preset(new_value)  # type: ignore
-                case SelectType.INPUT_MODE:
-                    await self._receiver._receiver.async_input_mode(new_value)  # type: ignore
                 case SelectType.REFERENCE_LEVEL_OFFSET:
                     await self._receiver._receiver.async_set_reflevoffset(new_value)  # type: ignore
                 case SelectType.DYNAMIC_VOLUME:
@@ -337,11 +325,6 @@ class DenonSelect(Select, DenonEntity):
                 return (
                     create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.SPEAKER_PRESET.value),
                     f"{device.name} Speaker Preset",
-                )
-            case SelectType.INPUT_MODE:
-                return (
-                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.INPUT_MODE.value),
-                    f"{device.name} Input Mode",
                 )
             case SelectType.REFERENCE_LEVEL_OFFSET:
                 return (
@@ -398,11 +381,6 @@ class DenonSelect(Select, DenonEntity):
                 speaker_preset = self._get_value_or_default(self._receiver._receiver.speaker_preset, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(speaker_preset), _speaker_presets
 
-            if self._select_type == SelectType.INPUT_MODE:
-                # Current input mode isn't exposed by the AVR API, so we rely on stored state
-                input_mode = self.SelectStates.get(self._select_state_key, _EMPTY_VALUE)
-                return self._update_state_and_create_return_value(input_mode), _input_modes
-
             if self._select_type == SelectType.REFERENCE_LEVEL_OFFSET:
                 ref_level = self._get_value_or_default(self._receiver._receiver.reference_level_offset, _EMPTY_VALUE)
                 return (
@@ -453,7 +431,6 @@ def create_selects(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
     selects = [
         DenonSelect(device, receiver, api, SelectType.SOUND_MODE),
         DenonSelect(device, receiver, api, SelectType.INPUT_SOURCE),
-        DenonSelect(device, receiver, api, SelectType.INPUT_MODE),
         DenonSelect(device, receiver, api, SelectType.REFERENCE_LEVEL_OFFSET),
         DenonSelect(device, receiver, api, SelectType.DYNAMIC_VOLUME),
         DenonSelect(device, receiver, api, SelectType.DIMMER),

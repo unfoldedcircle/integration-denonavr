@@ -108,7 +108,6 @@ class SelectType(str, Enum):
     MONITOR_OUTPUT = "monitor_output"
     DIRAC_FILTER = "dirac_filter"
     SPEAKER_PRESET = "speaker_preset"
-    INPUT_MODE = "input_mode"
     REFERENCE_LEVEL_OFFSET = "reference_level_offset"
     DYNAMIC_VOLUME = "dynamic_volume"
 
