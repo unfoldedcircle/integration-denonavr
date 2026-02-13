@@ -68,6 +68,7 @@ class AvrDevice:
     timeout: int
     """Connection and command timeout in milliseconds."""
     is_denon: bool
+    is_dirac_supported: bool | None
 
 
 class SensorType(str, Enum):
@@ -227,6 +228,7 @@ class Devices:
                 item.volume_step = avr.volume_step
                 item.timeout = avr.timeout
                 item.is_denon = avr.is_denon
+                item.is_dirac_supported = avr.is_dirac_supported
                 return self.store()
         return False
 
@@ -296,6 +298,7 @@ class Devices:
                     item.get("volume_step", 0.5),
                     item.get("timeout", 2000),
                     item.get("is_denon", True),
+                    item.get("is_dirac_supported", False),
                 )
                 needs_migration |= item.get("use_telnet_for_events") is not None or item.get("is_denon") is None
                 self._config.append(avr)

@@ -463,7 +463,8 @@ def create_selects(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
     # Only create telnet-based selects if telnet is used
     if device.use_telnet:
         selects.append(DenonSelect(device, receiver, api, SelectType.MONITOR_OUTPUT))
-        selects.append(DenonSelect(device, receiver, api, SelectType.DIRAC_FILTER))
         selects.append(DenonSelect(device, receiver, api, SelectType.SPEAKER_PRESET))
+        if device.is_dirac_supported:
+            selects.append(DenonSelect(device, receiver, api, SelectType.DIRAC_FILTER))
 
     return selects
