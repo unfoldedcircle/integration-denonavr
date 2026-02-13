@@ -135,7 +135,7 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
             case Commands.VOLUME_DOWN:
                 return await self._receiver.volume_down()
             case Commands.MUTE_TOGGLE:
-                return await self._receiver.mute(not self.attributes[Attributes.MUTED])
+                return await self._receiver.mute_toggle()
             case Commands.MUTE:
                 return await self._receiver.mute(True)
             case Commands.UNMUTE:
