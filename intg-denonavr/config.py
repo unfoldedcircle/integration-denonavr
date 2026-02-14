@@ -35,7 +35,8 @@ def avr_from_entity_id(entity_id: str) -> str | None:
 
     The prefix is the part before the first dot in the name and refers to the entity type (media-player or remote),
     the suffix is the AVR device identifier.
-    Sensor entity identifiers should be in the format ``sensor.<sensor_type>.<avr_id>``.
+    Sensor entity identifiers should be in the format ``sensor.<sensor_type>.<avr_id>`` and Select entity identifiers
+    in the format ``select.<select_type>.<avr_id>``.
 
     :param entity_id: the entity identifier
     :return: the device suffix, or None if entity_id doesn't contain a dot
@@ -44,7 +45,7 @@ def avr_from_entity_id(entity_id: str) -> str | None:
     avr_id = parts[1] if len(parts) == 2 else None
     if avr_id is None:
         return None
-    if parts[0] == "sensor":
+    if parts[0] in ("sensor", "select"):
         parts = parts[1].split(".")
         avr_id = parts[1] if len(parts) == 2 else parts[0]
     return avr_id
@@ -67,6 +68,7 @@ class AvrDevice:
     timeout: int
     """Connection and command timeout in milliseconds."""
     is_denon: bool
+    is_dirac_supported: bool | None
 
 
 class SensorType(str, Enum):
@@ -98,6 +100,20 @@ class SensorType(str, Enum):
     COLORSPACE_OUTPUT = "colorspace_output"
 
 
+class SelectType(str, Enum):
+    """Select types for Denon AVR."""
+
+    SOUND_MODE = "sound_mode"
+    INPUT_SOURCE = "input_source"
+    DIMMER = "dimmer"
+    ECO_MODE = "eco_mode"
+    MONITOR_OUTPUT = "monitor_output"
+    DIRAC_FILTER = "dirac_filter"
+    SPEAKER_PRESET = "speaker_preset"
+    REFERENCE_LEVEL_OFFSET = "reference_level_offset"
+    DYNAMIC_VOLUME = "dynamic_volume"
+
+
 class AdditionalEventType(str, Enum):
     """Additional event types for the integration."""
 
@@ -123,6 +139,10 @@ class AdditionalEventType(str, Enum):
     MAX_FRL_OUTPUT = "MAX_FRL_OUTPUT"
     COLORSPACE_INPUT = "COLORSPACE_INPUT"
     COLORSPACE_OUTPUT = "COLORSPACE_OUTPUT"
+    DIRAC_FILTER = "DIRAC_FILTER"
+    SPEAKER_PRESET = "SPEAKER_PRESET"
+    REFERENCE_LEVEL_OFFSET = "REFERENCE_LEVEL_OFFSET"
+    DYNAMIC_VOLUME = "DYNAMIC_VOLUME"
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):
@@ -211,6 +231,7 @@ class Devices:
                 item.volume_step = avr.volume_step
                 item.timeout = avr.timeout
                 item.is_denon = avr.is_denon
+                item.is_dirac_supported = avr.is_dirac_supported
                 return self.store()
         return False
 
@@ -280,6 +301,7 @@ class Devices:
                     item.get("volume_step", 0.5),
                     item.get("timeout", 2000),
                     item.get("is_denon", True),
+                    item.get("is_dirac_supported", False),
                 )
                 needs_migration |= item.get("use_telnet_for_events") is not None or item.get("is_denon") is None
                 self._config.append(avr)

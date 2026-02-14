@@ -514,6 +514,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         volume_step=volume_step,
         timeout=timeout,
         is_denon=__is_denon_device(receiver.manufacturer),
+        is_dirac_supported=receiver.dirac.is_dirac_supported,
     )
     config.devices.add_or_update(device)  # triggers DenonAVR instance creation
 

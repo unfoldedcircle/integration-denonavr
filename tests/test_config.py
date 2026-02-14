@@ -20,6 +20,16 @@ class TestConfig(unittest.TestCase):
         result = avr_from_entity_id(entity_id)
         self.assertEqual("denon_avr_1", result, "Expected AVR suffix from an invalid sensor entity ID")
 
+    def test_avr_from_entity_id_with_valid_select_entity(self):
+        entity_id = "select.volume_db.denon_avr_1"
+        result = avr_from_entity_id(entity_id)
+        self.assertEqual("denon_avr_1", result, "Expected AVR suffix from a valid entity ID")
+
+    def test_avr_from_entity_id_with_invalid_select_entity_missing_select_type(self):
+        entity_id = "select.denon_avr_1"
+        result = avr_from_entity_id(entity_id)
+        self.assertEqual("denon_avr_1", result, "Expected AVR suffix from an invalid select entity ID")
+
     def test_avr_from_entity_id_with_invalid_entity_missing_dot(self):
         entity_id = "media_player_denon_avr_1"
         result = avr_from_entity_id(entity_id)

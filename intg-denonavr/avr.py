@@ -103,6 +103,7 @@ TELNET_EVENTS = {
     "VS",  # Video Setting
     "SY",  # Also audio settings
     "OP",  # Input/Output Channel Info
+    "SP",  # Speaker Info
 }
 
 SUBSCRIBED_TELNET_EVENTS = {
@@ -119,6 +120,7 @@ SUBSCRIBED_TELNET_EVENTS = {
     "SS",  # Used for video and audio settings
     "SY",  # Also audio settings
     "OP",  # Input/Output Channel Info
+    "SP",  # Speaker Info
 }
 
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
@@ -757,8 +759,24 @@ class DenonDevice:
                 Events.UPDATE, self.id, {AdditionalEventType.RAW_SOUND_MODE: self._receiver.sound_mode_raw}
             )
         elif event == "PS":  # Parameter Setting
-            if parameter and parameter.startswith("DELAY"):
+            if parameter is None:
+                return
+            if parameter.startswith("DELAY"):
                 self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.AUDIO_DELAY: self._receiver.delay})
+            elif parameter.startswith("DIRAC"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.DIRAC_FILTER: self._receiver.dirac.dirac_filter}
+                )
+            elif parameter.startswith("REFLEV"):
+                self.events.emit(
+                    Events.UPDATE,
+                    self.id,
+                    {AdditionalEventType.REFERENCE_LEVEL_OFFSET: self._receiver.reference_level_offset},
+                )
+            elif parameter.startswith("DYNVOL"):
+                self.events.emit(
+                    Events.UPDATE, self.id, {AdditionalEventType.DYNAMIC_VOLUME: self._receiver.dynamic_volume}
+                )
             else:
                 return  # TODO check if we need to handle certain parameters, likely Audyssey
         elif event == "VS":
@@ -841,6 +859,10 @@ class DenonDevice:
                 self.events.emit(
                     Events.UPDATE, self.id, {AdditionalEventType.OUTPUT_CHANNELS: self._receiver.output_channels}
                 )
+        elif event == "SP" and parameter.startswith("PR"):
+            self.events.emit(
+                Events.UPDATE, self.id, {AdditionalEventType.SPEAKER_PRESET: self._receiver.speaker_preset}
+            )
 
         self._notify_updated_data()
 

@@ -14,6 +14,7 @@ from typing import Any
 import avr
 import config
 import denon_remote
+import denon_select
 import media_player
 import sensor
 import setup_flow
@@ -277,6 +278,10 @@ def _entities_from_avr(avr_id: str) -> list[str]:
             create_entity_id(avr_id, ucapi.EntityTypes.MEDIA_PLAYER),
             create_entity_id(avr_id, ucapi.EntityTypes.REMOTE),
             *(create_entity_id(avr_id, ucapi.EntityTypes.SENSOR, sensor_type.value) for sensor_type in SensorType),
+            *(
+                create_entity_id(avr_id, ucapi.EntityTypes.SELECT, select_type.value)
+                for select_type in config.SelectType
+            ),
         ]
         MAPPED_AVR_ENTITIES[avr_id] = avr_entities
     return avr_entities
@@ -322,10 +327,13 @@ def _register_available_entities(device: config.AvrDevice, receiver: avr.DenonDe
     """
     # plain and simple for now: only one media_player per AVR device
     denon_media_player = media_player.DenonMediaPlayer(device, receiver, api)
-    entities: list[media_player.DenonMediaPlayer | denon_remote.DenonRemote | sensor.DenonSensor] = [
+    entities: list[
+        media_player.DenonMediaPlayer | denon_remote.DenonRemote | sensor.DenonSensor | denon_select.DenonSelect
+    ] = [
         denon_media_player,
         denon_remote.DenonRemote(device, receiver, denon_media_player, api),
         *sensor.create_sensors(device, receiver, api),
+        *denon_select.create_selects(device, receiver, api),
     ]
 
     for entity in entities:
