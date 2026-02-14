@@ -232,12 +232,7 @@ class DenonSelect(Select, DenonEntity):
                 current_value = self._receiver.sound_mode
             case SelectType.INPUT_SOURCE:
                 target_list = self._receiver.source_list
-                if self._receiver.source in self._receiver.sound_mode_list:
-                    current_value = self._receiver.source
-                else:
-                    current_value = self._receiver._receiver.input_func_map_reverse.get(
-                        self._receiver.source, self._receiver.source
-                    )
+                current_value = self._receiver.source
             case SelectType.DIMMER:
                 target_list = _dimmer_modes
                 current_value = self._receiver.dimmer
