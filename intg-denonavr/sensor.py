@@ -167,13 +167,13 @@ class DenonSensor(Sensor, DenonEntity):
             case SensorType.INPUT_CHANNELS:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.INPUT_CHANNELS.value),
-                    "name": f"{device.name} Input Channels (Beta)",
+                    "name": f"{device.name} Input Channels",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case SensorType.OUTPUT_CHANNELS:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.OUTPUT_CHANNELS.value),
-                    "name": f"{device.name} Output Channels (Beta)",
+                    "name": f"{device.name} Output Channels",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case SensorType.MAX_RESOLUTION:
@@ -216,6 +216,18 @@ class DenonSensor(Sensor, DenonEntity):
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.MAX_FRL_OUTPUT.value),
                     "name": f"{device.name} Max FRL Output",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.COLORSPACE_INPUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.COLORSPACE_INPUT.value),
+                    "name": f"{device.name} Colorspace Input",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.COLORSPACE_OUTPUT:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.COLORSPACE_OUTPUT.value),
+                    "name": f"{device.name} Colorspace Output",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case _:
@@ -356,6 +368,14 @@ class DenonSensor(Sensor, DenonEntity):
                 max_frl_output = self._get_value_or_default(self._receiver._receiver.max_frl_output, "--")
                 return self._update_state_and_create_return_value(max_frl_output), None
 
+            if self._sensor_type == SensorType.COLORSPACE_INPUT:
+                colorspace_input = self._get_value_or_default(self._receiver._receiver.colorspace_input, "--")
+                return self._update_state_and_create_return_value(colorspace_input), None
+
+            if self._sensor_type == SensorType.COLORSPACE_OUTPUT:
+                colorspace_output = self._get_value_or_default(self._receiver._receiver.colorspace_output, "--")
+                return self._update_state_and_create_return_value(colorspace_output), None
+
         except Exception as ex:
             _LOG.warning("Error getting sensor value for %s: %s", self._sensor_type.value, ex)
             return None, None
@@ -394,27 +414,32 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         DenonSensor(device, receiver, api, SensorType.SOUND_MODE),
         DenonSensor(device, receiver, api, SensorType.INPUT_SOURCE),
         DenonSensor(device, receiver, api, SensorType.MUTE),
+        DenonSensor(device, receiver, api, SensorType.DIMMER),
+        DenonSensor(device, receiver, api, SensorType.ECO_MODE),
     ]
 
     # Only create telnet-based sensors if telnet is used
     if device.use_telnet:
-        sensors.append(DenonSensor(device, receiver, api, SensorType.DIMMER))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.ECO_MODE))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.SLEEP_TIMER))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_DELAY))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.AUDIO_SAMPLING_RATE))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.INPUT_CHANNELS))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.OUTPUT_CHANNELS))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_RESOLUTION))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.HDR_INPUT))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.HDR_OUTPUT))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_INPUT))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_OUTPUT))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_FRL_INPUT))
-        sensors.append(DenonSensor(device, receiver, api, SensorType.MAX_FRL_OUTPUT))
+        sensors = [
+            *sensors,
+            DenonSensor(device, receiver, api, SensorType.SLEEP_TIMER),
+            DenonSensor(device, receiver, api, SensorType.AUDIO_DELAY),
+            DenonSensor(device, receiver, api, SensorType.AUDIO_SIGNAL),
+            DenonSensor(device, receiver, api, SensorType.AUDIO_SAMPLING_RATE),
+            DenonSensor(device, receiver, api, SensorType.MONITOR_OUTPUT),
+            DenonSensor(device, receiver, api, SensorType.INPUT_CHANNELS),
+            DenonSensor(device, receiver, api, SensorType.OUTPUT_CHANNELS),
+            DenonSensor(device, receiver, api, SensorType.MAX_RESOLUTION),
+            DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_IN),
+            DenonSensor(device, receiver, api, SensorType.VIDEO_HDMI_SIGNAL_OUT),
+            DenonSensor(device, receiver, api, SensorType.HDR_INPUT),
+            DenonSensor(device, receiver, api, SensorType.HDR_OUTPUT),
+            DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_INPUT),
+            DenonSensor(device, receiver, api, SensorType.PIXEL_DEPTH_OUTPUT),
+            DenonSensor(device, receiver, api, SensorType.MAX_FRL_INPUT),
+            DenonSensor(device, receiver, api, SensorType.MAX_FRL_OUTPUT),
+            DenonSensor(device, receiver, api, SensorType.COLORSPACE_INPUT),
+            DenonSensor(device, receiver, api, SensorType.COLORSPACE_OUTPUT),
+        ]
 
     return sensors
