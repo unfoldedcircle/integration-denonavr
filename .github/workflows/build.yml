@@ -24,7 +24,7 @@ env:
   INTG_NAME: denonavr
   HASH_FILENAME: uc-intg-denonavr.hash
   # Python version to use in the builder image. See https://hub.docker.com/r/arm64v8/python for possible versions.
-  PYTHON_VER: 3.11.13-0.4.0
+  PYTHON_VER: 3.11.13-0.5.0
   BUILD_CHANGELOG: build-changelog.md
 
 permissions:
@@ -95,7 +95,7 @@ jobs:
           echo "Running pyinstaller"
           
           docker run --rm --name builder \
-            --platform=aarch64 \
+            --platform=linux/arm64/v8 \
             --user=$(id -u):$(id -g) \
             -v ${GITHUB_WORKSPACE}:/workspace \
             docker.io/unfoldedcircle/r2-pyinstaller:${PYTHON_VER} \
