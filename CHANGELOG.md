@@ -11,6 +11,26 @@ _Changes in the next release_
 
 ---
 
+## v0.14.0 - 2026-02-21
+### Fixed
+- Remove media player dependency for mute toggle to work in remote entity by @henrikwidlund ([#179](https://github.com/unfoldedcircle/integration-denonavr/issues/179)).
+
+### Added
+- Add support for colorspace sensors by @henrikwidlund ([#177](https://github.com/unfoldedcircle/integration-denonavr/issues/177)).
+- Add support for Select entity types by @henrikwidlund ([#178](https://github.com/unfoldedcircle/integration-denonavr/pull/178)).
+  - Sound Mode
+  - Input Source
+  - Dimmer
+  - Eco Mode
+  - Monitor Output
+  - Dirac Filter (if supported by the device)
+  - Speaker Preset
+  - Reference Level
+  - Dynamic Volume
+
+### Changed
+- Update Docker build image ([#184](https://github.com/unfoldedcircle/integration-denonavr/pull/184)).
+
 ## v0.13.9 - 2026-01-23
 ### Fixed
 - Inconsistent sample rate values by @henrikwidlund ([#174](https://github.com/unfoldedcircle/integration-denonavr/issues/174)).
