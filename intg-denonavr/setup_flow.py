@@ -261,6 +261,7 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
     return __user_input_discovery()
 
 
+# pylint: disable=too-many-return-statements
 async def handle_configuration_mode(
     msg: UserDataResponse,
 ) -> RequestUserInput | SetupComplete | SetupError:
