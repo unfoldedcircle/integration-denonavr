@@ -312,6 +312,34 @@ async def handle_configuration_mode(
             volume_step = selected_device.volume_step if selected_device.volume_step else 0.5
             timeout = selected_device.timeout if selected_device.timeout else 2000
             is_denon = selected_device.is_denon
+            is_dirac_supported = selected_device.is_dirac_supported
+
+            connect_denonavr = ConnectDenonAVR(
+                selected_device.address,
+                avr.SETUP_TIMEOUT,
+                show_all_inputs=False,
+                zone2=False,
+                zone3=False,
+                use_telnet=False,
+                update_audyssey=False,
+            )
+
+            try:
+                await connect_denonavr.async_connect_receiver()
+                receiver = connect_denonavr.receiver
+                if (
+                    receiver
+                    and receiver.dirac.is_dirac_supported is not None
+                    and is_dirac_supported != receiver.dirac.is_dirac_supported
+                ):
+                    is_dirac_supported = receiver.dirac.is_dirac_supported
+
+            except AvrNetworkError as ex:
+                _LOG.error("Cannot connect to manually entered address %s: %s", selected_device.address, ex)
+                return SetupError(error_type=IntegrationSetupError.CONNECTION_REFUSED)
+            except AvrTimoutError:
+                _LOG.error("Timeout connecting to manually entered address %s", selected_device.address)
+                return SetupError(error_type=IntegrationSetupError.TIMEOUT)
 
             return RequestUserInput(
                 _a("Configure your AVR"),
@@ -321,6 +349,7 @@ async def handle_configuration_mode(
                     __connection_mode_cfg(connection_mode),
                     __volume_cfg(volume_step),
                     __timeout_cfg(timeout),
+                    __is_dirac_supported_cfg(is_dirac_supported),
                     __telnet_info(),
                 ],
             )
@@ -442,6 +471,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             __connection_mode_cfg("use_telnet"),
             __volume_cfg(1),
             __timeout_cfg(2000),
+            __is_dirac_supported_cfg(connect_denonavr.receiver.dirac.is_dirac_supported),
             __telnet_info(),
         ],
     )
@@ -651,3 +681,25 @@ def __is_denon_device(manufacturer: str | None) -> bool:
     :return: True if the manufacturer is Denon, False otherwise
     """
     return bool(manufacturer and manufacturer.lower().startswith("denon"))
+
+
+def __is_dirac_supported_cfg(is_supported: bool | None):
+    return {
+        "id": "is_dirac_supported",
+        "label": _a("Device supports Dirac"),
+        "field": {
+            "dropdown": {
+                "value": str(is_supported) if is_supported is not None else "False",
+                "items": [
+                    {
+                        "id": "True",
+                        "label": _a("Yes"),
+                    },
+                    {
+                        "id": "False",
+                        "label": _a("No"),
+                    },
+                ],
+            }
+        },
+    }
