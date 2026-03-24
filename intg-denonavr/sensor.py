@@ -75,11 +75,20 @@ class DenonSensor(Sensor, DenonEntity):
             case SensorType.VOLUME_DB:
                 sensor = {
                     "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.VOLUME_DB.value),
-                    "name": f"{device.name} Volume",
+                    "name": f"{device.name} Volume dB",
                     "device_class": DeviceClasses.CUSTOM,
                     "unit": "dB",
                     "options": {
                         Options.CUSTOM_UNIT: "dB",
+                        Options.DECIMALS: 1,
+                    },
+                }
+            case SensorType.VOLUME_ABSOLUTE:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.VOLUME_ABSOLUTE.value),
+                    "name": f"{device.name} Absolute Volume",
+                    "device_class": DeviceClasses.CUSTOM,
+                    "options": {
                         Options.DECIMALS: 1,
                     },
                 }
@@ -278,6 +287,10 @@ class DenonSensor(Sensor, DenonEntity):
                 volume = self._get_value_or_default(self._receiver._receiver.volume, 0.0)
                 return self._update_state_and_create_return_value(volume), None
 
+            if self._sensor_type == SensorType.VOLUME_DB:
+                volume = self._get_value_or_default(self._receiver.volume_level, 0.0)
+                return self._update_state_and_create_return_value(volume), None
+
             if self._sensor_type == SensorType.SOUND_MODE:
                 # Prefer audio_sound as it works better with online music sources
                 sound_mode = self._get_value_or_default(
@@ -411,6 +424,7 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
     """
     sensors = [
         DenonSensor(device, receiver, api, SensorType.VOLUME_DB),
+        DenonSensor(device, receiver, api, SensorType.VOLUME_ABSOLUTE),
         DenonSensor(device, receiver, api, SensorType.SOUND_MODE),
         DenonSensor(device, receiver, api, SensorType.INPUT_SOURCE),
         DenonSensor(device, receiver, api, SensorType.MUTE),
