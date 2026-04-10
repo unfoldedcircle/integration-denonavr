@@ -682,7 +682,7 @@ class DenonDevice:
             if (telnet_is_healthy := self._telnet_healthy) and self._telnet_was_healthy:
                 if force:
                     await receiver.async_update()
-                await receiver.async_trigger_advanced_video_info_update()
+                await receiver.async_trigger_advanced_audio_video_info_update()
                 self._notify_updated_data()
                 return
 
