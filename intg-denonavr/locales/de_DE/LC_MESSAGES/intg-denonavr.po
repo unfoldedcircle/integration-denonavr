@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: uc-integration-denon-avr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-18 13:56+0200\n"
-"PO-Revision-Date: 2025-09-21 13:45\n"
+"POT-Creation-Date: 2026-04-10 15:19+0200\n"
+"PO-Revision-Date: 2026-04-10 14:02\n"
 "Last-Translator: Unfolded Circle <hello@unfoldedcircle.com>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -18,119 +18,131 @@ msgstr ""
 "X-Crowdin-File: /main/intg-denonavr/locales/en_US/LC_MESSAGES/intg-denonavr.po\n"
 "X-Crowdin-File-ID: 118\n"
 
-#: ../driver.py:400
+#: intg-denonavr/driver.py:448
 msgid "Control your Denon or Marantz AVRs with Remote Two/3."
 msgstr "Steuere Denon oder Marantz AVRs mit Remote Two/3."
 
-#: ../setup_flow.py:57
+#: intg-denonavr/setup_flow.py:57
 msgid "Integration setup"
 msgstr "Integrationssetup"
 
-#: ../setup_flow.py:61
+#: intg-denonavr/setup_flow.py:61
 msgid "Setup process"
 msgstr "Setup Modus"
 
-#: ../setup_flow.py:65
+#: intg-denonavr/setup_flow.py:65
 msgid "The integration discovers Denon and Marantz Receivers on the network."
 msgstr "Die Integration findet Denon- und Marantz-Audio-Video-Receiver (AVR) im Netzwerk."
 
-#: ../setup_flow.py:69
+#: intg-denonavr/setup_flow.py:69
 msgid "Please note that this integration can take 2-4s before it's ready to send commands after the remote starts or wakes up."
 msgstr "Bitte beachte: Nach dem Einschalten oder Aufwecken der Fernbedienung dauert es 2–4 Sekunden, bis sie Befehle senden kann."
 
-#: ../setup_flow.py:73
+#: intg-denonavr/setup_flow.py:73
 msgid "Please see our support article for requirements, features and restrictions."
 msgstr "Bitte beachte unseren [Support-Artikel](https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844) zu Anforderungen, unterstützten Funktionen und Einschränkungen."
 
-#: ../setup_flow.py:85
+#: intg-denonavr/setup_flow.py:85
 msgid "Setup mode"
 msgstr "Setup Modus"
 
-#: ../setup_flow.py:93
+#: intg-denonavr/setup_flow.py:93
 msgid "Leave blank to use auto-discovery and click _Next_."
 msgstr "Leer lassen, um automatische Erkennung zu verwenden und auf _Weiter_ klicken."
 
-#: ../setup_flow.py:95
+#: intg-denonavr/setup_flow.py:95
 msgid "The device must be on the same network as the remote."
 msgstr "Das Gerät muss sich im gleichen Netzwerk wie die Fernbedienung befinden."
 
-#: ../setup_flow.py:102
+#: intg-denonavr/setup_flow.py:102
 msgid "Manual IP address or hostname"
 msgstr "Manuelle IP-Adresse oder Hostname"
 
-#: ../setup_flow.py:112
+#: intg-denonavr/setup_flow.py:112
 msgid "Please note:"
 msgstr "Bitte beachten:"
 
-#: ../setup_flow.py:116
+#: intg-denonavr/setup_flow.py:116
 msgid "Using telnet provides realtime updates for many values but certain receivers allow a single connection only!"
 msgstr "Die Verwendung von Telnet bietet Echtzeit-Updates für viele Werte, aber bestimmte Verstärker erlauben nur eine einzige Verbindung! Mit dieser Einstellung können andere Apps oder Systeme nicht mehr funktionieren."
 
-#: ../setup_flow.py:200
+#: intg-denonavr/setup_flow.py:200
 msgid "Add a new device"
 msgstr "Neues Gerät hinzufügen"
 
-#: ../setup_flow.py:211
+#: intg-denonavr/setup_flow.py:211
 msgid "Configure selected device"
 msgstr "Selektiertes Gerät konfigurieren"
 
-#: ../setup_flow.py:218
+#: intg-denonavr/setup_flow.py:218
 msgid "Delete selected device"
 msgstr "Selektiertes Gerät löschen"
 
-#: ../setup_flow.py:225
+#: intg-denonavr/setup_flow.py:225
 msgid "Reset configuration and reconfigure"
 msgstr "Konfiguration zurücksetzen und neu konfigurieren"
 
-#: ../setup_flow.py:233
+#: intg-denonavr/setup_flow.py:233
 msgid "Configuration mode"
 msgstr "Konfigurations-Modus"
 
-#: ../setup_flow.py:243
+#: intg-denonavr/setup_flow.py:243
 msgid "Configured devices"
 msgstr "Konfigurierte Geräte"
 
-#: ../setup_flow.py:253
+#: intg-denonavr/setup_flow.py:253
 msgid "Action"
 msgstr "Aktion"
 
-#: ../setup_flow.py:317
+#: intg-denonavr/setup_flow.py:346
 msgid "Configure your AVR"
 msgstr "Konfiguriere deinen Denon AVR"
 
-#: ../setup_flow.py:414
+#: intg-denonavr/setup_flow.py:444
 msgid "Please choose your Denon or Marantz AVR"
 msgstr "Bitte wähle deinen Denon oder Marantz AVR"
 
-#: ../setup_flow.py:419
+#: intg-denonavr/setup_flow.py:449
 msgid "Choose your Denon or Marantz AVR"
 msgstr "Wähle deinen Denon oder Marantz AVR"
 
-#: ../setup_flow.py:572
+#: intg-denonavr/setup_flow.py:604
 msgid "Show all sources"
 msgstr "Alle Quellen anzeigen"
 
-#: ../setup_flow.py:580
+#: intg-denonavr/setup_flow.py:612
 msgid "Select manufacturer"
 msgstr "Hersteller auswählen"
 
-#: ../setup_flow.py:602
+#: intg-denonavr/setup_flow.py:634
 msgid "Connection mode"
 msgstr "Verbindungstyp"
 
-#: ../setup_flow.py:609
+#: intg-denonavr/setup_flow.py:641
 msgid "Use Telnet connection"
 msgstr "Telnet-Verbindung verwenden"
 
-#: ../setup_flow.py:613
+#: intg-denonavr/setup_flow.py:645
 msgid "Use HTTP connection"
 msgstr "HTTP-Verbindung verwenden"
 
-#: ../setup_flow.py:624
+#: intg-denonavr/setup_flow.py:656
 msgid "Volume step"
 msgstr "Lautstärkestufe"
 
-#: ../setup_flow.py:638
+#: intg-denonavr/setup_flow.py:670
 msgid "Connection and request timeout"
 msgstr "Verbindung und Anfrage-Timeout (ms)"
+
+#: intg-denonavr/setup_flow.py:690
+msgid "Device supports Dirac"
+msgstr "Device supports Dirac"
+
+#: intg-denonavr/setup_flow.py:697
+msgid "Yes"
+msgstr "Yes"
+
+#: intg-denonavr/setup_flow.py:701
+msgid "No"
+msgstr "No"
 
