@@ -11,6 +11,18 @@ _Changes in the next release_
 
 ---
 
+## v0.15.0 - 2026-04-10
+### Fixed
+- Stale audio sensors on some receivers by @henrikwidlund ([#190](https://github.com/unfoldedcircle/integration-denonavr/pull/190)).
+- Check Dirac support when reconfiguring by @henrikwidlund ([#187](https://github.com/unfoldedcircle/integration-denonavr/pull/187)).
+
+### Added
+- Absolute volume sensor by @henrikwidlund ([#189](https://github.com/unfoldedcircle/integration-denonavr/pull/189)).
+- Italian and Spanish machine translations. Please report corrections on [Crowdin](https://crowdin.com/project/uc-integration-denon-avr) ([#192](https://github.com/unfoldedcircle/integration-denonavr/pull/192)).
+
+### Changed
+- Update GitHub actions.
+
 ## v0.14.0 - 2026-02-21
 ### Fixed
 - Remove media player dependency for mute toggle to work in remote entity by @henrikwidlund ([#179](https://github.com/unfoldedcircle/integration-denonavr/issues/179)).
