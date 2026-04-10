@@ -75,6 +75,7 @@ class SensorType(str, Enum):
     """Sensor types for Denon AVR."""
 
     VOLUME_DB = "volume_db"
+    VOLUME_ABSOLUTE = "volume_absolute"
     SOUND_MODE = "sound_mode"
     INPUT_SOURCE = "input_source"
     DIMMER = "dimmer"
