@@ -19,6 +19,11 @@ is exposed to the Remote to control the AVR.
 Receivers can be controlled by HTTP or Telnet. Using Telnet provides realtime updates for many values, but certain
 receivers are limited to a single connection only (see limitations below).
 
+> [!TIP]
+> Translations for this integration are available on [Crowdin](https://crowdin.com/project/uc-integration-denon-avr),
+> where community contributions are always appreciated. Feel free to add new translations or refine existing ones,
+> especially where machine translations could use a little polish.
+
 ## Requirements
 
 - To be able to power on the receiver from standby, the AVR *Network Control* setting must be set to: *Always On*
