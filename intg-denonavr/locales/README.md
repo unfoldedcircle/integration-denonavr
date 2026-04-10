@@ -10,7 +10,10 @@ module for internationalization.
 Translations included in the build:
 - en_US (default)
 - de_DE
+- es_ES
 - fr_FR
+- it_IT
+- sv_SE
 
 See [Crowdin](https://crowdin.com/project/uc-integration-denon-avr) for current translation progress.
 
