@@ -287,7 +287,7 @@ class DenonSensor(Sensor, DenonEntity):
                 volume = self._get_value_or_default(self._receiver._receiver.volume, 0.0)
                 return self._update_state_and_create_return_value(volume), None
 
-            if self._sensor_type == SensorType.VOLUME_DB:
+            if self._sensor_type == SensorType.VOLUME_ABSOLUTE:
                 volume = self._get_value_or_default(self._receiver.volume_level, 0.0)
                 return self._update_state_and_create_return_value(volume), None
 
