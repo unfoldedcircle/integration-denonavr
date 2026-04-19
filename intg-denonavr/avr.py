@@ -550,6 +550,7 @@ class DenonDevice:
 
                     if self._use_telnet:
                         await self._receiver.async_telnet_connect()
+                        self._receiver.clear_duplicate_event_cache()
                         await self._receiver.async_update()
                         for event in SUBSCRIBED_TELNET_EVENTS:
                             self._receiver.register_callback(event, self._telnet_callback)
@@ -557,6 +558,7 @@ class DenonDevice:
                         # if self._update_audyssey:
                         #     await self._receiver.async_update_audyssey()
                     else:
+                        self._receiver.clear_duplicate_event_cache()
                         await self._receiver.async_update()
 
                     success = True
@@ -730,6 +732,7 @@ class DenonDevice:
 
         if event == "PW":  # Power
             if parameter == "ON":
+                self._receiver.clear_duplicate_event_cache()
                 self._set_expected_state(States.ON)
             elif parameter in ("STANDBY", "OFF"):
                 self._set_expected_state(States.OFF)
@@ -749,6 +752,7 @@ class DenonDevice:
             muted = parameter == "ON"
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.MUTED: muted})
         elif event == "SI":  # Select Input source
+            self._receiver.clear_duplicate_event_cache()
             self._set_expected_state(States.ON)
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.SOURCE: self._receiver.input_func})
         elif event == "MS":  # surround Mode Setting
@@ -903,6 +907,7 @@ class DenonDevice:
         await self._receiver.async_power_on()
         if not self._use_telnet:
             self._set_expected_state(States.ON)
+            self._receiver.clear_duplicate_event_cache()
 
         self._schedule_update_task()
 
@@ -923,6 +928,7 @@ class DenonDevice:
         """Send power-on or -off command to AVR based on current power state."""
         if self._receiver.power is not None and self._receiver.power == "ON":
             return await self.power_off()
+
         return await self.power_on()
 
     @async_handle_denonlib_errors
@@ -1043,6 +1049,8 @@ class DenonDevice:
         # switch to work.
         await self.power_on()
         await self._receiver.async_set_input_func(source)
+        if not self._use_telnet:
+            self._receiver.clear_duplicate_event_cache()
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
