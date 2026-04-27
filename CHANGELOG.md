@@ -9,14 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## v0.15.1 - 2026-04-27
 ### Fixed
 - Clear duplicate cache on power on and source change by @henrikwidlund ([#195](https://github.com/unfoldedcircle/integration-denonavr/pull/195)).
+- Manual query of wrong events for channels by @henrikwidlund ([#196](https://github.com/unfoldedcircle/integration-denonavr/pull/196)).
 
 ### Changed
 - Update PyInstaller build image: PyInstaller 6.20.0 and updated dependencies.
 - Update GitHub release action.
-
----
 
 ## v0.15.0 - 2026-04-10
 ### Fixed
