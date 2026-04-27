@@ -24,7 +24,7 @@ env:
   INTG_NAME: denonavr
   HASH_FILENAME: uc-intg-denonavr.hash
   # Python version to use in the builder image. See https://hub.docker.com/r/arm64v8/python for possible versions.
-  PYTHON_VER: 3.11.13-0.5.0
+  PYTHON_VER: 3.11.13-0.6.0
   BUILD_CHANGELOG: build-changelog.md
 
 permissions:

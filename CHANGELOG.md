@@ -13,6 +13,7 @@ _Changes in the next release_
 - Clear duplicate cache on power on and source change by @henrikwidlund ([#195](https://github.com/unfoldedcircle/integration-denonavr/pull/195)).
 
 ### Changed
+- Update PyInstaller build image: PyInstaller 6.20.0 and updated dependencies.
 - Update GitHub release action.
 
 ---
