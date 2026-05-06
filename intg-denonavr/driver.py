@@ -442,7 +442,7 @@ async def main():
     # and changes are made from another source
     _LOOP.create_task(receiver_status_poller())
 
-    await api.init("driver.json", setup_flow.driver_setup_handler)
+    await api.init(os.path.join(os.path.dirname(__file__), "..", "driver.json"), setup_flow.driver_setup_handler)
 
     # temporary hack to change driver.json language texts until supported by the wrapper lib # pylint: disable=W0212
     api._driver_info["description"] = _a("Control your Denon or Marantz AVRs with Remote Two/3.")
