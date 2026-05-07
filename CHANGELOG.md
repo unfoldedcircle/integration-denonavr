@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Changed
+- Update ucapi to 0.6.0 
+
 ---
 
 ## v0.15.1 - 2026-04-27
