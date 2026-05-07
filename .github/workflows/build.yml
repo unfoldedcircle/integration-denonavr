@@ -121,12 +121,8 @@ jobs:
           mv dist/intg-denonavr artifacts/
           mv artifacts/intg-denonavr artifacts/bin
           mv artifacts/bin/intg-denonavr artifacts/bin/driver
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            cp driver.json artifacts/
-          else
-            # patch metadata to not conflict with pre-installed driver
-            jq '.driver_id = "denonavr_custom" | .name.en = "Denon and Marantz AVR Network Receivers custom"' driver.json > artifacts/driver.json
-          fi
+          # patch metadata to not conflict with pre-installed driver
+          jq '.driver_id = "denonavr_custom" | .name.en = "Denon and Marantz AVR Network Receivers custom"' driver.json > artifacts/driver.json
           cp LICENSE artifacts/
           echo "ARTIFACT_NAME=uc-intg-${{ env.INTG_NAME }}-${{ env.VERSION }}-aarch64" >> $GITHUB_ENV
 
