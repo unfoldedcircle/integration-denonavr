@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Fixed
+- Create a valid driver.json file in the custom driver archive with custom driver_id and name.
+
 ### Changed
 - Update ucapi to 0.6.0 
 
