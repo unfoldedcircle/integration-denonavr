@@ -121,7 +121,8 @@ jobs:
           mv dist/intg-denonavr artifacts/
           mv artifacts/intg-denonavr artifacts/bin
           mv artifacts/bin/intg-denonavr artifacts/bin/driver
-          cp driver.json artifacts/
+          # patch metadata to not conflict with pre-installed driver
+          jq '.driver_id = "denonavr_custom" | .name.en = "Denon and Marantz AVR Network Receivers custom"' driver.json > artifacts/driver.json
           cp LICENSE artifacts/
           echo "ARTIFACT_NAME=uc-intg-${{ env.INTG_NAME }}-${{ env.VERSION }}-aarch64" >> $GITHUB_ENV
 
@@ -138,6 +139,7 @@ jobs:
           path: ${{ env.ARTIFACT_NAME }}.tar.gz
           if-no-files-found: error
           retention-days: 3
+          archive: 'false'
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
