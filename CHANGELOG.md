@@ -10,10 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 _Changes in the next release_
 
 ### Fixed
-- Create a valid driver.json file in the custom driver archive with custom driver_id and name.
+- Create a valid driver.json file in the custom driver archive with custom driver_id and name ([#200](https://github.com/unfoldedcircle/integration-denonavr/pull/200)).
 
 ### Changed
-- Update ucapi to 0.6.0 
+- Update ucapi to 0.6.0 ([#199](https://github.com/unfoldedcircle/integration-denonavr/pull/199)).
 
 ---
 
