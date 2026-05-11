@@ -140,7 +140,6 @@ jobs:
           path: ${{ env.ARTIFACT_NAME }}.tar.gz
           if-no-files-found: error
           retention-days: 3
-          archive: 'false'
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
