@@ -445,6 +445,7 @@ async def main():
     await api.init("driver.json", setup_flow.driver_setup_handler)
 
     # temporary hack to change driver.json language texts until supported by the wrapper lib # pylint: disable=W0212
+    # Attention: keep in sync with `custom_config.py`!
     api._driver_info["description"] = _a("Control your Denon or Marantz AVRs with Remote Two/3.")
     api._driver_info["setup_data_schema"] = setup_flow.setup_data_schema()  # pylint: disable=W0212
 

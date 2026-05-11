@@ -103,6 +103,7 @@ jobs:
               "cd /workspace && \
               PYTHON_VERSION=\$(python --version | cut -d' ' -f2 | cut -d. -f1,2) && \
               pip install --user -r requirements.txt && \
+              python intg-denonavr/custom_driver.py && \
               PYTHONPATH=~/.local/lib/python\${PYTHON_VERSION}/site-packages:\$PYTHONPATH pyinstaller --clean --onedir \
                 --name intg-denonavr --add-data intg-denonavr/locales:locales intg-denonavr/driver.py" -y
           echo "Clean up locales"
@@ -121,8 +122,8 @@ jobs:
           mv dist/intg-denonavr artifacts/
           mv artifacts/intg-denonavr artifacts/bin
           mv artifacts/bin/intg-denonavr artifacts/bin/driver
-          # patch metadata to not conflict with pre-installed driver
-          jq '.driver_id = "denonavr_custom" | .name.en = "Denon and Marantz AVR Network Receivers custom"' driver.json > artifacts/driver.json
+          # use patched driver.json from the intg-appletv/custom_driver.py script above to not conflict with pre-installed driver
+          mv driver_custom.json artifacts/driver.json
           cp LICENSE artifacts/
           echo "ARTIFACT_NAME=uc-intg-${{ env.INTG_NAME }}-${{ env.VERSION }}-aarch64" >> $GITHUB_ENV
 
