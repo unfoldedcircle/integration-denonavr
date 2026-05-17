@@ -102,7 +102,13 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
         )
         DenonEntity.__init__(self, api)
 
-    async def command(self, cmd_id: str, params: dict[str, Any] | None = None, *, websocket: Any) -> StatusCodes:  # noqa: ARG002
+    async def command(
+        self,
+        cmd_id: str,
+        params: dict[str, Any] | None = None,
+        *,
+        websocket: Any,  # noqa: ARG002
+    ) -> StatusCodes:
         """
         Media-player entity command handler.
 

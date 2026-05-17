@@ -463,8 +463,12 @@ async def main():
 
     # temporary hack to change driver.json language texts until supported by the wrapper lib # pylint: disable=W0212
     # Attention: keep in sync with `custom_config.py`!
-    api._driver_info["description"] = _a("Control your Denon or Marantz AVRs with Remote Two/3.")  # pyright: ignore[reportPrivateUsage]
-    api._driver_info["setup_data_schema"] = setup_flow.setup_data_schema()  # pylint: disable=W0212  # pyright: ignore[reportPrivateUsage]
+    # pylint: disable=W0212
+    # pyright: ignore[reportPrivateUsage]
+    api._driver_info["description"] = _a(  # pyright: ignore[reportPrivateUsage]
+        "Control your Denon or Marantz AVRs with Remote Two/3."
+    )
+    api._driver_info["setup_data_schema"] = setup_flow.setup_data_schema()  # pyright: ignore[reportPrivateUsage]
 
 
 if __name__ == "__main__":

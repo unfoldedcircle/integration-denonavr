@@ -82,7 +82,13 @@ class DenonSelect(Select, DenonEntity):
     SelectStates: ClassVar[dict[str, Any]] = {}
 
     # pylint: disable=too-many-return-statements, too-many-branches
-    async def command(self, cmd_id: str, params: dict[str, Any] | None = None, *, websocket: Any) -> StatusCodes:  # noqa: ARG002
+    async def command(
+        self,
+        cmd_id: str,
+        params: dict[str, Any] | None = None,
+        *,
+        websocket: Any,  # noqa: ARG002
+    ) -> StatusCodes:
         """
         Select entity command handler.
 
