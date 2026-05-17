@@ -10,7 +10,7 @@ from typing import Any
 
 def key_update_helper(
     key: str,
-    value: str | list[Any] | None,
+    value: Any,
     attributes: dict[str, Any],
     original_attributes: dict[str, Any],
 ) -> dict[str, Any]:

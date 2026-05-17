@@ -111,7 +111,7 @@ class DenonRemote(Remote, DenonEntity):
 
             success = True
             for _ in range(repeat):
-                success |= (
+                success &= (
                     await self._denon_media_player.command(command_or_status, websocket=websocket) == StatusCodes.OK
                 )
 

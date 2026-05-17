@@ -40,7 +40,7 @@ _REMOTE_IN_STANDBY = False
 
 def _spawn(coro: Any) -> asyncio.Task[Any]:
     """Schedule coro on the event loop and retain a strong ref until done."""
-    task = _spawn(coro)
+    task = _LOOP.create_task(coro)
     _BG_TASKS.add(task)
     task.add_done_callback(_BG_TASKS.discard)
     return task
