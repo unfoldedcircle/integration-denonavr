@@ -542,7 +542,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         _LOG.error("Receiver instance not available for %s", host)
         return SetupError(error_type=IntegrationSetupError.OTHER)
 
-    # async_connect_receiver() returned True so these must be set; assert for type narrowing.
+    # Validate required properties
     if receiver.serial_number is None or receiver.name is None or receiver.support_sound_mode is None:
         _LOG.error("Required receiver metadata missing for host %s", host)
         return SetupError(error_type=IntegrationSetupError.OTHER)
