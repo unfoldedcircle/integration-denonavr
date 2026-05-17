@@ -341,11 +341,11 @@ async def handle_configuration_mode(
                 ):
                     is_dirac_supported = receiver.dirac.is_dirac_supported
 
-            except AvrNetworkError as ex:
-                _LOG.error("Cannot connect to manually entered address %s: %s", selected_device.address, ex)
+            except AvrNetworkError:
+                _LOG.exception("Cannot connect to manually entered address %s", selected_device.address)
                 return SetupError(error_type=IntegrationSetupError.CONNECTION_REFUSED)
             except AvrTimoutError:
-                _LOG.error("Timeout connecting to manually entered address %s", selected_device.address)
+                _LOG.exception("Timeout connecting to manually entered address %s", selected_device.address)
                 return SetupError(error_type=IntegrationSetupError.TIMEOUT)
 
             return RequestUserInput(
@@ -416,11 +416,11 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             dropdown_items.append(
                 {"id": address, "label": {"en": f"{receiver.name} ({receiver.model_name} - {address})"}}
             )
-        except AvrNetworkError as ex:
-            _LOG.error("Cannot connect to manually entered address %s: %s", address, ex)
+        except AvrNetworkError:
+            _LOG.exception("Cannot connect to manually entered address %s", address)
             return SetupError(error_type=IntegrationSetupError.CONNECTION_REFUSED)
         except AvrTimoutError:
-            _LOG.error("Timeout connecting to manually entered address %s", address)
+            _LOG.exception("Timeout connecting to manually entered address %s", address)
             return SetupError(error_type=IntegrationSetupError.TIMEOUT)
     else:
         _LOG.debug("Starting auto-discovery driver setup")
@@ -530,11 +530,11 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         if not await connect_denonavr.async_connect_receiver():
             _LOG.error("Receiver metadata incomplete for %s", host)
             return SetupError(error_type=IntegrationSetupError.OTHER)
-    except AvrNetworkError as ex:
-        _LOG.error("Cannot connect to %s: %s", host, ex)
+    except AvrNetworkError:
+        _LOG.exception("Cannot connect to %s", host)
         return SetupError(error_type=IntegrationSetupError.CONNECTION_REFUSED)
     except AvrTimoutError:
-        _LOG.error("Timeout connecting to %s", host)
+        _LOG.exception("Timeout connecting to %s", host)
         return SetupError(error_type=IntegrationSetupError.TIMEOUT)
 
     receiver = connect_denonavr.receiver

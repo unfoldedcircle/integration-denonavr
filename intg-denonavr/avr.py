@@ -188,14 +188,13 @@ def async_handle_denonlib_errors(
                     args,
                 )
                 self.available = False
-        except AvrCommandError as err:
+        except AvrCommandError:
             available = False
             result = ucapi.StatusCodes.BAD_REQUEST
-            _LOG.error(
-                "Command %s%s failed with error: %s",
+            _LOG.exception(
+                "Command %s%s failed",
                 func.__name__,
                 args,
-                err,
             )
         except DenonAvrError as err:
             available = False

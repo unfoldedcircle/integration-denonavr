@@ -35,6 +35,6 @@ async def denon_avrs() -> list[dict[str, Any]]:
         _LOG.info("Found AVR(s): %s", avrs)
 
         return avrs
-    except Exception as ex:  # pylint: disable=broad-exception-caught
-        _LOG.error("Failed to start discovery: %s", ex)
+    except Exception:  # pylint: disable=broad-exception-caught
+        _LOG.exception("Failed to start discovery")
         return []

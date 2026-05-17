@@ -179,8 +179,8 @@ class DenonSelect(Select, DenonEntity):
 
             return StatusCodes.OK
 
-        except Exception as ex:  # pylint: disable=broad-exception-caught
-            _LOG.error("Error executing select command for %s: %s", self._select_type.value, ex)
+        except Exception:  # pylint: disable=broad-exception-caught
+            _LOG.exception("Error executing select command for %s", self._select_type.value)
             return StatusCodes.SERVER_ERROR
 
     async def _handle_first_last_command(self, use_first: bool) -> StatusCodes:
@@ -208,8 +208,8 @@ class DenonSelect(Select, DenonEntity):
 
             return StatusCodes.OK
 
-        except Exception as ex:  # pylint: disable=broad-exception-caught
-            _LOG.error("Error executing select command for %s: %s", self._select_type.value, ex)
+        except Exception:  # pylint: disable=broad-exception-caught
+            _LOG.exception("Error executing select command for %s", self._select_type.value)
             return StatusCodes.SERVER_ERROR
 
     async def _handle_next_previous_command(self, use_next: bool, cycle: bool) -> StatusCodes:
@@ -217,7 +217,7 @@ class DenonSelect(Select, DenonEntity):
             try:
                 current_index = index_list.index(value)
             except ValueError:
-                _LOG.error(
+                _LOG.exception(
                     "Current value %s not found in options list for %s select",
                     value,
                     self._select_type.value,
@@ -288,8 +288,8 @@ class DenonSelect(Select, DenonEntity):
 
             return StatusCodes.OK
 
-        except Exception as ex:  # pylint: disable=broad-exception-caught
-            _LOG.error("Error executing select command for %s: %s", self._select_type.value, ex)
+        except Exception:  # pylint: disable=broad-exception-caught
+            _LOG.exception("Error executing select command for %s", self._select_type.value)
             return StatusCodes.SERVER_ERROR
 
     @staticmethod

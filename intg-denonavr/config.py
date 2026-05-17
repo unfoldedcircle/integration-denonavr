@@ -274,7 +274,7 @@ class Devices:
                 json.dump(self._config, f, ensure_ascii=False, cls=_EnhancedJSONEncoder)
             return True
         except OSError:
-            _LOG.error("Cannot write the config file")
+            _LOG.exception("Cannot write the config file")
 
         return False
 
@@ -314,9 +314,9 @@ class Devices:
                 self.store()
             return True
         except OSError:
-            _LOG.error("Cannot open the config file")
+            _LOG.exception("Cannot open the config file")
         except ValueError:
-            _LOG.error("Empty or invalid config file")
+            _LOG.exception("Empty or invalid config file")
 
         return False
 
