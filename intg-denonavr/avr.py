@@ -620,7 +620,8 @@ class DenonDevice:
             for item in discovered:
                 if item["friendlyName"] == self._name and self.host != item["host"]:
                     _LOG.info("IP address of '%s' changed: %s", self._name, item["host"])
-                    self._receiver._host = item["host"]  # pylint: disable=W0212 # seems to be the only way
+                    # pylint: disable=W0212 # seems to be the only way
+                    self._receiver._host = item["host"]  # pyright: ignore[reportPrivateUsage]
                     self.events.emit(Events.IP_ADDRESS_CHANGED, self.id, self.host)
                     break
         else:
