@@ -330,7 +330,9 @@ async def handle_configuration_mode(
             )
 
             try:
-                await connect_denonavr.async_connect_receiver()
+                if not await connect_denonavr.async_connect_receiver():
+                    _LOG.error("Receiver metadata incomplete for %s", selected_device.address)
+                    return SetupError(error_type=IntegrationSetupError.OTHER)
                 receiver = connect_denonavr.receiver
                 if (
                     receiver
@@ -398,7 +400,9 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
         )
 
         try:
-            await connect_denonavr.async_connect_receiver()
+            if not await connect_denonavr.async_connect_receiver():
+                _LOG.error("Receiver metadata incomplete for %s", address)
+                return SetupError(error_type=IntegrationSetupError.OTHER)
             receiver = connect_denonavr.receiver
             if receiver is None or receiver.serial_number is None:
                 _LOG.error("Receiver not available for %s", address)
@@ -523,7 +527,9 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     )
 
     try:
-        await connect_denonavr.async_connect_receiver()
+        if not await connect_denonavr.async_connect_receiver():
+            _LOG.error("Receiver metadata incomplete for %s", host)
+            return SetupError(error_type=IntegrationSetupError.OTHER)
     except AvrNetworkError as ex:
         _LOG.error("Cannot connect to %s: %s", host, ex)
         return SetupError(error_type=IntegrationSetupError.CONNECTION_REFUSED)
@@ -536,15 +542,16 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         _LOG.error("Receiver instance not available for %s", host)
         return SetupError(error_type=IntegrationSetupError.OTHER)
 
-    if receiver.serial_number is None:
-        _LOG.error("Could not get serial number of host %s: required to create a unique device", host)
+    # async_connect_receiver() returned True so these must be set; assert for type narrowing.
+    if receiver.serial_number is None or receiver.name is None or receiver.support_sound_mode is None:
+        _LOG.error("Required receiver metadata missing for host %s", host)
         return SetupError(error_type=IntegrationSetupError.OTHER)
 
     device = AvrDevice(
         receiver.serial_number,
-        receiver.name or "",
+        receiver.name,
         host,
-        receiver.support_sound_mode or False,
+        receiver.support_sound_mode,
         show_all_inputs,
         use_telnet=use_telnet,
         update_audyssey=update_audyssey,
