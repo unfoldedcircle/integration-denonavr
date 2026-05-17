@@ -6,15 +6,16 @@ Sensor entity functions.
 """
 
 import logging
-from typing import Any
+from typing import Any, ClassVar
+
+from ucapi import EntityTypes, IntegrationAPI, Sensor
+from ucapi.media_player import Attributes as MediaAttr
+from ucapi.sensor import Attributes, DeviceClasses, Options, States
 
 import avr
 import helpers
 from config import AdditionalEventType, AvrDevice, SensorType, create_entity_id
 from entities import DenonEntity
-from ucapi import EntityTypes, IntegrationAPI, Sensor
-from ucapi.media_player import Attributes as MediaAttr
-from ucapi.sensor import Attributes, DeviceClasses, Options, States
 
 _LOG = logging.getLogger(__name__)
 
@@ -262,19 +263,17 @@ class DenonSensor(Sensor, DenonEntity):
         value, unit = self._get_sensor_value(update)
 
         attributes = helpers.key_update_helper(Attributes.VALUE, value, attributes, self.attributes)
-        attributes = helpers.key_update_helper(Attributes.UNIT, unit, attributes, self.attributes)
+        return helpers.key_update_helper(Attributes.UNIT, unit, attributes, self.attributes)
 
-        return attributes
-
-    SensorStates: dict[str, Any] = {}
+    SensorStates: ClassVar[dict[str, Any]] = {}
 
     # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access, too-many-locals
     # pylint: disable=too-many-statements
     def _get_sensor_value(self, update: dict[str, Any]) -> tuple[Any, str | None]:
         """Get the current value and unit for this sensor type."""
-        if self._receiver._receiver.state == "off":
+        if self._receiver.receiver.state == "off":
             # If receiver is turned off, clear stored sensor state
-            if update.get(MediaAttr.STATE, None):
+            if update.get(MediaAttr.STATE):
                 self.SensorStates.pop(self._sensor_state_key, None)
             if self._sensor_type == SensorType.MUTE:
                 # mute sensor is binary and doesn't support "--"
@@ -284,7 +283,7 @@ class DenonSensor(Sensor, DenonEntity):
 
         try:
             if self._sensor_type == SensorType.VOLUME_DB:
-                volume = self._get_value_or_default(self._receiver._receiver.volume, 0.0)
+                volume = self._get_value_or_default(self._receiver.receiver.volume, 0.0)
                 return self._update_state_and_create_return_value(volume), None
 
             if self._sensor_type == SensorType.VOLUME_ABSOLUTE:
@@ -294,99 +293,98 @@ class DenonSensor(Sensor, DenonEntity):
             if self._sensor_type == SensorType.SOUND_MODE:
                 # Prefer audio_sound as it works better with online music sources
                 sound_mode = self._get_value_or_default(
-                    self._receiver._receiver.audio_sound, update.get(AdditionalEventType.RAW_SOUND_MODE, "--")
+                    self._receiver.receiver.audio_sound, update.get(AdditionalEventType.RAW_SOUND_MODE, "--")
                 )
                 return self._update_state_and_create_return_value(sound_mode), None
 
             if self._sensor_type == SensorType.INPUT_SOURCE:
-                input_source = self._get_value_or_default(self._receiver._receiver.input_func, "--")
+                input_source = self._get_value_or_default(self._receiver.receiver.input_func, "--")
                 return self._update_state_and_create_return_value(input_source), None
 
             if self._sensor_type == SensorType.DIMMER:
-                dimmer_state = self._get_value_or_default(self._receiver._receiver.dimmer, "--")
+                dimmer_state = self._get_value_or_default(self._receiver.receiver.dimmer, "--")
                 return self._update_state_and_create_return_value(dimmer_state), None
 
             if self._sensor_type == SensorType.ECO_MODE:
-                eco_mode = self._get_value_or_default(self._receiver._receiver.eco_mode, "--")
+                eco_mode = self._get_value_or_default(self._receiver.receiver.eco_mode, "--")
                 return self._update_state_and_create_return_value(eco_mode), None
 
             if self._sensor_type == SensorType.SLEEP_TIMER:
-                sleep = update.get(AdditionalEventType.SLEEP_TIMER, self._receiver._receiver.sleep)
-                if sleep is not None:
-                    if isinstance(sleep, int):
-                        return self._update_state_and_create_return_value(sleep), "min"
+                sleep = update.get(AdditionalEventType.SLEEP_TIMER, self._receiver.receiver.sleep)
+                if isinstance(sleep, int):
+                    return self._update_state_and_create_return_value(sleep), "min"
                 return self._update_state_and_create_return_value("Off"), ""  # clear 'min' unit
 
             if self._sensor_type == SensorType.AUDIO_DELAY:
-                audio_delay = self._get_value_or_default(self._receiver._receiver.delay, 0)
+                audio_delay = self._get_value_or_default(self._receiver.receiver.delay, 0)
                 return self._update_state_and_create_return_value(audio_delay), None
 
             if self._sensor_type == SensorType.AUDIO_SIGNAL:
-                audio_signal = self._get_value_or_default(self._receiver._receiver.audio_signal, "--")
+                audio_signal = self._get_value_or_default(self._receiver.receiver.audio_signal, "--")
                 return self._update_state_and_create_return_value(audio_signal), None
 
             if self._sensor_type == SensorType.AUDIO_SAMPLING_RATE:
-                audio_sampling_rate = self._get_value_or_default(self._receiver._receiver.audio_sampling_rate, "--")
+                audio_sampling_rate = self._get_value_or_default(self._receiver.receiver.audio_sampling_rate, "--")
                 return self._update_state_and_create_return_value(audio_sampling_rate), None
 
             if self._sensor_type == SensorType.MUTE:
-                on_off = "on" if self._receiver._receiver.muted else "off"
+                on_off = "on" if self._receiver.receiver.muted else "off"
                 return self._update_state_and_create_return_value(on_off), None
 
             if self._sensor_type == SensorType.MONITOR_OUTPUT:
-                monitor_output = self._get_value_or_default(self._receiver._receiver.hdmi_output, "--")
+                monitor_output = self._get_value_or_default(self._receiver.receiver.hdmi_output, "--")
                 return self._update_state_and_create_return_value(monitor_output), None
 
             if self._sensor_type == SensorType.VIDEO_HDMI_SIGNAL_IN:
-                hdmi_in_signal = self._get_value_or_default(self._receiver._receiver.video_hdmi_signal_in, "--")
+                hdmi_in_signal = self._get_value_or_default(self._receiver.receiver.video_hdmi_signal_in, "--")
                 return self._update_state_and_create_return_value(hdmi_in_signal), None
 
             if self._sensor_type == SensorType.VIDEO_HDMI_SIGNAL_OUT:
-                hdmi_out_signal = self._get_value_or_default(self._receiver._receiver.video_hdmi_signal_out, "--")
+                hdmi_out_signal = self._get_value_or_default(self._receiver.receiver.video_hdmi_signal_out, "--")
                 return self._update_state_and_create_return_value(hdmi_out_signal), None
 
             if self._sensor_type == SensorType.INPUT_CHANNELS:
-                input_channels = self._get_value_or_default(self._receiver._receiver.input_channels, "--")
+                input_channels = self._get_value_or_default(self._receiver.receiver.input_channels, "--")
                 return self._update_state_and_create_return_value(input_channels), None
 
             if self._sensor_type == SensorType.OUTPUT_CHANNELS:
-                output_channels = self._get_value_or_default(self._receiver._receiver.output_channels, "--")
+                output_channels = self._get_value_or_default(self._receiver.receiver.output_channels, "--")
                 return self._update_state_and_create_return_value(output_channels), None
 
             if self._sensor_type == SensorType.MAX_RESOLUTION:
-                max_resolution = self._get_value_or_default(self._receiver._receiver.max_resolution, "--")
+                max_resolution = self._get_value_or_default(self._receiver.receiver.max_resolution, "--")
                 return self._update_state_and_create_return_value(max_resolution), None
 
             if self._sensor_type == SensorType.HDR_INPUT:
-                hdr_input = self._get_value_or_default(self._receiver._receiver.hdr_input, "--")
+                hdr_input = self._get_value_or_default(self._receiver.receiver.hdr_input, "--")
                 return self._update_state_and_create_return_value(hdr_input), None
 
             if self._sensor_type == SensorType.HDR_OUTPUT:
-                hdr_output = self._get_value_or_default(self._receiver._receiver.hdr_output, "--")
+                hdr_output = self._get_value_or_default(self._receiver.receiver.hdr_output, "--")
                 return self._update_state_and_create_return_value(hdr_output), None
 
             if self._sensor_type == SensorType.PIXEL_DEPTH_INPUT:
-                pixel_depth_input = self._get_value_or_default(self._receiver._receiver.pixel_depth_input, "--")
+                pixel_depth_input = self._get_value_or_default(self._receiver.receiver.pixel_depth_input, "--")
                 return self._update_state_and_create_return_value(pixel_depth_input), None
 
             if self._sensor_type == SensorType.PIXEL_DEPTH_OUTPUT:
-                pixel_depth_output = self._get_value_or_default(self._receiver._receiver.pixel_depth_output, "--")
+                pixel_depth_output = self._get_value_or_default(self._receiver.receiver.pixel_depth_output, "--")
                 return self._update_state_and_create_return_value(pixel_depth_output), None
 
             if self._sensor_type == SensorType.MAX_FRL_INPUT:
-                max_frl_input = self._get_value_or_default(self._receiver._receiver.max_frl_input, "--")
+                max_frl_input = self._get_value_or_default(self._receiver.receiver.max_frl_input, "--")
                 return self._update_state_and_create_return_value(max_frl_input), None
 
             if self._sensor_type == SensorType.MAX_FRL_OUTPUT:
-                max_frl_output = self._get_value_or_default(self._receiver._receiver.max_frl_output, "--")
+                max_frl_output = self._get_value_or_default(self._receiver.receiver.max_frl_output, "--")
                 return self._update_state_and_create_return_value(max_frl_output), None
 
             if self._sensor_type == SensorType.COLORSPACE_INPUT:
-                colorspace_input = self._get_value_or_default(self._receiver._receiver.colorspace_input, "--")
+                colorspace_input = self._get_value_or_default(self._receiver.receiver.colorspace_input, "--")
                 return self._update_state_and_create_return_value(colorspace_input), None
 
             if self._sensor_type == SensorType.COLORSPACE_OUTPUT:
-                colorspace_output = self._get_value_or_default(self._receiver._receiver.colorspace_output, "--")
+                colorspace_output = self._get_value_or_default(self._receiver.receiver.colorspace_output, "--")
                 return self._update_state_and_create_return_value(colorspace_output), None
 
         except Exception as ex:

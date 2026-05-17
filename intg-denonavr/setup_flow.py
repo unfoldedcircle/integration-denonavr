@@ -9,13 +9,7 @@ import asyncio
 import logging
 from enum import IntEnum
 
-import avr
-import config
-import discover
-from config import AvrDevice
 from denonavr.exceptions import AvrNetworkError, AvrTimoutError
-from i18n import __, _a, _am
-from receiver import ConnectDenonAVR
 from ucapi import (
     AbortDriverSetup,
     DriverSetupRequest,
@@ -27,6 +21,13 @@ from ucapi import (
     SetupError,
     UserDataResponse,
 )
+
+import avr
+import config
+import discover
+from config import AvrDevice
+from i18n import __, _a, _am
+from receiver import ConnectDenonAVR
 
 _LOG = logging.getLogger(__name__)
 
@@ -45,6 +46,13 @@ _setup_step = SetupSteps.INIT
 # pylint: disable=C0103
 _CFG_ADD_DEVICE: bool = False
 _RECONFIGURED_DEVICE: AvrDevice | None = None
+
+
+def _devices() -> config.Devices:
+    """Return the configured Devices instance, raising if not initialized."""
+    if config.devices is None:
+        raise RuntimeError("Device configuration is not initialized")
+    return config.devices
 
 
 def setup_data_schema():
@@ -183,14 +191,13 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
         _setup_step = SetupSteps.CONFIGURATION_MODE
 
         # get all configured devices for the user to choose from
-        dropdown_devices = []
-        for device in config.devices.all():
-            dropdown_devices.append(
-                {
-                    "id": device.id,
-                    "label": {"en": f"{device.name} ({device.id} - {device.address})"},
-                }
-            )
+        dropdown_devices = [
+            {
+                "id": device.id,
+                "label": {"en": f"{device.name} ({device.id} - {device.address})"},
+            }
+            for device in _devices().all()
+        ]
 
         # build user actions, based on available devices
         selected_action_index = 0
@@ -256,7 +263,7 @@ async def handle_driver_setup(msg: DriverSetupRequest) -> RequestUserInput | Set
         )
 
     # Initial setup, make sure we have a clean configuration
-    config.devices.clear()  # triggers device instance removal
+    _devices().clear()  # triggers device instance removal
     _setup_step = SetupSteps.DISCOVER
     return __user_input_discovery()
 
@@ -288,15 +295,15 @@ async def handle_configuration_mode(
             _CFG_ADD_DEVICE = True
         case "remove":
             choice = msg.input_values["choice"]
-            if not config.devices.remove(choice):
+            if not _devices().remove(choice):
                 _LOG.warning("Could not remove device from configuration: %s", choice)
                 return SetupError(error_type=IntegrationSetupError.OTHER)
-            config.devices.store()
+            _devices().store()
             return SetupComplete()
         case "configure":
             # Reconfigure device if the identifier has changed
             choice = msg.input_values["choice"]
-            selected_device = config.devices.get(choice)
+            selected_device = _devices().get(choice)
             if not selected_device:
                 _LOG.warning("Can not configure device from configuration: %s", choice)
                 return SetupError(error_type=IntegrationSetupError.OTHER)
@@ -306,10 +313,7 @@ async def handle_configuration_mode(
 
             show_all_inputs = selected_device.show_all_inputs if selected_device.show_all_inputs else False
             use_telnet = selected_device.use_telnet if selected_device.use_telnet else False
-            if use_telnet:
-                connection_mode = "use_telnet"
-            else:
-                connection_mode = "use_http"
+            connection_mode = "use_telnet" if use_telnet else "use_http"
             volume_step = selected_device.volume_step if selected_device.volume_step else 0.5
             timeout = selected_device.timeout if selected_device.timeout else 2000
             is_denon = selected_device.is_denon
@@ -355,7 +359,7 @@ async def handle_configuration_mode(
                 ],
             )
         case "reset":
-            config.devices.clear()  # triggers device instance removal
+            _devices().clear()  # triggers device instance removal
         case _:
             _LOG.error("Invalid configuration action: %s", action)
             return SetupError(error_type=IntegrationSetupError.OTHER)
@@ -396,7 +400,10 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
         try:
             await connect_denonavr.async_connect_receiver()
             receiver = connect_denonavr.receiver
-            existing = config.devices.get(receiver.serial_number)
+            if receiver is None or receiver.serial_number is None:
+                _LOG.error("Receiver not available for %s", address)
+                return SetupError(error_type=IntegrationSetupError.OTHER)
+            existing = _devices().get(receiver.serial_number)
             if _CFG_ADD_DEVICE and existing:
                 _LOG.warning("Manually specified device is already configured %s: %s", address, receiver.name)
                 # no better error code at the moment
@@ -421,7 +428,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             # not sure if the serial number is always available in the discovery data
             serial_number = a["serialNumber"]
             if serial_number:
-                existing = config.devices.get(serial_number)
+                existing = _devices().get(serial_number)
                 if _CFG_ADD_DEVICE and existing:
                     _LOG.info(
                         "Skipping found device '%s' %s: already configured",
@@ -436,10 +443,9 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
         return SetupError(error_type=IntegrationSetupError.NOT_FOUND)
 
     _setup_step = SetupSteps.DEVICE_CHOICE
-    if connect_denonavr is None:
-        _is_denon = True
-    else:
-        _is_denon = __is_denon_device(connect_denonavr.receiver.manufacturer)
+    connected_receiver = connect_denonavr.receiver if connect_denonavr else None
+    _is_denon = True if connected_receiver is None else __is_denon_device(connected_receiver.manufacturer)
+    is_dirac_supported = connected_receiver.dirac.is_dirac_supported if connected_receiver else False
     return RequestUserInput(
         _a("Please choose your Denon or Marantz AVR"),
         [
@@ -472,7 +478,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             __connection_mode_cfg("use_telnet"),
             __volume_cfg(1),
             __timeout_cfg(2000),
-            __is_dirac_supported_cfg(connect_denonavr.receiver.dirac.is_dirac_supported),
+            __is_dirac_supported_cfg(is_dirac_supported),
             __telnet_info(),
         ],
     )
@@ -526,7 +532,9 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         return SetupError(error_type=IntegrationSetupError.TIMEOUT)
 
     receiver = connect_denonavr.receiver
-    assert receiver
+    if receiver is None:
+        _LOG.error("Receiver instance not available for %s", host)
+        return SetupError(error_type=IntegrationSetupError.OTHER)
 
     if receiver.serial_number is None:
         _LOG.error("Could not get serial number of host %s: required to create a unique device", host)
@@ -534,9 +542,9 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
 
     device = AvrDevice(
         receiver.serial_number,
-        receiver.name,
+        receiver.name or "",
         host,
-        receiver.support_sound_mode,
+        receiver.support_sound_mode or False,
         show_all_inputs,
         use_telnet=use_telnet,
         update_audyssey=update_audyssey,
@@ -547,7 +555,7 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
         is_denon=__is_denon_device(receiver.manufacturer),
         is_dirac_supported=receiver.dirac.is_dirac_supported,
     )
-    config.devices.add_or_update(device)  # triggers DenonAVR instance creation
+    _devices().add_or_update(device)  # triggers DenonAVR instance creation
 
     # AVR device connection will be triggered with subscribe_entities request
 
@@ -566,10 +574,6 @@ async def _handle_device_reconfigure(
     :param msg: response data from the requested user data
     :return: the setup action on how to continue: SetupComplete after updating configuration
     """
-    # flake8: noqa:F824
-    # pylint: disable=W0602
-    global _RECONFIGURED_DEVICE
-
     if _RECONFIGURED_DEVICE is None:
         return SetupError()
 
@@ -591,7 +595,7 @@ async def _handle_device_reconfigure(
     _RECONFIGURED_DEVICE.volume_step = volume_step
     _RECONFIGURED_DEVICE.timeout = int(msg.input_values.get("timeout", 2000))
 
-    config.devices.update(_RECONFIGURED_DEVICE)  # triggers receiver instance update
+    _devices().update(_RECONFIGURED_DEVICE)  # triggers receiver instance update
     await asyncio.sleep(1)
     _LOG.info("Setup successfully completed for %s", _RECONFIGURED_DEVICE.name)
 

@@ -5,13 +5,12 @@ This module implements the Denon/Marantz AVR receiver communication of the Remot
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
 """
 
+from collections.abc import Awaitable, Callable
 from enum import Enum
-
-# pylint: disable=C0302
-from typing import Awaitable, Callable
 
 import denonavr
 import ucapi
+
 from command_constants import (
     AudysseyCommands,
     CoreCommands,
@@ -827,45 +826,45 @@ class SimpleCommand:
             case SoundModeCommands.IMAX_AUDIO_SETTINGS_TOGGLE:
                 await self._receiver.soundmode.async_imax_audio_settings_toggle()
             case SoundModeCommands.IMAX_HPF_40HZ:
-                await self._receiver.soundmode.async_imax_hpf("40")
+                await self._receiver.soundmode.async_imax_hpf(40)
             case SoundModeCommands.IMAX_HPF_60HZ:
-                await self._receiver.soundmode.async_imax_hpf("60")
+                await self._receiver.soundmode.async_imax_hpf(60)
             case SoundModeCommands.IMAX_HPF_80HZ:
-                await self._receiver.soundmode.async_imax_hpf("80")
+                await self._receiver.soundmode.async_imax_hpf(80)
             case SoundModeCommands.IMAX_HPF_90HZ:
-                await self._receiver.soundmode.async_imax_hpf("90")
+                await self._receiver.soundmode.async_imax_hpf(90)
             case SoundModeCommands.IMAX_HPF_100HZ:
-                await self._receiver.soundmode.async_imax_hpf("100")
+                await self._receiver.soundmode.async_imax_hpf(100)
             case SoundModeCommands.IMAX_HPF_110HZ:
-                await self._receiver.soundmode.async_imax_hpf("110")
+                await self._receiver.soundmode.async_imax_hpf(110)
             case SoundModeCommands.IMAX_HPF_120HZ:
-                await self._receiver.soundmode.async_imax_hpf("120")
+                await self._receiver.soundmode.async_imax_hpf(120)
             case SoundModeCommands.IMAX_HPF_150HZ:
-                await self._receiver.soundmode.async_imax_hpf("150")
+                await self._receiver.soundmode.async_imax_hpf(150)
             case SoundModeCommands.IMAX_HPF_180HZ:
-                await self._receiver.soundmode.async_imax_hpf("180")
+                await self._receiver.soundmode.async_imax_hpf(180)
             case SoundModeCommands.IMAX_HPF_200HZ:
-                await self._receiver.soundmode.async_imax_hpf("200")
+                await self._receiver.soundmode.async_imax_hpf(200)
             case SoundModeCommands.IMAX_HPF_250HZ:
-                await self._receiver.soundmode.async_imax_hpf("250")
+                await self._receiver.soundmode.async_imax_hpf(250)
             case SoundModeCommands.IMAX_LPF_80HZ:
-                await self._receiver.soundmode.async_imax_lpf("80")
+                await self._receiver.soundmode.async_imax_lpf(80)
             case SoundModeCommands.IMAX_LPF_90HZ:
-                await self._receiver.soundmode.async_imax_lpf("90")
+                await self._receiver.soundmode.async_imax_lpf(90)
             case SoundModeCommands.IMAX_LPF_100HZ:
-                await self._receiver.soundmode.async_imax_lpf("100")
+                await self._receiver.soundmode.async_imax_lpf(100)
             case SoundModeCommands.IMAX_LPF_110HZ:
-                await self._receiver.soundmode.async_imax_lpf("110")
+                await self._receiver.soundmode.async_imax_lpf(110)
             case SoundModeCommands.IMAX_LPF_120HZ:
-                await self._receiver.soundmode.async_imax_lpf("120")
+                await self._receiver.soundmode.async_imax_lpf(120)
             case SoundModeCommands.IMAX_LPF_150HZ:
-                await self._receiver.soundmode.async_imax_lpf("150")
+                await self._receiver.soundmode.async_imax_lpf(150)
             case SoundModeCommands.IMAX_LPF_180HZ:
-                await self._receiver.soundmode.async_imax_lpf("180")
+                await self._receiver.soundmode.async_imax_lpf(180)
             case SoundModeCommands.IMAX_LPF_200HZ:
-                await self._receiver.soundmode.async_imax_lpf("200")
+                await self._receiver.soundmode.async_imax_lpf(200)
             case SoundModeCommands.IMAX_LPF_250HZ:
-                await self._receiver.soundmode.async_imax_lpf("250")
+                await self._receiver.soundmode.async_imax_lpf(250)
             case SoundModeCommands.IMAX_SUBWOOFER_ON:
                 await self._receiver.soundmode.async_imax_subwoofer_mode("ON")
             case SoundModeCommands.IMAX_SUBWOOFER_OFF:

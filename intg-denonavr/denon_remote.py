@@ -6,11 +6,15 @@ Remote entity functions.
 """
 
 import logging
-from typing import Any
+from typing import Any, cast
+
+import ucapi.remote
+from ucapi import EntityTypes, IntegrationAPI, Remote, StatusCodes, media_player
+from ucapi.remote import Attributes, Commands, Features
+from ucapi.ui import Buttons, DeviceButtonMapping, UiPage
 
 import avr
 import helpers
-import ucapi.remote
 from command_constants import (
     AudysseyCommands,
     CoreCommands,
@@ -21,9 +25,6 @@ from command_constants import (
 from config import AvrDevice, create_entity_id
 from entities import DenonEntity
 from media_player import DenonMediaPlayer
-from ucapi import EntityTypes, IntegrationAPI, Remote, StatusCodes, media_player
-from ucapi.remote import Attributes, Commands, Features
-from ucapi.ui import Buttons
 
 # Mapping of an AVR state to a remote entity state
 REMOTE_STATE_MAPPING = {
@@ -58,8 +59,10 @@ class DenonRemote(Remote, DenonEntity):
                 Attributes.STATE: receiver.state,
             },
             simple_commands=self._denon_media_player.get_supported_commands(False),
-            button_mapping=REMOTE_BUTTONS_MAPPING,
-            ui_pages=DenonRemote._get_remote_ui_pages(device.is_denon),
+            button_mapping=cast("list[DeviceButtonMapping | dict[str, Any]] | None", REMOTE_BUTTONS_MAPPING),
+            ui_pages=cast(
+                "list[UiPage | dict[str, Any]] | None", DenonRemote._get_remote_ui_pages(device.is_denon)
+            ),
         )
         DenonEntity.__init__(self, api)
 
@@ -82,6 +85,8 @@ class DenonRemote(Remote, DenonEntity):
                 return await self._denon_media_player.command(Commands.OFF, websocket=websocket)
             case Commands.TOGGLE:
                 return await self._denon_media_player.command(Commands.TOGGLE, websocket=websocket)
+            case _:
+                pass
 
         if cmd_id.startswith("remote."):
             _LOG.error("Command %s is not allowed.", cmd_id)
@@ -107,7 +112,7 @@ class DenonRemote(Remote, DenonEntity):
                 return command_or_status
 
             success = True
-            for _ in range(0, repeat):
+            for _ in range(repeat):
                 success |= (
                     await self._denon_media_player.command(command_or_status, websocket=websocket) == StatusCodes.OK
                 )
@@ -119,7 +124,7 @@ class DenonRemote(Remote, DenonEntity):
         if cmd_id == Commands.SEND_CMD_SEQUENCE:
             success = True
             for command in params.get("sequence", []):
-                for _ in range(0, repeat):
+                for _ in range(repeat):
                     command_or_status = self._get_command_or_status_code(cmd_id, command)
                     if isinstance(command_or_status, StatusCodes):
                         success = False

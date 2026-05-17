@@ -8,10 +8,11 @@ Configuration handling of the integration driver.
 import dataclasses
 import json
 import logging
-import os
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from enum import Enum
-from typing import Iterator, Optional
+from enum import StrEnum
+from pathlib import Path
+from typing import Any
 
 from ucapi import EntityTypes
 
@@ -20,7 +21,7 @@ _LOG = logging.getLogger(__name__)
 _CFG_FILENAME = "config.json"
 
 
-def create_entity_id(avr_id: str, entity_type: EntityTypes, sub_type: Optional[str] = None) -> str:
+def create_entity_id(avr_id: str, entity_type: EntityTypes, sub_type: str | None = None) -> str:
     """Create a unique entity identifier for the given receiver and entity type."""
     # Warning: only works for a single media-player entity. Doesn't work for #21 multiple zones!
     #          Zone parameter will be required.
@@ -71,7 +72,7 @@ class AvrDevice:
     is_dirac_supported: bool | None
 
 
-class SensorType(str, Enum):
+class SensorType(StrEnum):
     """Sensor types for Denon AVR."""
 
     VOLUME_DB = "volume_db"
@@ -101,7 +102,7 @@ class SensorType(str, Enum):
     COLORSPACE_OUTPUT = "colorspace_output"
 
 
-class SelectType(str, Enum):
+class SelectType(StrEnum):
     """Select types for Denon AVR."""
 
     SOUND_MODE = "sound_mode"
@@ -115,7 +116,7 @@ class SelectType(str, Enum):
     DYNAMIC_VOLUME = "dynamic_volume"
 
 
-class AdditionalEventType(str, Enum):
+class AdditionalEventType(StrEnum):
     """Additional event types for the integration."""
 
     RAW_SOUND_MODE = "RAW_SOUND_MODE"
@@ -149,8 +150,8 @@ class AdditionalEventType(str, Enum):
 class _EnhancedJSONEncoder(json.JSONEncoder):
     """Python dataclass json encoder."""
 
-    def default(self, o):
-        if dataclasses.is_dataclass(o):
+    def default(self, o: Any) -> Any:
+        if dataclasses.is_dataclass(o) and not isinstance(o, type):
             return dataclasses.asdict(o)
         return super().default(o)
 
@@ -158,14 +159,19 @@ class _EnhancedJSONEncoder(json.JSONEncoder):
 class Devices:
     """Integration driver configuration class. Manages all configured Denon/Marantz devices."""
 
-    def __init__(self, data_path: str, add_handler, remove_handler):
+    def __init__(
+        self,
+        data_path: str,
+        add_handler: Callable[[AvrDevice], None] | None,
+        remove_handler: Callable[[AvrDevice | None], None] | None,
+    ) -> None:
         """
         Create a configuration instance for the given configuration path.
 
         :param data_path: configuration path for the configuration file and client device certificates.
         """
         self._data_path: str = data_path
-        self._cfg_file_path: str = os.path.join(data_path, _CFG_FILENAME)
+        self._cfg_file_path: Path = Path(data_path) / _CFG_FILENAME
         self._config: list[AvrDevice] = []
         self._add_handler = add_handler
         self._remove_handler = remove_handler
@@ -187,10 +193,7 @@ class Devices:
 
     def contains(self, avr_id: str) -> bool:
         """Check if there's a device with the given device identifier."""
-        for item in self._config:
-            if item.id == avr_id:
-                return True
-        return False
+        return any(item.id == avr_id for item in self._config)
 
     def add_or_update(self, avr: AvrDevice) -> None:
         """
@@ -254,8 +257,8 @@ class Devices:
         """Remove the configuration file."""
         self._config = []
 
-        if os.path.exists(self._cfg_file_path):
-            os.remove(self._cfg_file_path)
+        if self._cfg_file_path.exists():
+            self._cfg_file_path.unlink()
 
         if self._remove_handler is not None:
             self._remove_handler(None)
@@ -267,7 +270,7 @@ class Devices:
         :return: True if the configuration could be saved.
         """
         try:
-            with open(self._cfg_file_path, "w+", encoding="utf-8") as f:
+            with self._cfg_file_path.open("w+", encoding="utf-8") as f:
                 json.dump(self._config, f, ensure_ascii=False, cls=_EnhancedJSONEncoder)
             return True
         except OSError:
@@ -282,7 +285,7 @@ class Devices:
         :return: True if the configuration could be loaded.
         """
         try:
-            with open(self._cfg_file_path, "r", encoding="utf-8") as f:
+            with self._cfg_file_path.open(encoding="utf-8") as f:
                 data = json.load(f)
             needs_migration = False
             for item in data:

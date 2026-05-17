@@ -4,7 +4,6 @@ import simplecommand
 
 
 class TestSimpleCommandMappings(unittest.TestCase):
-
     class DummyDevice:
         def __init__(self, is_denon, use_telnet):
             self.is_denon = is_denon

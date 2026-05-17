@@ -11,6 +11,9 @@ import logging
 import os
 from typing import Any
 
+import ucapi
+from ucapi.media_player import Attributes as MediaAttr
+
 import avr
 import config
 import denon_remote
@@ -18,11 +21,9 @@ import denon_select
 import media_player
 import sensor
 import setup_flow
-import ucapi
 from config import AdditionalEventType, SensorType, avr_from_entity_id, create_entity_id
 from entities import DenonEntity
 from i18n import _a
-from ucapi.media_player import Attributes as MediaAttr
 
 _LOG = logging.getLogger("driver")  # avoid having __main__ in log messages
 _LOOP = asyncio.get_event_loop()
@@ -31,8 +32,18 @@ _LOOP = asyncio.get_event_loop()
 api = ucapi.IntegrationAPI(_LOOP)
 # Map of avr_id -> DenonAVR instance
 _configured_avrs: dict[str, avr.DenonDevice] = {}
+# Strong refs to fire-and-forget background tasks (prevent GC while running).
+_BG_TASKS: set[asyncio.Task[Any]] = set()
 # pylint: disable=C0103
 _REMOTE_IN_STANDBY = False
+
+
+def _spawn(coro: Any) -> asyncio.Task[Any]:
+    """Schedule coro on the event loop and retain a strong ref until done."""
+    task = _spawn(coro)
+    _BG_TASKS.add(task)
+    task.add_done_callback(_BG_TASKS.discard)
+    return task
 
 
 async def receiver_status_poller(interval: float = 10.0) -> None:
@@ -59,7 +70,7 @@ async def on_r2_connect_cmd() -> None:
     await api.set_device_state(ucapi.DeviceStates.CONNECTED)  # just to make sure the device state is set
     for receiver in _configured_avrs.values():
         # start background task
-        _LOOP.create_task(receiver.connect())
+        _spawn(receiver.connect())
 
 
 @api.listens_to(ucapi.Events.DISCONNECT)
@@ -67,7 +78,7 @@ async def on_r2_disconnect_cmd():
     """Disconnect all configured receivers when the Remote Two/3 sends the disconnect command."""
     for receiver in _configured_avrs.values():
         # start background task
-        _LOOP.create_task(receiver.disconnect())
+        _spawn(receiver.disconnect())
 
 
 @api.listens_to(ucapi.Events.ENTER_STANDBY)
@@ -99,7 +110,7 @@ async def on_r2_exit_standby() -> None:
 
     for configured in _configured_avrs.values():
         # start background task
-        _LOOP.create_task(configured.connect())
+        _spawn(configured.connect())
 
 
 @api.listens_to(ucapi.Events.SUBSCRIBE_ENTITIES)
@@ -116,6 +127,8 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
     # force an entity change event with the current state for all subscribed entities
     for entity_id in entity_ids:
         avr_id = avr_from_entity_id(entity_id)
+        if avr_id is None:
+            continue
         if avr_id in _configured_avrs:
             receiver = _configured_avrs[avr_id]
             configured_entity = api.configured_entities.get(entity_id)
@@ -127,6 +140,9 @@ async def on_subscribe_entities(entity_ids: list[str]) -> None:
                 configured_entity.update_attributes({ucapi.media_player.Attributes.STATE: state}, force=True)
             continue
 
+        if config.devices is None:
+            _LOG.error("Failed to subscribe entity %s: configuration not initialized", entity_id)
+            continue
         device = config.devices.get(avr_id)
         if device:
             _configure_new_avr(device, connect=True)
@@ -173,7 +189,7 @@ async def on_avr_connected(avr_id: str):
     await api.set_device_state(ucapi.DeviceStates.CONNECTED)  # just to make sure the device state is set
 
     # set the initial entity state to UNKNOWN, concrete state is set when updates are triggered / fetched
-    update = {MediaAttr.STATE: avr.States.UNKNOWN}
+    update: dict[str, Any] = {MediaAttr.STATE: avr.States.UNKNOWN}
     for entity in _configured_entities_from_device(avr_id):
         if isinstance(entity, DenonEntity):
             entity.update_attributes(update)
@@ -185,7 +201,7 @@ def on_avr_disconnected(avr_id: str):
     _mark_entities_unavailable(avr_id, force=True)
 
 
-def on_avr_connection_error(avr_id: str, message):
+def on_avr_connection_error(avr_id: str, message: str) -> None:
     """Set entities of AVR to state UNAVAILABLE if AVR connection error occurred."""
     _LOG.error(message)
     _mark_entities_unavailable(avr_id, force=False)
@@ -201,6 +217,8 @@ def _mark_entities_unavailable(avr_id: str, *, force: bool):
 
 def handle_avr_address_change(avr_id: str, address: str) -> None:
     """Update device configuration with changed IP address."""
+    if config.devices is None:
+        return
     device = config.devices.get(avr_id)
     if device and device.address != address:
         _LOG.info("Updating IP address of configured AVR %s: %s -> %s", avr_id, device.address, address)
@@ -300,7 +318,7 @@ def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> None:
     if device.id in _configured_avrs:
         receiver = _configured_avrs[device.id]
         if not connect:
-            _LOOP.create_task(receiver.disconnect())
+            _spawn(receiver.disconnect())
     else:
         receiver = avr.DenonDevice(device, loop=_LOOP)
 
@@ -314,7 +332,7 @@ def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> None:
 
     if connect:
         # start background connection task
-        _LOOP.create_task(receiver.connect())
+        _spawn(receiver.connect())
 
     _register_available_entities(device, receiver)
 
@@ -345,7 +363,7 @@ def _register_available_entities(device: config.AvrDevice, receiver: avr.DenonDe
 def on_device_added(device: config.AvrDevice) -> None:
     """Handle a newly added device in the configuration."""
     _LOG.debug("New device added: %s", device)
-    _LOOP.create_task(api.set_device_state(ucapi.DeviceStates.CONNECTED))  # just to make sure the device state is set
+    _spawn(api.set_device_state(ucapi.DeviceStates.CONNECTED))  # just to make sure the device state is set
     _configure_new_avr(device, connect=False)
 
 
@@ -354,18 +372,17 @@ def on_device_removed(device: config.AvrDevice | None) -> None:
     if device is None:
         _LOG.debug("Configuration cleared, disconnecting & removing all configured AVR instances")
         for configured in _configured_avrs.values():
-            _LOOP.create_task(_async_remove(configured))
+            _spawn(_async_remove(configured))
         _configured_avrs.clear()
         api.configured_entities.clear()
         api.available_entities.clear()
-    else:
-        if device.id in _configured_avrs:
-            _LOG.debug("Disconnecting from removed AVR %s", device.id)
-            configured = _configured_avrs.pop(device.id)
-            _LOOP.create_task(_async_remove(configured))
-            for entity_id in _entities_from_avr(configured.id):
-                api.configured_entities.remove(entity_id)
-                api.available_entities.remove(entity_id)
+    elif device.id in _configured_avrs:
+        _LOG.debug("Disconnecting from removed AVR %s", device.id)
+        configured = _configured_avrs.pop(device.id)
+        _spawn(_async_remove(configured))
+        for entity_id in _entities_from_avr(configured.id):
+            api.configured_entities.remove(entity_id)
+            api.available_entities.remove(entity_id)
 
 
 async def _async_remove(receiver: avr.DenonDevice) -> None:
@@ -392,7 +409,7 @@ def _configured_entities_from_device(avr_id: str) -> list[ucapi.Entity]:
 class JournaldFormatter(logging.Formatter):
     """Formatter for journald. Prefixes messages with priority level."""
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         """Format the log record with journald priority prefix."""
         # mapping of logging levels to journald priority levels
         # https://www.freedesktop.org/software/systemd/man/latest/sd-daemon.html#syslog-compatible-log-levels
@@ -440,14 +457,14 @@ async def main():
 
     # Note: this is useful when using telnet in case the connection is unhealthy
     # and changes are made from another source
-    _LOOP.create_task(receiver_status_poller())
+    _spawn(receiver_status_poller())
 
     await api.init("driver.json", setup_flow.driver_setup_handler)
 
     # temporary hack to change driver.json language texts until supported by the wrapper lib # pylint: disable=W0212
     # Attention: keep in sync with `custom_config.py`!
-    api._driver_info["description"] = _a("Control your Denon or Marantz AVRs with Remote Two/3.")
-    api._driver_info["setup_data_schema"] = setup_flow.setup_data_schema()  # pylint: disable=W0212
+    api._driver_info["description"] = _a("Control your Denon or Marantz AVRs with Remote Two/3.")  # pyright: ignore[reportPrivateUsage]
+    api._driver_info["setup_data_schema"] = setup_flow.setup_data_schema()  # pylint: disable=W0212  # pyright: ignore[reportPrivateUsage]
 
 
 if __name__ == "__main__":
