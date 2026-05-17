@@ -60,9 +60,7 @@ class DenonRemote(Remote, DenonEntity):
             },
             simple_commands=self._denon_media_player.get_supported_commands(False),
             button_mapping=cast("list[DeviceButtonMapping | dict[str, Any]] | None", REMOTE_BUTTONS_MAPPING),
-            ui_pages=cast(
-                "list[UiPage | dict[str, Any]] | None", DenonRemote._get_remote_ui_pages(device.is_denon)
-            ),
+            ui_pages=cast("list[UiPage | dict[str, Any]] | None", DenonRemote._get_remote_ui_pages(device.is_denon)),
         )
         DenonEntity.__init__(self, api)
 
