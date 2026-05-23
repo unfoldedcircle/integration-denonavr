@@ -285,14 +285,17 @@ class DiracCommands:
     DIRAC_LIVE_FILTER_SLOT3 = "DIRAC_LIVE_FILTER_SLOT3"
     DIRAC_LIVE_FILTER_OFF = "DIRAC_LIVE_FILTER_OFF"
 
+
 class ToneControlCommands:
     """Tone control commands for the Denon/Marantz AVR receiver."""
+
     ENABLE_TONE_CONTROL = "ENABLE_TONE_CONTROL"
     DISABLE_TONE_CONTROL = "DISABLE_TONE_CONTROL"
     BASS_UP = "BASS_UP"
     BASS_DOWN = "BASS_DOWN"
     TREBLE_UP = "TREBLE_UP"
     TREBLE_DOWN = "TREBLE_DOWN"
+
 
 class VolumeCommands:
     """Volume commands for the Denon/Marantz AVR receiver."""
