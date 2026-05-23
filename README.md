@@ -163,16 +163,49 @@ Note that the toggle commands only are available when using Telnet.
 | INPUT_HD_RADIO                                      | SIHDRADIO                   | All          |
 | HDMI_CEC_ON                                         | RCKSK0410826 / RCRC51608408 | All          |
 | HDMI_CEC_OFF                                        | RCKSK0410827 / RCRC51608409 | All          |
+| TACTILE_TRANSDUCER_ON                               | SSTTR ON                    | All          |
+| TACTILE_TRANSDUCER_OFF                              | SSTTR OFF                   | All          |
+| TACTILE_TRANSDUCER_TOGGLE                           | SSTTR ON/OFF                | All          |
+| TACTILE_TRANSDUCER_LEVEL_UP                         | SSTTRLEV UP                 | All          |
+| TACTILE_TRANSDUCER_LEVEL_DOWN                       | SSTTRLEV DOWN               | All          |
+| TACTILE_TRANSDUCER_LPF_40HZ                         | SSTTRLPF 040                | All          |
+| TACTILE_TRANSDUCER_LPF_60HZ                         | SSTTRLPF 060                | All          |
+| TACTILE_TRANSDUCER_LPF_80HZ                         | SSTTRLPF 080                | All          |
+| TACTILE_TRANSDUCER_LPF_90HZ                         | SSTTRLPF 090                | All          |
+| TACTILE_TRANSDUCER_LPF_100HZ                        | SSTTRLPF 100                | All          |
+| TACTILE_TRANSDUCER_LPF_110HZ                        | SSTTRLPF 110                | All          |
+| TACTILE_TRANSDUCER_LPF_120HZ                        | SSTTRLPF 120                | All          |
+| TACTILE_TRANSDUCER_LPF_150HZ                        | SSTTRLPF 150                | All          |
+| TACTILE_TRANSDUCER_LPF_180HZ                        | SSTTRLPF 180                | All          |
+| TACTILE_TRANSDUCER_LPF_200HZ                        | SSTTRLPF 200                | All          |
+| TACTILE_TRANSDUCER_LPF_220HZ                        | SSTTRLPF 220                | All          |
+| ROOM_SIZE_SMALL                                     | PSRSZ S                     | All          |
+| ROOM_SIZE_MEDIUM_SMALL                              | PSRSZ MS                    | All          |
+| ROOM_SIZE_MEDIUM                                    | PSRSZ M                     | All          |
+| ROOM_SIZE_MEDIUM_LARGE                              | PSRSZ ML                    | All          |
+| ROOM_SIZE_LARGE                                     | PSRSZ L                     | All          |
+| PAGE_UP                                             | RCKSK0410945 / RCRC52708105 | All          |
+| PAGE_DOWN                                           | RCKSK0410946 / RCRC52708005 | All          |
 | QUICK_SELECT_1                                      | MSQUICK1                    | Denon        |
 | QUICK_SELECT_2                                      | MSQUICK2                    | Denon        |
 | QUICK_SELECT_3                                      | MSQUICK3                    | Denon        |
 | QUICK_SELECT_4                                      | MSQUICK4                    | Denon        |
 | QUICK_SELECT_5                                      | MSQUICK5                    | Denon        |
+| QUICK_SELECT_MEMORY_1                               | MSQUICK1 MEMORY             | Denon        |
+| QUICK_SELECT_MEMORY_2                               | MSQUICK2 MEMORY             | Denon        |
+| QUICK_SELECT_MEMORY_3                               | MSQUICK3 MEMORY             | Denon        |
+| QUICK_SELECT_MEMORY_4                               | MSQUICK4 MEMORY             | Denon        |
+| QUICK_SELECT_MEMORY_5                               | MSQUICK5 MEMORY             | Denon        |
 | SMART_SELECT_1                                      | MSSMART1                    | Marantz      |
 | SMART_SELECT_2                                      | MSSMART2                    | Marantz      |
 | SMART_SELECT_3                                      | MSSMART3                    | Marantz      |
 | SMART_SELECT_4                                      | MSSMART4                    | Marantz      |
 | SMART_SELECT_5                                      | MSSMART5                    | Marantz      |
+| SMART_SELECT_MEMORY_1                               | MSSMART1 MEMORY             | Marantz      |
+| SMART_SELECT_MEMORY_2                               | MSSMART2 MEMORY             | Marantz      |
+| SMART_SELECT_MEMORY_3                               | MSSMART3 MEMORY             | Marantz      |
+| SMART_SELECT_MEMORY_4                               | MSSMART4 MEMORY             | Marantz      |
+| SMART_SELECT_MEMORY_5                               | MSSMART5 MEMORY             | Marantz      |
 | ILLUMINATION_AUTO                                   | ILB AUTO                    | Marantz      |
 | ILLUMINATION_BRIGHT                                 | ILB BRI                     | Marantz      |
 | ILLUMINATION_DIM                                    | ILB DIM                     | Marantz      |
@@ -368,10 +401,20 @@ Note that the toggle commands only are available when using Telnet.
 | DYNAMIC_VOLUME_HEAVY                                | PSDYNVOL HEV                | All          |
 | CONTAINMENT_AMOUNT_UP                               | PSCNTAMT UP                 | All          |
 | CONTAINMENT_AMOUNT_DOWN                             | PSCNTAMT DOWN               | All          |
+| REFERENCE_LEVEL_OFFSET_0DB                          | PSREFLEV 0                  | All          |
+| REFERENCE_LEVEL_OFFSET_5DB                          | PSREFLEV 5                  | All          |
+| REFERENCE_LEVEL_OFFSET_10DB                         | PSREFLEV 10                 | All          |
+| REFERENCE_LEVEL_OFFSET_15DB                         | PSREFLEV 15                 | All          |
 | DIRAC_LIVE_FILTER_SLOT1                             | PSDIRAC 1                   | All          |
 | DIRAC_LIVE_FILTER_SLOT2                             | PSDIRAC 2                   | All          |
 | DIRAC_LIVE_FILTER_SLOT3                             | PSDIRAC 3                   | All          |
 | DIRAC_LIVE_FILTER_OFF                               | PSDIRAC OFF                 | All          |
+| ENABLE_TONE_CONTROL                                 | PSTONE CTRL ON              | All          |
+| DISABLE_TONE_CONTROL                                | PSTONE CTRL OFF             | All          |
+| BASS_UP                                             | PSBAS UP                    | All          |
+| BASSDOWN                                            | PSBAS DOWN                  | All          |
+| TREBLE_UP                                           | PSTRE UP                    | All          |
+| TREBLE_DOWN                                         | PSTRE DOWN                  | All          |
 
 ## Known supported devices
 
