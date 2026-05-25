@@ -6,7 +6,7 @@ Sensor entity functions.
 """
 
 import logging
-from typing import Any, ClassVar
+from typing import Any, ClassVar, assert_never
 
 from typing_extensions import override
 from ucapi import EntityTypes, IntegrationAPI, Sensor
@@ -242,6 +242,8 @@ class DenonSensor(Sensor, DenonEntity):
                     "name": f"{device.name} Colorspace Output",
                     "device_class": DeviceClasses.CUSTOM,
                 }
+            case _:
+                assert_never(sensor_type)
         return sensor
 
     @override

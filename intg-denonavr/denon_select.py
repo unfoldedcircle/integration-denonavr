@@ -6,7 +6,7 @@ Select entity functions.
 """
 
 import logging
-from typing import Any, ClassVar, get_args
+from typing import Any, ClassVar, assert_never, get_args
 
 from denonavr.const import (
     DimmerModes,
@@ -345,6 +345,8 @@ class DenonSelect(Select, DenonEntity):
                     create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DYNAMIC_VOLUME.value),
                     f"{device.name} Dynamic Volume",
                 )
+            case _:
+                assert_never(select_type)
 
     # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access, too-many-locals
     # pylint: disable=too-many-statements
