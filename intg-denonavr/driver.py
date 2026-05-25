@@ -12,6 +12,7 @@ import os
 from typing import Any
 
 import ucapi
+from typing_extensions import override
 from ucapi.media_player import Attributes as MediaAttr
 
 import avr
@@ -169,8 +170,7 @@ async def on_unsubscribe_entities(entity_ids: list[str]) -> None:
         avr_id = avr_from_entity_id(entity_id)
         if avr_id is None:
             continue
-        if avr_id in avrs_to_remove:
-            avrs_to_remove.remove(avr_id)
+        avrs_to_remove.discard(avr_id)
 
     for avr_id in avrs_to_remove:
         if avr_id in _configured_avrs:
@@ -305,7 +305,7 @@ def _entities_from_avr(avr_id: str) -> list[str]:
     return avr_entities
 
 
-def _configure_new_avr(device: config.AvrDevice, connect: bool = True) -> None:
+def _configure_new_avr(device: config.AvrDevice, *, connect: bool = True) -> None:
     """
     Create and configure a new AVR device.
 
@@ -409,6 +409,7 @@ def _configured_entities_from_device(avr_id: str) -> list[ucapi.Entity]:
 class JournaldFormatter(logging.Formatter):
     """Formatter for journald. Prefixes messages with priority level."""
 
+    @override
     def format(self, record: logging.LogRecord) -> str:
         """Format the log record with journald priority prefix."""
         # mapping of logging levels to journald priority levels
@@ -461,14 +462,13 @@ async def main():
 
     await api.init("driver.json", setup_flow.driver_setup_handler)
 
-    # temporary hack to change driver.json language texts until supported by the wrapper lib # pylint: disable=W0212
+    # temporary hack to change driver.json language texts until supported by the wrapper lib
     # Attention: keep in sync with `custom_config.py`!
     # pylint: disable=W0212
-    # pyright: ignore[reportPrivateUsage]
-    api._driver_info["description"] = _a(  # pyright: ignore[reportPrivateUsage]
+    api._driver_info["description"] = _a(  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
         "Control your Denon or Marantz AVRs with Remote Two/3."
     )
-    api._driver_info["setup_data_schema"] = setup_flow.setup_data_schema()  # pyright: ignore[reportPrivateUsage]
+    api._driver_info["setup_data_schema"] = setup_flow.setup_data_schema()  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
 
 
 if __name__ == "__main__":

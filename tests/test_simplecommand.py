@@ -22,7 +22,7 @@ class TestSimpleCommandMappings(unittest.TestCase):
         for cmd in commands:
             protocol, dtype = self.get_command_info(cmd)
             assert dtype in {simplecommand.DeviceType.ALL, simplecommand.DeviceType.DENON}
-            assert protocol in {simplecommand.DeviceProtocol.ALL}
+            assert protocol == simplecommand.DeviceProtocol.ALL
             if dtype == simplecommand.DeviceType.DENON:
                 denon_specific_found = True
             if dtype == simplecommand.DeviceType.MARANTZ:
@@ -39,7 +39,7 @@ class TestSimpleCommandMappings(unittest.TestCase):
         for cmd in commands:
             protocol, dtype = self.get_command_info(cmd)
             assert dtype in {simplecommand.DeviceType.ALL, simplecommand.DeviceType.MARANTZ}
-            assert protocol in {simplecommand.DeviceProtocol.ALL}
+            assert protocol == simplecommand.DeviceProtocol.ALL
             if dtype == simplecommand.DeviceType.MARANTZ:
                 marantz_specific_found = True
             if dtype == simplecommand.DeviceType.DENON:

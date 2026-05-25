@@ -8,6 +8,7 @@ Sensor entity functions.
 import logging
 from typing import Any, ClassVar
 
+from typing_extensions import override
 from ucapi import EntityTypes, IntegrationAPI, Sensor
 from ucapi.media_player import Attributes as MediaAttr
 from ucapi.sensor import Attributes, DeviceClasses, Options, States
@@ -59,6 +60,7 @@ class DenonSensor(Sensor, DenonEntity):
         )
         DenonEntity.__init__(self, api)
 
+    @override
     def state_from_avr(self, avr_state: avr.States) -> States:
         """
         Convert AVR state to UC API sensor state.
@@ -240,10 +242,9 @@ class DenonSensor(Sensor, DenonEntity):
                     "name": f"{device.name} Colorspace Output",
                     "device_class": DeviceClasses.CUSTOM,
                 }
-            case _:
-                raise ValueError(f"Unsupported sensor type: {sensor_type}")
         return sensor
 
+    @override
     def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
         """
         Filter the given attributes from an AVR update and return only the changed values.
@@ -387,7 +388,7 @@ class DenonSensor(Sensor, DenonEntity):
                 colorspace_output = self._get_value_or_default(self._receiver.receiver.colorspace_output, "--")
                 return self._update_state_and_create_return_value(colorspace_output), None
 
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             _LOG.warning("Error getting sensor value for %s: %s", self._sensor_type.value, ex)
             return None, None
 

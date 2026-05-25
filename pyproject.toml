@@ -28,6 +28,19 @@ select = [
     "PIE",    # flake8-pie
     "A",      # flake8-builtins
     "ARG",    # flake8-unused-arguments
+    "BLE",    # flake8-blind-except
+    "DTZ",    # flake8-datetimez
+    "ISC",    # flake8-implicit-str-concat
+    "FLY",    # flynt
+    "FURB",   # refurb
+    "RSE",    # flake8-raise
+    "T20",    # flake8-print
+    "INP",    # flake8-no-pep420
+    "TCH",    # flake8-type-checking
+    "EM",     # flake8-errmsg
+    "SLF",    # flake8-self
+    "TID",    # flake8-tidy-imports
+    "FBT",    # flake8-boolean-trap
 ]
 ignore = [
     "D203",    # one-blank-line-before-class (conflicts with D211)
@@ -40,10 +53,12 @@ ignore = [
     "PLW0603", # global-statement (mirrors existing pylint disable)
     "TRY003",  # raise-vanilla-args (very noisy)
     "TRY300",  # try-consider-else (noisy)
+    # Conflicts with pyright reportImplicitStringConcatenation; we prefer explicit `+`.
+    "ISC003",
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "D", "ARG", "PLR2004", "N802"]
+"tests/**" = ["S101", "D", "ARG", "PLR2004", "N802", "SLF001"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "pep257"
@@ -89,3 +104,11 @@ reportUnknownParameterType = false
 reportUnknownLambdaType = false
 # Module-level state vars use UPPER_CASE by convention. Mutable globals not constants.
 reportConstantRedefinition = false
+reportPrivateImportUsage = false
+reportImplicitOverride = "error"
+reportUnnecessaryTypeIgnoreComment = "error"
+reportImplicitStringConcatenation = "error"
+deprecateTypingAliases = true
+reportUninitializedInstanceVariable = "error"
+reportPropertyTypeMismatch = "error"
+reportCallInDefaultInitializer = "warning"

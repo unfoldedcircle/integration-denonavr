@@ -51,7 +51,8 @@ _RECONFIGURED_DEVICE: AvrDevice | None = None
 def _devices() -> config.Devices:
     """Return the configured Devices instance, raising if not initialized."""
     if config.devices is None:
-        raise RuntimeError("Device configuration is not initialized")
+        msg = "Device configuration is not initialized"
+        raise RuntimeError(msg)
     return config.devices
 
 
@@ -122,7 +123,7 @@ def __telnet_info():
             "label": {
                 "value": _a(
                     "Using telnet provides realtime updates for many values but "
-                    "certain receivers allow a single connection only!"
+                    + "certain receivers allow a single connection only!"
                 )
             }
         },
@@ -311,11 +312,11 @@ async def handle_configuration_mode(
             _setup_step = SetupSteps.RECONFIGURE
             _RECONFIGURED_DEVICE = selected_device
 
-            show_all_inputs = selected_device.show_all_inputs if selected_device.show_all_inputs else False
-            use_telnet = selected_device.use_telnet if selected_device.use_telnet else False
+            show_all_inputs = selected_device.show_all_inputs or False
+            use_telnet = selected_device.use_telnet or False
             connection_mode = "use_telnet" if use_telnet else "use_http"
-            volume_step = selected_device.volume_step if selected_device.volume_step else 0.5
-            timeout = selected_device.timeout if selected_device.timeout else 2000
+            volume_step = selected_device.volume_step or 0.5
+            timeout = selected_device.timeout or 2000
             is_denon = selected_device.is_denon
             is_dirac_supported = selected_device.is_dirac_supported
 
@@ -351,12 +352,12 @@ async def handle_configuration_mode(
             return RequestUserInput(
                 _a("Configure your AVR"),
                 [
-                    __show_all_inputs_cfg(show_all_inputs),
-                    __manufacturer_cfg(is_denon),
+                    __show_all_inputs_cfg(enabled=show_all_inputs),
+                    __manufacturer_cfg(is_denon=is_denon),
                     __connection_mode_cfg(connection_mode),
                     __volume_cfg(volume_step),
                     __timeout_cfg(timeout),
-                    __is_dirac_supported_cfg(is_dirac_supported),
+                    __is_dirac_supported_cfg(is_supported=is_dirac_supported),
                     __telnet_info(),
                 ],
             )
@@ -458,8 +459,8 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
                 "id": "choice",
                 "label": _a("Choose your Denon or Marantz AVR"),
             },
-            __show_all_inputs_cfg(False),
-            __manufacturer_cfg(_is_denon),
+            __show_all_inputs_cfg(enabled=False),
+            __manufacturer_cfg(is_denon=_is_denon),
             # TODO #21 support multiple zones
             # {
             #     "id": "zone2",
@@ -482,7 +483,7 @@ async def _handle_discovery(msg: UserDataResponse) -> RequestUserInput | SetupEr
             __connection_mode_cfg("use_telnet"),
             __volume_cfg(1),
             __timeout_cfg(2000),
-            __is_dirac_supported_cfg(is_dirac_supported),
+            __is_dirac_supported_cfg(is_supported=is_dirac_supported),
             __telnet_info(),
         ],
     )
@@ -519,9 +520,9 @@ async def handle_device_choice(msg: UserDataResponse) -> SetupComplete | SetupEr
     connect_denonavr = ConnectDenonAVR(
         host,
         avr.SETUP_TIMEOUT,
-        show_all_inputs,
-        zone2,
-        zone3,
+        show_all_inputs=show_all_inputs,
+        zone2=zone2,
+        zone3=zone3,
         use_telnet=False,  # always False, connection only used to retrieve model information
         update_audyssey=False,  # always False, connection only used to retrieve model information
     )
@@ -609,7 +610,7 @@ async def _handle_device_reconfigure(
     return SetupComplete()
 
 
-def __show_all_inputs_cfg(enabled: bool):
+def __show_all_inputs_cfg(*, enabled: bool):
     return {
         "id": "show_all_inputs",
         "label": _a("Show all sources"),
@@ -617,7 +618,7 @@ def __show_all_inputs_cfg(enabled: bool):
     }
 
 
-def __manufacturer_cfg(is_denon: bool):
+def __manufacturer_cfg(*, is_denon: bool):
     return {
         "id": "manufacturer",
         "label": _a("Select manufacturer"),
@@ -695,7 +696,7 @@ def __is_denon_device(manufacturer: str | None) -> bool:
     return bool(manufacturer and manufacturer.lower().startswith("denon"))
 
 
-def __is_dirac_supported_cfg(is_supported: bool | None):
+def __is_dirac_supported_cfg(*, is_supported: bool | None):
     return {
         "id": "is_dirac_supported",
         "label": _a("Device supports Dirac"),

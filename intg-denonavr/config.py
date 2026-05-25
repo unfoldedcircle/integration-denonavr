@@ -14,6 +14,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from typing_extensions import override
 from ucapi import EntityTypes
 
 _LOG = logging.getLogger(__name__)
@@ -150,6 +151,7 @@ class AdditionalEventType(StrEnum):
 class _EnhancedJSONEncoder(json.JSONEncoder):
     """Python dataclass json encoder."""
 
+    @override
     def default(self, o: Any) -> Any:
         if dataclasses.is_dataclass(o) and not isinstance(o, type):
             return dataclasses.asdict(o)

@@ -24,6 +24,7 @@ class ConnectDenonAVR:
         self,
         host: str,
         timeout: int,
+        *,
         show_all_inputs: bool,
         zone2: bool,
         zone3: bool,
@@ -63,7 +64,8 @@ class ConnectDenonAVR:
         """Connect to the Denon/Marantz AVR receiver."""
         await self.async_init_receiver_class()
         if self._receiver is None:
-            raise RuntimeError("Receiver instance was not initialized")
+            msg = "Receiver instance was not initialized"
+            raise RuntimeError(msg)
 
         if (
             self._receiver.manufacturer is None

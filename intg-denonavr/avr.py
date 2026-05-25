@@ -602,7 +602,7 @@ class DenonDevice:
             backoff = 0.1
         _LOG.error(
             "Cannot connect to '%s' on %s, trying again in %.1fs (connect: %.1fs). %s",
-            self.id if self.id else self._name,
+            self.id or self._name,
             self.host,
             backoff,
             connect_duration,
@@ -620,7 +620,7 @@ class DenonDevice:
                 if item["friendlyName"] == self._name and self.host != item["host"]:
                     _LOG.info("IP address of '%s' changed: %s", self._name, item["host"])
                     # pylint: disable=W0212 # seems to be the only way
-                    self._receiver._host = item["host"]  # pyright: ignore[reportPrivateUsage]
+                    self._receiver._host = item["host"]  # noqa: SLF001
                     self.events.emit(Events.IP_ADDRESS_CHANGED, self.id, self.host)
                     break
         else:
@@ -666,7 +666,7 @@ class DenonDevice:
         return States.UNKNOWN
 
     @async_handle_denonlib_errors
-    async def async_update_receiver_data(self, force: bool = False) -> None:
+    async def async_update_receiver_data(self, *, force: bool = False) -> None:
         """
         Get the latest status information from device.
 
@@ -1028,7 +1028,7 @@ class DenonDevice:
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
-    async def mute(self, muted: bool) -> ucapi.StatusCodes:
+    async def mute(self, *, muted: bool) -> ucapi.StatusCodes:
         """Send mute command to AVR."""
         _LOG.debug("[%s] Sending mute: %s", self.id, muted)
         await self._receiver.async_mute(muted)
@@ -1160,7 +1160,7 @@ class DenonDevice:
             url = AVR_COMMAND_URL + "?" + parse.quote(cmd)
             # HACK only _receiver.async_get_command(url) is exposed which returns the body content
             # pylint: disable=protected-access
-            res = await self._receiver._device.api.async_get(url)  # pyright: ignore[reportPrivateUsage]
+            res = await self._receiver._device.api.async_get(url)  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
             if res.is_client_error:
                 _LOG.error(
                     "Request for '%s' failed with is_client_error. Status code: %s. Content: '%s'",

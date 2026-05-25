@@ -8,6 +8,7 @@ Media-player entity functions.
 import logging
 from typing import Any
 
+from typing_extensions import override
 from ucapi import EntityTypes, IntegrationAPI, MediaPlayer, StatusCodes
 from ucapi.media_player import (
     Attributes,
@@ -102,12 +103,13 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
         )
         DenonEntity.__init__(self, api)
 
+    @override
     async def command(
         self,
         cmd_id: str,
         params: dict[str, Any] | None = None,
         *,
-        websocket: Any,  # noqa: ARG002
+        websocket: Any,
     ) -> StatusCodes:
         """
         Media-player entity command handler.
@@ -142,9 +144,9 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
             case Commands.MUTE_TOGGLE:
                 return await self._receiver.mute_toggle()
             case Commands.MUTE:
-                return await self._receiver.mute(True)
+                return await self._receiver.mute(muted=True)
             case Commands.UNMUTE:
-                return await self._receiver.mute(False)
+                return await self._receiver.mute(muted=False)
             case Commands.ON:
                 return await self._receiver.power_on()
             case Commands.OFF:
@@ -180,7 +182,7 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
             case _:
                 return await self._receiver.send_simple_command(cmd_id)
 
-    def get_supported_commands(self, include_power_state_commands: bool) -> list[str]:
+    def get_supported_commands(self, *, include_power_state_commands: bool) -> list[str]:
         """
         Get the list of supported commands for this media-player entity.
 
@@ -214,6 +216,7 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
             *simplecommand.get_simple_commands(self._device),
         ]
 
+    @override
     def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
         """
         Filter the given attributes and return only the changed values.
@@ -268,6 +271,7 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
 
         return attributes
 
+    @override
     def state_from_avr(self, avr_state: avr.States) -> States:
         """
         Convert AVR state to UC API media-player state.
