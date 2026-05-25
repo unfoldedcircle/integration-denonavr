@@ -11,6 +11,13 @@ _Changes in the next release_
 
 ---
 
+## v0.16.0 - 2026-05-23
+### Added
+- Support for Tactile Transducer, Room Size, Page Up/Down, Quick/Smart Select Memory, Reference Level Offset and Tone Control by @henrikwidlund ([#203](https://github.com/unfoldedcircle/integration-denonavr/pull/203)).
+
+### Changed
+- Update ucapi to 0.7.0 ([#201](https://github.com/unfoldedcircle/integration-denonavr/pull/201)).
+
 ## v0.15.2 - 2026-05-11
 ### Fixed
 - Create a valid driver.json file in the custom driver archive with custom driver_id and name ([#200](https://github.com/unfoldedcircle/integration-denonavr/pull/200)).

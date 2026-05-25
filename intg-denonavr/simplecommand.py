@@ -16,6 +16,7 @@ from command_constants import (
     CoreCommands,
     DiracCommands,
     SoundModeCommands,
+    ToneControlCommands,
     VolumeCommands,
 )
 from config import AvrDevice
@@ -114,6 +115,29 @@ CORE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     CoreCommands.INPUT_HD_RADIO: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.HDMI_CEC_ON: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.HDMI_CEC_OFF: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_ON: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_OFF: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_TOGGLE: (DeviceProtocol.TELNET, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LEVEL_UP: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LEVEL_DOWN: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_40HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_60HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_80HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_90HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_100HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_110HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_120HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_150HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_180HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_200HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.TACTILE_TRANSDUCER_LPF_250HZ: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ROOM_SIZE_SMALL: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ROOM_SIZE_MEDIUM_SMALL: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ROOM_SIZE_MEDIUM: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ROOM_SIZE_MEDIUM_LARGE: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ROOM_SIZE_LARGE: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.PAGE_UP: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.PAGE_DOWN: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.SPEAKER_PRESET_TOGGLE: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.BT_TRANSMITTER_TOGGLE: (DeviceProtocol.TELNET, DeviceType.ALL),
     CoreCommands.BT_OUTPUT_MODE_TOGGLE: (DeviceProtocol.TELNET, DeviceType.ALL),
@@ -124,12 +148,22 @@ CORE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     CoreCommands.QUICK_SELECT_3: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_4: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_5: (DeviceProtocol.ALL, DeviceType.DENON),
+    CoreCommands.QUICK_SELECT_MEMORY_1: (DeviceProtocol.ALL, DeviceType.DENON),
+    CoreCommands.QUICK_SELECT_MEMORY_2: (DeviceProtocol.ALL, DeviceType.DENON),
+    CoreCommands.QUICK_SELECT_MEMORY_3: (DeviceProtocol.ALL, DeviceType.DENON),
+    CoreCommands.QUICK_SELECT_MEMORY_4: (DeviceProtocol.ALL, DeviceType.DENON),
+    CoreCommands.QUICK_SELECT_MEMORY_5: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.STATUS: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.SMART_SELECT_1: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_2: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_3: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_4: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_5: (DeviceProtocol.ALL, DeviceType.MARANTZ),
+    CoreCommands.SMART_SELECT_MEMORY_1: (DeviceProtocol.ALL, DeviceType.MARANTZ),
+    CoreCommands.SMART_SELECT_MEMORY_2: (DeviceProtocol.ALL, DeviceType.MARANTZ),
+    CoreCommands.SMART_SELECT_MEMORY_3: (DeviceProtocol.ALL, DeviceType.MARANTZ),
+    CoreCommands.SMART_SELECT_MEMORY_4: (DeviceProtocol.ALL, DeviceType.MARANTZ),
+    CoreCommands.SMART_SELECT_MEMORY_5: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.ILLUMINATION_AUTO: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.ILLUMINATION_BRIGHT: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.ILLUMINATION_DIM: (DeviceProtocol.ALL, DeviceType.MARANTZ),
@@ -251,6 +285,10 @@ AUDYSSEY_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     AudysseyCommands.DYNAMIC_VOLUME_HEAVY: (DeviceProtocol.ALL, DeviceType.ALL),
     AudysseyCommands.CONTAINMENT_AMOUNT_UP: (DeviceProtocol.ALL, DeviceType.ALL),
     AudysseyCommands.CONTAINMENT_AMOUNT_DOWN: (DeviceProtocol.ALL, DeviceType.ALL),
+    AudysseyCommands.REFERENCE_LEVEL_OFFSET_0DB: (DeviceProtocol.ALL, DeviceType.ALL),
+    AudysseyCommands.REFERENCE_LEVEL_OFFSET_5DB: (DeviceProtocol.ALL, DeviceType.ALL),
+    AudysseyCommands.REFERENCE_LEVEL_OFFSET_10DB: (DeviceProtocol.ALL, DeviceType.ALL),
+    AudysseyCommands.REFERENCE_LEVEL_OFFSET_15DB: (DeviceProtocol.ALL, DeviceType.ALL),
 }
 
 DIRAC_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
@@ -258,6 +296,15 @@ DIRAC_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     DiracCommands.DIRAC_LIVE_FILTER_SLOT2: (DeviceProtocol.ALL, DeviceType.ALL),
     DiracCommands.DIRAC_LIVE_FILTER_SLOT3: (DeviceProtocol.ALL, DeviceType.ALL),
     DiracCommands.DIRAC_LIVE_FILTER_OFF: (DeviceProtocol.ALL, DeviceType.ALL),
+}
+
+TONE_CONTROL_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
+    ToneControlCommands.ENABLE_TONE_CONTROL: (DeviceProtocol.ALL, DeviceType.ALL),
+    ToneControlCommands.DISABLE_TONE_CONTROL: (DeviceProtocol.ALL, DeviceType.ALL),
+    ToneControlCommands.BASS_UP: (DeviceProtocol.ALL, DeviceType.ALL),
+    ToneControlCommands.BASS_DOWN: (DeviceProtocol.ALL, DeviceType.ALL),
+    ToneControlCommands.TREBLE_UP: (DeviceProtocol.ALL, DeviceType.ALL),
+    ToneControlCommands.TREBLE_DOWN: (DeviceProtocol.ALL, DeviceType.ALL),
 }
 
 VOLUME_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
@@ -350,6 +397,7 @@ ALL_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     **SOUND_MODE_COMMANDS,
     **AUDYSSEY_COMMANDS,
     **DIRAC_COMMANDS,
+    **TONE_CONTROL_COMMANDS,
     **VOLUME_COMMANDS,
 }
 
@@ -385,6 +433,8 @@ class SimpleCommand:
         # pylint: disable=R0911
         if cmd in CORE_COMMANDS:
             return await self._handle_core_command(cmd)
+        if cmd in TONE_CONTROL_COMMANDS:
+            return await self._handle_tone_control_command(cmd)
         if cmd in VOLUME_COMMANDS:
             return await self._handle_volume_command(cmd)
         if cmd in SOUND_MODE_COMMANDS:
@@ -581,6 +631,52 @@ class SimpleCommand:
                 await self._receiver.async_hdmi_cec_on()
             case CoreCommands.HDMI_CEC_OFF:
                 await self._receiver.async_hdmi_cec_off()
+            case CoreCommands.TACTILE_TRANSDUCER_ON:
+                await self._receiver.async_tactile_transducer_on()
+            case CoreCommands.TACTILE_TRANSDUCER_OFF:
+                await self._receiver.async_tactile_transducer_off()
+            case CoreCommands.TACTILE_TRANSDUCER_TOGGLE:
+                await self._receiver.async_tactile_transducer_toggle()
+            case CoreCommands.TACTILE_TRANSDUCER_LEVEL_UP:
+                await self._receiver.async_tactile_transducer_level_up()
+            case CoreCommands.TACTILE_TRANSDUCER_LEVEL_DOWN:
+                await self._receiver.async_tactile_transducer_level_down()
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_40HZ:
+                await self._receiver.async_transducer_lpf("40 Hz")
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_60HZ:
+                await self._receiver.async_transducer_lpf("60 Hz")
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_80HZ:
+                await self._receiver.async_transducer_lpf("80 Hz")
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_90HZ:
+                await self._receiver.async_transducer_lpf("90 Hz")
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_100HZ:
+                await self._receiver.async_transducer_lpf("100 Hz")
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_110HZ:
+                await self._receiver.async_transducer_lpf("110 Hz")
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_120HZ:
+                await self._receiver.async_transducer_lpf("120 Hz")
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_150HZ:
+                await self._receiver.async_transducer_lpf("150 Hz")
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_180HZ:
+                await self._receiver.async_transducer_lpf("180 Hz")
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_200HZ:
+                await self._receiver.async_transducer_lpf("200 Hz")
+            case CoreCommands.TACTILE_TRANSDUCER_LPF_250HZ:
+                await self._receiver.async_transducer_lpf("250 Hz")
+            case CoreCommands.ROOM_SIZE_SMALL:
+                await self._receiver.async_room_size("S")
+            case CoreCommands.ROOM_SIZE_MEDIUM_SMALL:
+                await self._receiver.async_room_size("MS")
+            case CoreCommands.ROOM_SIZE_MEDIUM:
+                await self._receiver.async_room_size("M")
+            case CoreCommands.ROOM_SIZE_MEDIUM_LARGE:
+                await self._receiver.async_room_size("ML")
+            case CoreCommands.ROOM_SIZE_LARGE:
+                await self._receiver.async_room_size("L")
+            case CoreCommands.PAGE_UP:
+                await self._receiver.async_page_up()
+            case CoreCommands.PAGE_DOWN:
+                await self._receiver.async_page_down()
             case CoreCommands.ILLUMINATION_AUTO:
                 await self._receiver.async_illumination("Auto")
             case CoreCommands.ILLUMINATION_BRIGHT:
@@ -605,6 +701,28 @@ class SimpleCommand:
                 await self._receiver.async_input_mode("Digital")
             case CoreCommands.INPUT_MODE_ANALOG:
                 await self._receiver.async_input_mode("Analog")
+            case _:
+                return ucapi.StatusCodes.NOT_IMPLEMENTED
+
+        return ucapi.StatusCodes.OK
+
+    async def _handle_tone_control_command(self, cmd: str) -> ucapi.StatusCodes:
+        if not self._receiver.support_tone_control:
+            return ucapi.StatusCodes.NOT_IMPLEMENTED
+
+        match cmd:
+            case ToneControlCommands.ENABLE_TONE_CONTROL:
+                await self._receiver.tonecontrol.async_enable_tone_control()
+            case ToneControlCommands.DISABLE_TONE_CONTROL:
+                await self._receiver.tonecontrol.async_disable_tone_control()
+            case ToneControlCommands.BASS_UP:
+                await self._receiver.tonecontrol.async_bass_up()
+            case ToneControlCommands.BASS_DOWN:
+                await self._receiver.tonecontrol.async_bass_down()
+            case ToneControlCommands.TREBLE_UP:
+                await self._receiver.tonecontrol.async_treble_up()
+            case ToneControlCommands.TREBLE_DOWN:
+                await self._receiver.tonecontrol.async_treble_down()
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
@@ -1007,6 +1125,14 @@ class SimpleCommand:
                 await self._receiver.audyssey.async_containment_amount_up()
             case AudysseyCommands.CONTAINMENT_AMOUNT_DOWN:
                 await self._receiver.audyssey.async_containment_amount_down()
+            case AudysseyCommands.REFERENCE_LEVEL_OFFSET_0DB:
+                await self._receiver.audyssey.async_set_reflevoffset("0dB")
+            case AudysseyCommands.REFERENCE_LEVEL_OFFSET_5DB:
+                await self._receiver.audyssey.async_set_reflevoffset("+5dB")
+            case AudysseyCommands.REFERENCE_LEVEL_OFFSET_10DB:
+                await self._receiver.audyssey.async_set_reflevoffset("+10dB")
+            case AudysseyCommands.REFERENCE_LEVEL_OFFSET_15DB:
+                await self._receiver.audyssey.async_set_reflevoffset("+15dB")
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
