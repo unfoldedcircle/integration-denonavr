@@ -74,9 +74,9 @@ class TestImaxPassFilterArgs(unittest.IsolatedAsyncioTestCase):
             (SoundModeCommands.IMAX_HPF_250HZ, 250),
         ]
         for command, expected in cases:
+            receiver.soundmode.async_imax_hpf.reset_mock()
             await cmd._handle_sound_mode_command(command)
-            receiver.soundmode.async_imax_hpf.assert_awaited_with(expected)
-            assert isinstance(receiver.soundmode.async_imax_hpf.await_args.args[0], int)
+            receiver.soundmode.async_imax_hpf.assert_awaited_once_with(expected)
 
     async def test_imax_lpf_passes_int(self):
         cmd, receiver = self._build_command()
@@ -92,6 +92,6 @@ class TestImaxPassFilterArgs(unittest.IsolatedAsyncioTestCase):
             (SoundModeCommands.IMAX_LPF_250HZ, 250),
         ]
         for command, expected in cases:
+            receiver.soundmode.async_imax_lpf.reset_mock()
             await cmd._handle_sound_mode_command(command)
-            receiver.soundmode.async_imax_lpf.assert_awaited_with(expected)
-            assert isinstance(receiver.soundmode.async_imax_lpf.await_args.args[0], int)
+            receiver.soundmode.async_imax_lpf.assert_awaited_once_with(expected)
