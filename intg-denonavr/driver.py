@@ -43,7 +43,17 @@ def _spawn(coro: Any) -> asyncio.Task[Any]:
     """Schedule coro on the event loop and retain a strong ref until done."""
     task = _LOOP.create_task(coro)
     _BG_TASKS.add(task)
-    task.add_done_callback(_BG_TASKS.discard)
+
+    def _on_done(t: asyncio.Task[Any]) -> None:
+        _BG_TASKS.discard(t)
+        try:
+            exc = t.exception()
+        except asyncio.CancelledError:
+            return
+        if exc is not None:
+            _LOG.error("Background task failed", exc_info=(type(exc), exc, exc.__traceback__))
+
+    task.add_done_callback(_on_done)
     return task
 
 
