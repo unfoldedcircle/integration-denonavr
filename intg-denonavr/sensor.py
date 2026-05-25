@@ -276,7 +276,7 @@ class DenonSensor(Sensor, DenonEntity):
         """Get the current value and unit for this sensor type."""
         if self._receiver.receiver.state == "off":
             # If receiver is turned off, clear stored sensor state
-            if update.get(MediaAttr.STATE):
+            if MediaAttr.STATE in update:
                 self.SensorStates.pop(self._sensor_state_key, None)
             if self._sensor_type == SensorType.MUTE:
                 # mute sensor is binary and doesn't support "--"

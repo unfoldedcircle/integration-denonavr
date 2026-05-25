@@ -354,7 +354,7 @@ class DenonSelect(Select, DenonEntity):
         """Get the current value and unit for this select type."""
         if self._receiver.receiver.state == "off":
             # If receiver is turned off, clear stored select state
-            if update.get(MediaAttr.STATE):
+            if MediaAttr.STATE in update:
                 self.SelectStates.pop(self._select_state_key, None)
             offline_options = (
                 self._receiver.source_list if self._select_type == SelectType.INPUT_SOURCE else [_EMPTY_VALUE]
