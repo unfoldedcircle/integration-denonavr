@@ -15,7 +15,9 @@ from command_constants import (
     AudysseyCommands,
     CoreCommands,
     DiracCommands,
+    PictureModeCommands,
     SoundModeCommands,
+    TunerCommands,
     VolumeCommands,
 )
 from config import AvrDevice, create_entity_id
@@ -193,6 +195,7 @@ class DenonRemote(Remote, DenonEntity):
         return [
             DenonRemote._get_main_page(),
             DenonRemote._get_sound_modes_page(),
+            DenonRemote._get_sound_tweaks_page(),
             DenonRemote._get_standby_page(),
             DenonRemote._get_triggers_page(),
             DenonRemote._get_dirac_page(),
@@ -201,6 +204,10 @@ class DenonRemote(Remote, DenonEntity):
             DenonRemote._get_eco_page(),
             DenonRemote._get_inputs_page(),
             DenonRemote._get_quick_select_page(is_denon),
+            DenonRemote._get_tuner_page(),
+            DenonRemote._get_picture_mode_page(),
+            DenonRemote._get_sleep_timer_page(),
+            DenonRemote._get_zone_favorites_page(),
         ]
 
     @staticmethod
@@ -302,7 +309,7 @@ class DenonRemote(Remote, DenonEntity):
         return {
             "page_id": "denon_avr_commands_sound_modes",
             "name": "Sound Modes",
-            "grid": {"height": 7, "width": 4},
+            "grid": {"height": 8, "width": 4},
             "items": [
                 {
                     "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_AUTO},
@@ -315,7 +322,7 @@ class DenonRemote(Remote, DenonEntity):
                     "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_DOLBY_DIGITAL},
                     "location": {"x": 2, "y": 0},
                     "size": {"height": 1, "width": 2},
-                    "text": "Dolby",
+                    "text": "Dolby Digital",
                     "type": "text",
                 },
                 {
@@ -350,68 +357,68 @@ class DenonRemote(Remote, DenonEntity):
                     "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_MCH_STEREO},
                     "location": {"x": 0, "y": 3},
                     "size": {"height": 1, "width": 2},
-                    "text": "Multi Channel Stereo",
-                    "type": "text",
-                },
-                {
-                    "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_AURO3D},
-                    "location": {"x": 2, "y": 2},
-                    "size": {"height": 1, "width": 2},
-                    "text": "Auro-3D",
-                    "type": "text",
-                },
-                {
-                    "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_MCH_STEREO},
-                    "location": {"x": 0, "y": 3},
-                    "size": {"height": 1, "width": 2},
-                    "text": "Multi Channel Stereo",
+                    "text": "MCH Stereo",
                     "type": "text",
                 },
                 {
                     "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_AURO2DSURR},
                     "location": {"x": 2, "y": 3},
                     "size": {"height": 1, "width": 2},
-                    "text": "Auro-2D Surround",
+                    "text": "Auro-2D Surr",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_DOLBY_SURROUND},
+                    "location": {"x": 0, "y": 4},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Dolby Surround",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_NEURAL_X},
+                    "location": {"x": 2, "y": 4},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Neural:X",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_MULTI_CH_IN},
+                    "location": {"x": 0, "y": 5},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Multi CH In",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_STEREO},
+                    "location": {"x": 2, "y": 5},
+                    "size": {"height": 1, "width": 2},
+                    "text": "Stereo",
                     "type": "text",
                 },
                 {
                     "command": {"cmd_id": SoundModeCommands.SOUND_MODE_IMAX_AUTO},
-                    "location": {"x": 0, "y": 4},
+                    "location": {"x": 0, "y": 6},
                     "size": {"height": 1, "width": 2},
                     "text": "IMAX Auto",
                     "type": "text",
                 },
                 {
-                    "command": {"cmd_id": SoundModeCommands.SOUND_MODE_NEURAL_X_ON},
-                    "location": {"x": 2, "y": 4},
-                    "size": {"height": 1, "width": 2},
-                    "text": "Neural X On",
-                    "type": "text",
-                },
-                {
                     "command": {"cmd_id": SoundModeCommands.SOUND_MODE_IMAX_OFF},
-                    "location": {"x": 0, "y": 5},
+                    "location": {"x": 2, "y": 6},
                     "size": {"height": 1, "width": 2},
                     "text": "IMAX Off",
                     "type": "text",
                 },
                 {
-                    "command": {"cmd_id": SoundModeCommands.SOUND_MODE_NEURAL_X_OFF},
-                    "location": {"x": 2, "y": 5},
-                    "size": {"height": 1, "width": 2},
-                    "text": "Neural X Off",
-                    "type": "text",
-                },
-                {
                     "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_PREVIOUS},
-                    "location": {"x": 0, "y": 6},
+                    "location": {"x": 0, "y": 7},
                     "size": {"height": 1, "width": 2},
                     "text": "Previous",
                     "type": "text",
                 },
                 {
                     "command": {"cmd_id": SoundModeCommands.SURROUND_MODE_NEXT},
-                    "location": {"x": 2, "y": 6},
+                    "location": {"x": 2, "y": 7},
                     "size": {"height": 1, "width": 2},
                     "text": "Next",
                     "type": "text",
@@ -988,44 +995,382 @@ class DenonRemote(Remote, DenonEntity):
 
     @staticmethod
     def _get_quick_select_page(is_denon: bool):
+        label = "Quick Select" if is_denon else "Smart Select"
         return {
             "page_id": "denon_avr_commands_quick_select",
-            "name": "Quick Select" if is_denon else "Smart Select",
-            "grid": {"height": 5, "width": 1},
+            "name": label,
+            "grid": {"height": 6, "width": 1},
             "items": [
                 {
                     "command": {"cmd_id": CoreCommands.QUICK_SELECT_1 if is_denon else CoreCommands.SMART_SELECT_1},
                     "location": {"x": 0, "y": 0},
                     "size": {"height": 1, "width": 1},
-                    "text": "Quick Select 1" if is_denon else "Smart Select 1",
+                    "text": f"{label} 1",
                     "type": "text",
                 },
                 {
                     "command": {"cmd_id": CoreCommands.QUICK_SELECT_2 if is_denon else CoreCommands.SMART_SELECT_2},
                     "location": {"x": 0, "y": 1},
                     "size": {"height": 1, "width": 1},
-                    "text": "Quick Select 2" if is_denon else "Smart Select 2",
+                    "text": f"{label} 2",
                     "type": "text",
                 },
                 {
                     "command": {"cmd_id": CoreCommands.QUICK_SELECT_3 if is_denon else CoreCommands.SMART_SELECT_3},
                     "location": {"x": 0, "y": 2},
                     "size": {"height": 1, "width": 1},
-                    "text": "Quick Select 3" if is_denon else "Smart Select 3",
+                    "text": f"{label} 3",
                     "type": "text",
                 },
                 {
                     "command": {"cmd_id": CoreCommands.QUICK_SELECT_4 if is_denon else CoreCommands.SMART_SELECT_4},
                     "location": {"x": 0, "y": 3},
                     "size": {"height": 1, "width": 1},
-                    "text": "Quick Select 4" if is_denon else "Smart Select 4",
+                    "text": f"{label} 4",
                     "type": "text",
                 },
                 {
                     "command": {"cmd_id": CoreCommands.QUICK_SELECT_5 if is_denon else CoreCommands.SMART_SELECT_5},
                     "location": {"x": 0, "y": 4},
                     "size": {"height": 1, "width": 1},
-                    "text": "Quick Select 5" if is_denon else "Smart Select 5",
+                    "text": f"{label} 5",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.QUICK_SELECT_6 if is_denon else CoreCommands.SMART_SELECT_6},
+                    "location": {"x": 0, "y": 5},
+                    "size": {"height": 1, "width": 1},
+                    "text": f"{label} 6",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_tuner_page():
+        return {
+            "page_id": "denon_avr_commands_tuner",
+            "name": "Tuner",
+            "grid": {"height": 4, "width": 2},
+            "items": [
+                {
+                    "command": {"cmd_id": TunerCommands.TUNER_BAND_FM},
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "FM",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": TunerCommands.TUNER_BAND_AM},
+                    "location": {"x": 1, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "AM",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": TunerCommands.TUNER_FREQUENCY_DOWN},
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Freq Down",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": TunerCommands.TUNER_FREQUENCY_UP},
+                    "location": {"x": 1, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Freq Up",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": TunerCommands.TUNER_PRESET_DOWN},
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Preset Down",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": TunerCommands.TUNER_PRESET_UP},
+                    "location": {"x": 1, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Preset Up",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": TunerCommands.TUNER_MODE_AUTO},
+                    "location": {"x": 0, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Auto Tune",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": TunerCommands.TUNER_MODE_MANUAL},
+                    "location": {"x": 1, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Manual Tune",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_picture_mode_page():
+        return {
+            "page_id": "denon_avr_commands_picture_mode",
+            "name": "Picture Mode",
+            "grid": {"height": 3, "width": 3},
+            "items": [
+                {
+                    "command": {"cmd_id": PictureModeCommands.PICTURE_MODE_MOVIE},
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Movie",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": PictureModeCommands.PICTURE_MODE_GAME},
+                    "location": {"x": 1, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Game",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": PictureModeCommands.PICTURE_MODE_VIVID},
+                    "location": {"x": 2, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Vivid",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": PictureModeCommands.PICTURE_MODE_STREAM},
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Stream",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": PictureModeCommands.PICTURE_MODE_BRILLIANT},
+                    "location": {"x": 1, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Brilliant",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": PictureModeCommands.PICTURE_MODE_CUSTOM},
+                    "location": {"x": 2, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Custom",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": PictureModeCommands.PICTURE_MODE_ISF_DAY},
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "ISF Day",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": PictureModeCommands.PICTURE_MODE_ISF_NIGHT},
+                    "location": {"x": 1, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "ISF Night",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": PictureModeCommands.PICTURE_MODE_OFF},
+                    "location": {"x": 2, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Off",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_sleep_timer_page():
+        return {
+            "page_id": "denon_avr_commands_sleep_timer",
+            "name": "Sleep Timer",
+            "grid": {"height": 5, "width": 1},
+            "items": [
+                {
+                    "command": {"cmd_id": CoreCommands.SLEEP_TIMER_OFF},
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Sleep Off",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.SLEEP_TIMER_30MIN},
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Sleep 30 min",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.SLEEP_TIMER_60MIN},
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Sleep 60 min",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.SLEEP_TIMER_90MIN},
+                    "location": {"x": 0, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Sleep 90 min",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.SLEEP_TIMER_120MIN},
+                    "location": {"x": 0, "y": 4},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Sleep 120 min",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_sound_tweaks_page():
+        return {
+            "page_id": "denon_avr_commands_sound_tweaks",
+            "name": "Sound Tweaks",
+            "grid": {"height": 6, "width": 2},
+            "items": [
+                {
+                    "command": {"cmd_id": SoundModeCommands.PANORAMA_ON},
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Panorama On",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.PANORAMA_OFF},
+                    "location": {"x": 1, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Panorama Off",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.DIMENSION_DOWN},
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dimension Down",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.DIMENSION_UP},
+                    "location": {"x": 1, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Dimension Up",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.CENTER_WIDTH_DOWN},
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Center Width Down",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.CENTER_WIDTH_UP},
+                    "location": {"x": 1, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Center Width Up",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.SURROUND_LEVEL_COMP_OFF},
+                    "location": {"x": 0, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. Lvl Off",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.SURROUND_LEVEL_COMP_LIGHT},
+                    "location": {"x": 1, "y": 3},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. Lvl Light",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.SURROUND_LEVEL_COMP_MEDIUM},
+                    "location": {"x": 0, "y": 4},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. Lvl Medium",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": SoundModeCommands.SURROUND_LEVEL_COMP_HEAVY},
+                    "location": {"x": 1, "y": 4},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Surr. Lvl Heavy",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.ALL_ZONE_STEREO_ON},
+                    "location": {"x": 0, "y": 5},
+                    "size": {"height": 1, "width": 1},
+                    "text": "All Zone St. On",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.ALL_ZONE_STEREO_OFF},
+                    "location": {"x": 1, "y": 5},
+                    "size": {"height": 1, "width": 1},
+                    "text": "All Zone St. Off",
+                    "type": "text",
+                },
+            ],
+        }
+
+    @staticmethod
+    def _get_zone_favorites_page():
+        return {
+            "page_id": "denon_avr_commands_zone_favorites",
+            "name": "Zone Favorites",
+            "grid": {"height": 3, "width": 2},
+            "items": [
+                {
+                    "command": {"cmd_id": CoreCommands.ZONE_FAVORITE_1},
+                    "location": {"x": 0, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Favorite 1",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.ZONE_FAVORITE_MEMORY_1},
+                    "location": {"x": 1, "y": 0},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Save Fav 1",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.ZONE_FAVORITE_2},
+                    "location": {"x": 0, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Favorite 2",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.ZONE_FAVORITE_MEMORY_2},
+                    "location": {"x": 1, "y": 1},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Save Fav 2",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.ZONE_FAVORITE_3},
+                    "location": {"x": 0, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Favorite 3",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.ZONE_FAVORITE_MEMORY_3},
+                    "location": {"x": 1, "y": 2},
+                    "size": {"height": 1, "width": 1},
+                    "text": "Save Fav 3",
                     "type": "text",
                 },
             ],
