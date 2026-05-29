@@ -6,13 +6,14 @@ Denon/Marantz AVR device discovery with SSDP.
 """
 
 import logging
+from typing import Any
 
 import denonavr
 
 _LOG = logging.getLogger(__name__)
 
 
-async def denon_avrs() -> list[dict]:
+async def denon_avrs() -> list[dict[str, Any]]:
     """
     Discover Denon/Marantz AVRs on the network with SSDP.
 
@@ -34,6 +35,6 @@ async def denon_avrs() -> list[dict]:
         _LOG.info("Found AVR(s): %s", avrs)
 
         return avrs
-    except Exception as ex:  # pylint: disable=broad-exception-caught
-        _LOG.error("Failed to start discovery: %s", ex)
+    except Exception:  # noqa: BLE001  # pylint: disable=broad-exception-caught
+        _LOG.exception("Failed to start discovery")
         return []

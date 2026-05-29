@@ -11,7 +11,7 @@ on:
       - 'test-requirements.txt'
       - 'tests/**'
       - '.github/**/*.yml'
-      - '.pylintrc'
+      - 'pyproject.toml'
   pull_request:
     branches: [ main ]
     types: [ opened, synchronize, reopened ]
@@ -31,31 +31,27 @@ jobs:
     name: Check Python code formatting
     steps:
       - uses: actions/checkout@v6
-        with:
-          submodules: recursive
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
-      - name: Install pip
+      - name: Create virtual environment
         run: |
-          python -m pip install --upgrade pip
+          python -m venv .venv
 
       - name: Install dependencies
         run: |
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f test-requirements.txt ]; then pip install -r test-requirements.txt; fi
-      - name: Analyzing the code with pylint
+          .venv/bin/python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then .venv/bin/pip install -r requirements.txt; fi
+          if [ -f test-requirements.txt ]; then .venv/bin/pip install -r test-requirements.txt; fi
+      - name: Lint with ruff
         run: |
-          PYTHONPATH=. python -m pylint intg-denonavr
-      - name: Lint with flake8
+          .venv/bin/python -m ruff check intg-denonavr tests
+      - name: Check code formatting with ruff
         run: |
-          PYTHONPATH=. python -m flake8 intg-denonavr --count --show-source --statistics
-      - name: Check code formatting with isort
+          .venv/bin/python -m ruff format --check intg-denonavr tests
+      - name: Type check with pyright
         run: |
-          PYTHONPATH=. python -m isort intg-denonavr/. --check --verbose
-      - name: Check code formatting with black
-        run: |
-          PYTHONPATH=. python -m black intg-denonavr --check --verbose --line-length 120
+          .venv/bin/python -m pyright

@@ -6,11 +6,8 @@ Select entity functions.
 """
 
 import logging
-from typing import Any, get_args
+from typing import Any, ClassVar, assert_never, get_args
 
-import avr
-import helpers
-from config import AvrDevice, SelectType, create_entity_id
 from denonavr.const import (
     DimmerModes,
     DiracFilters,
@@ -19,10 +16,15 @@ from denonavr.const import (
     HDMIOutputs,
     ReferenceLevelOffsets,
 )
-from entities import DenonEntity
+from typing_extensions import override
 from ucapi import EntityTypes, IntegrationAPI, Select, StatusCodes
 from ucapi.media_player import Attributes as MediaAttr
 from ucapi.select import Attributes, States
+
+import avr
+import helpers
+from config import AvrDevice, SelectType, create_entity_id
+from entities import DenonEntity
 
 _LOG = logging.getLogger(__name__)
 
@@ -78,10 +80,17 @@ class DenonSelect(Select, DenonEntity):
         )
         DenonEntity.__init__(self, api)
 
-    SelectStates: dict[str, Any] = {}
+    SelectStates: ClassVar[dict[str, Any]] = {}
 
     # pylint: disable=too-many-return-statements, too-many-branches
-    async def command(self, cmd_id: str, params: dict[str, Any] | None = None, *, websocket: Any) -> StatusCodes:
+    @override
+    async def command(
+        self,
+        cmd_id: str,
+        params: dict[str, Any] | None = None,
+        *,
+        websocket: Any,
+    ) -> StatusCodes:
         """
         Select entity command handler.
 
@@ -94,7 +103,7 @@ class DenonSelect(Select, DenonEntity):
         :return: status code of the command request
         """
         # Skip commands that can't be processed when receiver is off
-        if self._receiver._receiver.state == "off" and self._select_type != SelectType.INPUT_SOURCE:
+        if self._receiver.receiver.state == "off" and self._select_type != SelectType.INPUT_SOURCE:
             _LOG.info("Skipping command for select %s because receiver is off", self._select_type)
             return StatusCodes.OK
 
@@ -118,6 +127,7 @@ class DenonSelect(Select, DenonEntity):
         _LOG.warning("Unknown command %s", cmd_id)
         return StatusCodes.BAD_REQUEST
 
+    @override
     def state_from_avr(self, avr_state: avr.States) -> States:
         """
         Convert AVR state to UC API select state.
@@ -127,6 +137,7 @@ class DenonSelect(Select, DenonEntity):
         """
         return SELECT_STATE_MAPPING.get(avr_state, States.UNKNOWN)
 
+    @override
     def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
         """
         Filter the given attributes from an AVR update and return only the changed values.
@@ -146,9 +157,7 @@ class DenonSelect(Select, DenonEntity):
         current_option, options = self._get_select_value(update)
 
         attributes = helpers.key_update_helper(Attributes.CURRENT_OPTION, current_option, attributes, self.attributes)
-        attributes = helpers.key_update_helper(Attributes.OPTIONS, options, attributes, self.attributes)
-
-        return attributes
+        return helpers.key_update_helper(Attributes.OPTIONS, options, attributes, self.attributes)
 
     async def _handle_option_command(self, option: Any) -> StatusCodes:
         try:
@@ -158,27 +167,27 @@ class DenonSelect(Select, DenonEntity):
                 case SelectType.INPUT_SOURCE:
                     await self._receiver.select_source(option)
                 case SelectType.DIMMER:
-                    await self._receiver._receiver.async_dimmer(option)
+                    await self._receiver.receiver.async_dimmer(option)
                 case SelectType.ECO_MODE:
-                    await self._receiver._receiver.async_eco_mode(option)
+                    await self._receiver.receiver.async_eco_mode(option)
                 case SelectType.MONITOR_OUTPUT:
-                    await self._receiver._receiver.async_hdmi_output(option)
+                    await self._receiver.receiver.async_hdmi_output(option)
                 case SelectType.DIRAC_FILTER:
-                    await self._receiver._receiver.dirac.async_dirac_filter(option)
+                    await self._receiver.receiver.dirac.async_dirac_filter(option)
                 case SelectType.SPEAKER_PRESET:
-                    await self._receiver._receiver.async_speaker_preset(int(option))
+                    await self._receiver.receiver.async_speaker_preset(int(option))
                 case SelectType.REFERENCE_LEVEL_OFFSET:
-                    await self._receiver._receiver.async_set_reflevoffset(option)
+                    await self._receiver.receiver.async_set_reflevoffset(option)
                 case SelectType.DYNAMIC_VOLUME:
-                    await self._receiver._receiver.async_set_dynamicvol(option)
+                    await self._receiver.receiver.async_set_dynamicvol(option)
 
             return StatusCodes.OK
 
-        except Exception as ex:  # pylint: disable=broad-exception-caught
-            _LOG.error("Error executing select command for %s: %s", self._select_type.value, ex)
+        except Exception:  # noqa: BLE001  # pylint: disable=broad-exception-caught
+            _LOG.exception("Error executing select command for %s", self._select_type.value)
             return StatusCodes.SERVER_ERROR
 
-    async def _handle_first_last_command(self, use_first: bool) -> StatusCodes:
+    async def _handle_first_last_command(self, *, use_first: bool) -> StatusCodes:
         index = 0 if use_first else -1
         try:
             match self._select_type:
@@ -187,32 +196,32 @@ class DenonSelect(Select, DenonEntity):
                 case SelectType.INPUT_SOURCE:
                     await self._receiver.select_source(self._receiver.source_list[index])
                 case SelectType.DIMMER:
-                    await self._receiver._receiver.async_dimmer(_dimmer_modes[index])
+                    await self._receiver.receiver.async_dimmer(_dimmer_modes[index])
                 case SelectType.ECO_MODE:
-                    await self._receiver._receiver.async_eco_mode(_eco_modes[index])
+                    await self._receiver.receiver.async_eco_mode(_eco_modes[index])
                 case SelectType.MONITOR_OUTPUT:
-                    await self._receiver._receiver.async_hdmi_output(_hdmi_outputs[index])
+                    await self._receiver.receiver.async_hdmi_output(_hdmi_outputs[index])
                 case SelectType.DIRAC_FILTER:
-                    await self._receiver._receiver.dirac.async_dirac_filter(_dirac_filters[index])
+                    await self._receiver.receiver.dirac.async_dirac_filter(_dirac_filters[index])
                 case SelectType.SPEAKER_PRESET:
-                    await self._receiver._receiver.async_speaker_preset(_speaker_presets[index])
+                    await self._receiver.receiver.async_speaker_preset(_speaker_presets[index])
                 case SelectType.REFERENCE_LEVEL_OFFSET:
-                    await self._receiver._receiver.async_set_reflevoffset(_reference_level_offsets[index])
+                    await self._receiver.receiver.async_set_reflevoffset(_reference_level_offsets[index])
                 case SelectType.DYNAMIC_VOLUME:
-                    await self._receiver._receiver.async_set_dynamicvol(_dynamic_volumes[index])
+                    await self._receiver.receiver.async_set_dynamicvol(_dynamic_volumes[index])
 
             return StatusCodes.OK
 
-        except Exception as ex:  # pylint: disable=broad-exception-caught
-            _LOG.error("Error executing select command for %s: %s", self._select_type.value, ex)
+        except Exception:  # noqa: BLE001  # pylint: disable=broad-exception-caught
+            _LOG.exception("Error executing select command for %s", self._select_type.value)
             return StatusCodes.SERVER_ERROR
 
-    async def _handle_next_previous_command(self, use_next: bool, cycle: bool) -> StatusCodes:
+    async def _handle_next_previous_command(self, *, use_next: bool, cycle: bool) -> StatusCodes:
         def get_new_value(value: Any, index_list: list[Any]) -> Any | None:
             try:
                 current_index = index_list.index(value)
             except ValueError:
-                _LOG.error(
+                _LOG.exception(
                     "Current value %s not found in options list for %s select",
                     value,
                     self._select_type.value,
@@ -241,19 +250,19 @@ class DenonSelect(Select, DenonEntity):
                 current_value = self._receiver.eco_mode
             case SelectType.MONITOR_OUTPUT:
                 target_list = _hdmi_outputs
-                current_value = self._receiver._receiver.hdmi_output
+                current_value = self._receiver.receiver.hdmi_output
             case SelectType.DIRAC_FILTER:
                 target_list = _dirac_filters
-                current_value = self._receiver._receiver.dirac.dirac_filter
+                current_value = self._receiver.receiver.dirac.dirac_filter
             case SelectType.SPEAKER_PRESET:
                 target_list = _speaker_presets
-                current_value = self._receiver._receiver.speaker_preset
+                current_value = self._receiver.receiver.speaker_preset
             case SelectType.REFERENCE_LEVEL_OFFSET:
                 target_list = _reference_level_offsets
-                current_value = self._receiver._receiver.reference_level_offset
+                current_value = self._receiver.receiver.reference_level_offset
             case SelectType.DYNAMIC_VOLUME:
                 target_list = _dynamic_volumes
-                current_value = self._receiver._receiver.dynamic_volume
+                current_value = self._receiver.receiver.dynamic_volume
 
         new_value = get_new_value(current_value, target_list)
         if new_value is None:
@@ -267,24 +276,24 @@ class DenonSelect(Select, DenonEntity):
                 case SelectType.INPUT_SOURCE:
                     await self._receiver.select_source(new_value)
                 case SelectType.DIMMER:
-                    await self._receiver._receiver.async_dimmer(new_value)  # type: ignore
+                    await self._receiver.receiver.async_dimmer(new_value)
                 case SelectType.ECO_MODE:
-                    await self._receiver._receiver.async_eco_mode(new_value)  # type: ignore
+                    await self._receiver.receiver.async_eco_mode(new_value)
                 case SelectType.MONITOR_OUTPUT:
-                    await self._receiver._receiver.async_hdmi_output(new_value)  # type: ignore
+                    await self._receiver.receiver.async_hdmi_output(new_value)
                 case SelectType.DIRAC_FILTER:
-                    await self._receiver._receiver.dirac.async_dirac_filter(new_value)  # type: ignore
+                    await self._receiver.receiver.dirac.async_dirac_filter(new_value)
                 case SelectType.SPEAKER_PRESET:
-                    await self._receiver._receiver.async_speaker_preset(new_value)  # type: ignore
+                    await self._receiver.receiver.async_speaker_preset(new_value)
                 case SelectType.REFERENCE_LEVEL_OFFSET:
-                    await self._receiver._receiver.async_set_reflevoffset(new_value)  # type: ignore
+                    await self._receiver.receiver.async_set_reflevoffset(new_value)
                 case SelectType.DYNAMIC_VOLUME:
-                    await self._receiver._receiver.async_set_dynamicvol(new_value)  # type: ignore
+                    await self._receiver.receiver.async_set_dynamicvol(new_value)
 
             return StatusCodes.OK
 
-        except Exception as ex:  # pylint: disable=broad-exception-caught
-            _LOG.error("Error executing select command for %s: %s", self._select_type.value, ex)
+        except Exception:  # noqa: BLE001  # pylint: disable=broad-exception-caught
+            _LOG.exception("Error executing select command for %s", self._select_type.value)
             return StatusCodes.SERVER_ERROR
 
     @staticmethod
@@ -337,15 +346,15 @@ class DenonSelect(Select, DenonEntity):
                     f"{device.name} Dynamic Volume",
                 )
             case _:
-                raise ValueError(f"Unsupported select type: {select_type}")
+                assert_never(select_type)
 
     # pylint: disable=broad-exception-caught, too-many-return-statements, protected-access, too-many-locals
     # pylint: disable=too-many-statements
     def _get_select_value(self, update: dict[str, Any]) -> tuple[Any, list[Any] | None]:
         """Get the current value and unit for this select type."""
-        if self._receiver._receiver.state == "off":
+        if self._receiver.receiver.state == "off":
             # If receiver is turned off, clear stored select state
-            if update.get(MediaAttr.STATE, None):
+            if MediaAttr.STATE in update:
                 self.SelectStates.pop(self._select_state_key, None)
             offline_options = (
                 self._receiver.source_list if self._select_type == SelectType.INPUT_SOURCE else [_EMPTY_VALUE]
@@ -370,32 +379,32 @@ class DenonSelect(Select, DenonEntity):
                 return self._update_state_and_create_return_value(eco_mode), _eco_modes
 
             if self._select_type == SelectType.MONITOR_OUTPUT:
-                monitor_output = self._get_value_or_default(self._receiver._receiver.hdmi_output, _EMPTY_VALUE)
+                monitor_output = self._get_value_or_default(self._receiver.receiver.hdmi_output, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(monitor_output), _hdmi_outputs
 
             if self._select_type == SelectType.DIRAC_FILTER:
-                dirac_filter = self._get_value_or_default(self._receiver._receiver.dirac.dirac_filter, _EMPTY_VALUE)
+                dirac_filter = self._get_value_or_default(self._receiver.receiver.dirac.dirac_filter, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(dirac_filter), _dirac_filters
 
             if self._select_type == SelectType.SPEAKER_PRESET:
-                speaker_preset = self._get_value_or_default(self._receiver._receiver.speaker_preset, _EMPTY_VALUE)
+                speaker_preset = self._get_value_or_default(self._receiver.receiver.speaker_preset, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(speaker_preset), _speaker_presets
 
             if self._select_type == SelectType.REFERENCE_LEVEL_OFFSET:
-                ref_level = self._get_value_or_default(self._receiver._receiver.reference_level_offset, _EMPTY_VALUE)
+                ref_level = self._get_value_or_default(self._receiver.receiver.reference_level_offset, _EMPTY_VALUE)
                 return (
                     self._update_state_and_create_return_value(ref_level),
-                    self._receiver._receiver.reference_level_offset_setting_list,
+                    self._receiver.receiver.reference_level_offset_setting_list,
                 )
 
             if self._select_type == SelectType.DYNAMIC_VOLUME:
-                dynamic_vol = self._get_value_or_default(self._receiver._receiver.dynamic_volume, _EMPTY_VALUE)
+                dynamic_vol = self._get_value_or_default(self._receiver.receiver.dynamic_volume, _EMPTY_VALUE)
                 return (
                     self._update_state_and_create_return_value(dynamic_vol),
-                    self._receiver._receiver.dynamic_volume_setting_list,
+                    self._receiver.receiver.dynamic_volume_setting_list,
                 )
 
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             _LOG.warning("Error getting select value for %s: %s", self._select_type.value, ex)
             return None, None
 

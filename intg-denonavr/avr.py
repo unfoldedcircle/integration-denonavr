@@ -10,15 +10,14 @@ import asyncio
 import logging
 import time
 from asyncio import AbstractEventLoop, Lock
-from enum import IntEnum
+from collections.abc import Awaitable, Callable, Coroutine
+from enum import IntEnum, StrEnum
 from functools import wraps
-from typing import Any, Awaitable, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
+from typing import Any, Concatenate, ParamSpec, TypeVar
 from urllib import parse
 
 import denonavr
-import discover
 import ucapi
-from config import AdditionalEventType, AvrDevice
 from denonavr.const import (
     ALL_ZONES,
     STATE_OFF,
@@ -33,10 +32,13 @@ from denonavr.exceptions import (
     AvrTimoutError,
     DenonAvrError,
 )
-from helpers import absolute_volume_to_relative, relative_volume_to_absolute
 from pyee.asyncio import AsyncIOEventEmitter
-from simplecommand import SimpleCommand
 from ucapi.media_player import Attributes as MediaAttr
+
+import discover
+from config import AdditionalEventType, AvrDevice
+from helpers import absolute_volume_to_relative, relative_volume_to_absolute
+from simplecommand import SimpleCommand
 
 _LOG = logging.getLogger(__name__)
 
@@ -52,16 +54,16 @@ DISCOVERY_AFTER_CONNECTION_ERRORS = 10
 AVR_COMMAND_URL = "/goform/formiPhoneAppDirect.xml"
 
 
-class Events(IntEnum):
+class Events(StrEnum):
     """Internal driver events."""
 
-    CONNECTING = 0
-    CONNECTED = 1
-    DISCONNECTED = 2
-    PAIRED = 3
-    ERROR = 4
-    UPDATE = 5
-    IP_ADDRESS_CHANGED = 6
+    CONNECTING = "connecting"
+    CONNECTED = "connected"
+    DISCONNECTED = "disconnected"
+    PAIRED = "paired"
+    ERROR = "error"
+    UPDATE = "update"
+    IP_ADDRESS_CHANGED = "ip_address_changed"
 
 
 class States(IntEnum):
@@ -131,7 +133,7 @@ _P = ParamSpec("_P")
 # https://github.com/home-assistant/core/blob/fd1f0b0efeb5231d3ee23d1cb2a10cdeff7c23f1/homeassistant/components/denonavr/media_player.py
 def async_handle_denonlib_errors(
     func: Callable[Concatenate[_DenonDeviceT, _P], Awaitable[ucapi.StatusCodes | None]],
-) -> Callable[Concatenate[_DenonDeviceT, _P], Coroutine[Any, Any, ucapi.StatusCodes | None]]:
+) -> Callable[Concatenate[_DenonDeviceT, _P], Coroutine[Any, Any, ucapi.StatusCodes]]:
     """Log errors occurred when calling a Denon/Marantz AVR receiver.
 
     Decorates methods of DenonDevice class.
@@ -143,10 +145,11 @@ def async_handle_denonlib_errors(
     async def wrapper(self: _DenonDeviceT, *args: _P.args, **kwargs: _P.kwargs) -> ucapi.StatusCodes:
         # pylint: disable=protected-access
         available = True
-        result = ucapi.StatusCodes.SERVER_ERROR
+        result: ucapi.StatusCodes = ucapi.StatusCodes.SERVER_ERROR
         try:
-            if result := await func(self, *args, **kwargs):
-                return result
+            func_result = await func(self, *args, **kwargs)
+            if func_result is not None:
+                return func_result
             return ucapi.StatusCodes.OK
         except AvrTimoutError:
             available = False
@@ -154,7 +157,7 @@ def async_handle_denonlib_errors(
             if self.available:
                 _LOG.warning(
                     "Timeout connecting to Denon/Marantz AVR receiver at host %s. Device is unavailable. (%s%s)",
-                    self._receiver.host,
+                    self.host,
                     func.__name__,
                     args,
                 )
@@ -165,7 +168,7 @@ def async_handle_denonlib_errors(
             if self.available:
                 _LOG.warning(
                     "Network error connecting to Denon/Marantz AVR receiver at host %s. Device is unavailable. (%s%s)",
-                    self._receiver.host,
+                    self.host,
                     func.__name__,
                     args,
                 )
@@ -180,19 +183,18 @@ def async_handle_denonlib_errors(
                         "Device is unavailable. Please consider power cycling your "
                         "receiver. (%s%s)"
                     ),
-                    self._receiver.host,
+                    self.host,
                     func.__name__,
                     args,
                 )
                 self.available = False
-        except AvrCommandError as err:
+        except AvrCommandError:
             available = False
             result = ucapi.StatusCodes.BAD_REQUEST
-            _LOG.error(
-                "Command %s%s failed with error: %s",
+            _LOG.exception(
+                "Command %s%s failed",
                 func.__name__,
                 args,
-                err,
             )
         except DenonAvrError as err:
             available = False
@@ -206,7 +208,7 @@ def async_handle_denonlib_errors(
             if available and not self.available:
                 _LOG.info(
                     "Denon/Marantz AVR receiver at host %s is available again",
-                    self._receiver.host,
+                    self.host,
                 )
                 self.available = True
         return result
@@ -235,11 +237,12 @@ class DenonDevice:
         if device.zone3:
             self._zones["Zone3"] = None
         self._is_denon = device.is_denon
+        # attrs-generated __init__: pyright can't infer the host/timeout/etc. kwargs.
         self._receiver: denonavr.DenonAVR = denonavr.DenonAVR(
-            host=device.address,
-            show_all_inputs=device.show_all_inputs,
-            timeout=device.timeout / 1000.0,
-            add_zones=self._zones,
+            host=device.address,  # pyright: ignore[reportCallIssue]
+            show_all_inputs=device.show_all_inputs,  # pyright: ignore[reportCallIssue]
+            timeout=device.timeout / 1000.0,  # pyright: ignore[reportCallIssue]
+            add_zones=self._zones,  # pyright: ignore[reportCallIssue]
         )
         self._update_audyssey = device.update_audyssey
         self._simple_command = SimpleCommand(self._receiver, self._send_command)
@@ -259,7 +262,7 @@ class DenonDevice:
         self._expected_state: States = States.UNKNOWN
         self._volume_step = device.volume_step
         self._update_lock = Lock()
-        self._update_task: asyncio.Task | None = None  # Track pending update task
+        self._update_task: asyncio.Task[Any] | None = None  # Track pending update task
 
         _LOG.debug("Denon/Marantz AVR created: %s", device.address)
 
@@ -280,6 +283,11 @@ class DenonDevice:
             self._attr_available = value
             _LOG.debug("AVR '%s' availability changed to %s", self.id, value)
             self.events.emit(Events.CONNECTED if value else Events.DISCONNECTED, self.id)
+
+    @property
+    def receiver(self) -> denonavr.DenonAVR:
+        """Return the underlying DenonAVR library instance."""
+        return self._receiver
 
     @property
     def name(self) -> str | None:
@@ -348,7 +356,7 @@ class DenonDevice:
     @property
     def is_volume_muted(self) -> bool:
         """Return boolean if volume is currently muted."""
-        return self._receiver.muted
+        return self._receiver.muted or False
 
     @property
     def volume_level(self) -> float | None:
@@ -392,16 +400,15 @@ class DenonDevice:
     @property
     def media_image_url(self) -> str:
         """Image url of current playing media."""
-        if self._receiver.input_func in self._receiver.playing_func_list:
-            if self._receiver.image_url is not None:
-                return self._receiver.image_url
+        if self._receiver.input_func in self._receiver.playing_func_list and self._receiver.image_url is not None:
+            return self._receiver.image_url
         return ""
 
     @property
     def media_title(self) -> str:
         """Title of current playing media."""
         if self._receiver.input_func not in self._receiver.playing_func_list:
-            return self._receiver.input_func
+            return self._receiver.input_func or ""
         if self._receiver.title is not None:
             return self._receiver.title
         if self._receiver.frequency is not None:
@@ -538,13 +545,13 @@ class DenonDevice:
 
         self._connecting = True
         try:
-            request_start = None
+            request_start = time.time()
             success = False
             _LOG.debug("Starting connection task for %s", self.id)
 
             while not success:
                 try:
-                    _LOG.info("Connecting AVR %s on %s", self.id, self._receiver.host)
+                    _LOG.info("Connecting AVR %s on %s", self.id, self.host)
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
 
@@ -564,7 +571,7 @@ class DenonDevice:
                     success = True
                     self._connection_attempts = 0
                     self._reconnect_delay = MIN_RECONNECT_DELAY
-                except denonavr.exceptions.DenonAvrError as ex:
+                except DenonAvrError as ex:
                     await self._handle_connection_failure(time.time() - request_start, ex)
             if self.id != self._receiver.serial_number:
                 _LOG.warning(
@@ -587,16 +594,16 @@ class DenonDevice:
         finally:
             self._connecting = False
 
-    async def _handle_connection_failure(self, connect_duration: float, ex):
+    async def _handle_connection_failure(self, connect_duration: float, ex: Exception) -> None:
         self._connection_attempts += 1
         # backoff delay must deduct time spent in the connection attempt
-        backoff = self._backoff() - connect_duration
+        backoff = (self._backoff() or 0.0) - connect_duration
         if backoff <= 0:
             backoff = 0.1
         _LOG.error(
             "Cannot connect to '%s' on %s, trying again in %.1fs (connect: %.1fs). %s",
-            self.id if self.id else self._name,
-            self._receiver.host,
+            self.id or self._name,
+            self.host,
             backoff,
             connect_duration,
             ex,
@@ -610,12 +617,12 @@ class DenonDevice:
             _LOG.debug("Start resolving IP address for '%s'...", self._name)
             discovered = await discover.denon_avrs()
             for item in discovered:
-                if item["friendlyName"] == self._name:
-                    if self._receiver.host != item["host"]:
-                        _LOG.info("IP address of '%s' changed: %s", self._name, item["host"])
-                        self._receiver._host = item["host"]  # pylint: disable=W0212 # seems to be the only way
-                        self.events.emit(Events.IP_ADDRESS_CHANGED, self.id, self._receiver.host)
-                        break
+                if item["friendlyName"] == self._name and self.host != item["host"]:
+                    _LOG.info("IP address of '%s' changed: %s", self._name, item["host"])
+                    # pylint: disable=W0212 # seems to be the only way
+                    self._receiver._host = item["host"]  # noqa: SLF001
+                    self.events.emit(Events.IP_ADDRESS_CHANGED, self.id, self.host)
+                    break
         else:
             await asyncio.sleep(backoff)
 
@@ -646,7 +653,7 @@ class DenonDevice:
                 except ValueError:
                     pass
                 await self._receiver.async_telnet_disconnect()
-        except denonavr.exceptions.DenonAvrError:
+        except DenonAvrError:
             pass
         if self.id:
             self.events.emit(Events.DISCONNECTED, self.id)
@@ -659,7 +666,7 @@ class DenonDevice:
         return States.UNKNOWN
 
     @async_handle_denonlib_errors
-    async def async_update_receiver_data(self, force: bool = False) -> None:
+    async def async_update_receiver_data(self, *, force: bool = False) -> None:
         """
         Get the latest status information from device.
 
@@ -717,7 +724,7 @@ class DenonDevice:
         # None update object means data are up to date & client can fetch required data.
         self.events.emit(Events.UPDATE, self.id, None)
 
-    def _telnet_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _telnet_callback(self, zone: str, event: str, parameter: str | None) -> None:
         """Process a telnet command callback."""
         # pylint: disable=too-many-statements
         _LOG.debug("[%s] zone: %s, event: %s, parameter: %s", self.id, zone, event, parameter)
@@ -727,6 +734,8 @@ class DenonDevice:
         if zone not in (self._receiver.zone, ALL_ZONES):
             return
         if event not in TELNET_EVENTS:
+            return
+        if parameter is None:
             return
         # *** End logic from HA
 
@@ -763,8 +772,6 @@ class DenonDevice:
                 Events.UPDATE, self.id, {AdditionalEventType.RAW_SOUND_MODE: self._receiver.sound_mode_raw}
             )
         elif event == "PS":  # Parameter Setting
-            if parameter is None:
-                return
             if parameter.startswith("DELAY"):
                 self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.AUDIO_DELAY: self._receiver.delay})
             elif parameter.startswith("DIRAC"):
@@ -1021,7 +1028,7 @@ class DenonDevice:
         return ucapi.StatusCodes.OK
 
     @async_handle_denonlib_errors
-    async def mute(self, muted: bool) -> ucapi.StatusCodes:
+    async def mute(self, *, muted: bool) -> ucapi.StatusCodes:
         """Send mute command to AVR."""
         _LOG.debug("[%s] Sending mute: %s", self.id, muted)
         await self._receiver.async_mute(muted)
@@ -1153,7 +1160,7 @@ class DenonDevice:
             url = AVR_COMMAND_URL + "?" + parse.quote(cmd)
             # HACK only _receiver.async_get_command(url) is exposed which returns the body content
             # pylint: disable=protected-access
-            res = await self._receiver._device.api.async_get(url)
+            res = await self._receiver._device.api.async_get(url)  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
             if res.is_client_error:
                 _LOG.error(
                     "Request for '%s' failed with is_client_error. Status code: %s. Content: '%s'",
