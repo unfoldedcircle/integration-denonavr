@@ -999,7 +999,7 @@ class DenonRemote(Remote, DenonEntity):
         return {
             "page_id": "denon_avr_commands_quick_select",
             "name": label,
-            "grid": {"height": 5, "width": 1},
+            "grid": {"height": 6, "width": 1},
             "items": [
                 {
                     "command": {"cmd_id": CoreCommands.QUICK_SELECT_1 if is_denon else CoreCommands.SMART_SELECT_1},
@@ -1034,6 +1034,13 @@ class DenonRemote(Remote, DenonEntity):
                     "location": {"x": 0, "y": 4},
                     "size": {"height": 1, "width": 1},
                     "text": f"{label} 5",
+                    "type": "text",
+                },
+                {
+                    "command": {"cmd_id": CoreCommands.QUICK_SELECT_6 if is_denon else CoreCommands.SMART_SELECT_6},
+                    "location": {"x": 0, "y": 5},
+                    "size": {"height": 1, "width": 1},
+                    "text": f"{label} 6",
                     "type": "text",
                 },
             ],
