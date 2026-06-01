@@ -151,22 +151,26 @@ CORE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     CoreCommands.QUICK_SELECT_3: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_4: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_5: (DeviceProtocol.ALL, DeviceType.DENON),
+    CoreCommands.QUICK_SELECT_6: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_MEMORY_1: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_MEMORY_2: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_MEMORY_3: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_MEMORY_4: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_MEMORY_5: (DeviceProtocol.ALL, DeviceType.DENON),
+    CoreCommands.QUICK_SELECT_MEMORY_6: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.STATUS: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.SMART_SELECT_1: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_2: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_3: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_4: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_5: (DeviceProtocol.ALL, DeviceType.MARANTZ),
+    CoreCommands.SMART_SELECT_6: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_MEMORY_1: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_MEMORY_2: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_MEMORY_3: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_MEMORY_4: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_MEMORY_5: (DeviceProtocol.ALL, DeviceType.MARANTZ),
+    CoreCommands.SMART_SELECT_MEMORY_6: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.ILLUMINATION_AUTO: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.ILLUMINATION_BRIGHT: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.ILLUMINATION_DIM: (DeviceProtocol.ALL, DeviceType.MARANTZ),
@@ -187,10 +191,6 @@ CORE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     CoreCommands.ZONE_FAVORITE_MEMORY_1: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.ZONE_FAVORITE_MEMORY_2: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.ZONE_FAVORITE_MEMORY_3: (DeviceProtocol.ALL, DeviceType.ALL),
-    CoreCommands.QUICK_SELECT_6: (DeviceProtocol.ALL, DeviceType.DENON),
-    CoreCommands.QUICK_SELECT_MEMORY_6: (DeviceProtocol.ALL, DeviceType.DENON),
-    CoreCommands.SMART_SELECT_6: (DeviceProtocol.ALL, DeviceType.MARANTZ),
-    CoreCommands.SMART_SELECT_MEMORY_6: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.DIGITAL_INPUT_AUTO: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.DIGITAL_INPUT_PCM: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.DIGITAL_INPUT_DTS: (DeviceProtocol.ALL, DeviceType.ALL),
@@ -692,6 +692,10 @@ class SimpleCommand:
                 await self._receiver.async_quick_select_mode(4)
             case CoreCommands.QUICK_SELECT_5 | CoreCommands.SMART_SELECT_5:
                 await self._receiver.async_quick_select_mode(5)
+            case CoreCommands.QUICK_SELECT_6 | CoreCommands.SMART_SELECT_6:
+                await self._receiver.async_quick_select_mode(6)
+            case CoreCommands.QUICK_SELECT_MEMORY_6 | CoreCommands.SMART_SELECT_MEMORY_6:
+                await self._receiver.async_quick_select_memory(6)
             case CoreCommands.HDMI_CEC_ON:
                 await self._receiver.async_hdmi_cec_on()
             case CoreCommands.HDMI_CEC_OFF:
@@ -792,14 +796,6 @@ class SimpleCommand:
                 return await self._send_command("ZMFAVORITE2 MEMORY")
             case CoreCommands.ZONE_FAVORITE_MEMORY_3:
                 return await self._send_command("ZMFAVORITE3 MEMORY")
-            case CoreCommands.QUICK_SELECT_6:
-                return await self._send_command("MSQUICK6")
-            case CoreCommands.SMART_SELECT_6:
-                return await self._send_command("MSSMART6")
-            case CoreCommands.QUICK_SELECT_MEMORY_6:
-                return await self._send_command("MSQUICK6 MEMORY")
-            case CoreCommands.SMART_SELECT_MEMORY_6:
-                return await self._send_command("MSSMART6 MEMORY")
             case CoreCommands.DIGITAL_INPUT_AUTO:
                 return await self._send_command("DCAUTO")
             case CoreCommands.DIGITAL_INPUT_PCM:
