@@ -102,7 +102,7 @@ class SensorType(str, Enum):
     PICTURE_MODE = "picture_mode"
     TUNER_FREQUENCY = "tuner_frequency"
     ALL_ZONE_STEREO = "all_zone_stereo"
-    DIGITAL_INPUT_MODE = "digital_input_mode"
+    DIGITAL_CODEC = "digital_codec"
 
 
 class SelectType(str, Enum):
@@ -118,7 +118,7 @@ class SelectType(str, Enum):
     REFERENCE_LEVEL_OFFSET = "reference_level_offset"
     DYNAMIC_VOLUME = "dynamic_volume"
     PICTURE_MODE = "picture_mode"
-    DIGITAL_INPUT_MODE = "digital_input_mode"
+    DIGITAL_CODEC = "digital_codec"
 
 
 class AdditionalEventType(str, Enum):
@@ -153,7 +153,7 @@ class AdditionalEventType(str, Enum):
     PICTURE_MODE = "PICTURE_MODE"
     TUNER_FREQUENCY = "TUNER_FREQUENCY"
     ALL_ZONE_STEREO = "ALL_ZONE_STEREO"
-    DIGITAL_INPUT_MODE = "DIGITAL_INPUT_MODE"
+    DIGITAL_CODEC = "DIGITAL_CODEC"
 
 
 class _EnhancedJSONEncoder(json.JSONEncoder):

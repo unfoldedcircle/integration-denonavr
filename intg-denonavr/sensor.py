@@ -257,10 +257,10 @@ class DenonSensor(Sensor, DenonEntity):
                     "name": f"{device.name} All Zone Stereo",
                     "device_class": DeviceClasses.CUSTOM,
                 }
-            case SensorType.DIGITAL_INPUT_MODE:
+            case SensorType.DIGITAL_CODEC:
                 sensor = {
-                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.DIGITAL_INPUT_MODE.value),
-                    "name": f"{device.name} Digital Input Mode",
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.DIGITAL_CODEC.value),
+                    "name": f"{device.name} Digital Codec",
                     "device_class": DeviceClasses.CUSTOM,
                 }
             case _:
@@ -425,9 +425,9 @@ class DenonSensor(Sensor, DenonEntity):
                 all_zone_stereo = self._get_value_or_default(self._receiver.all_zone_stereo, "--")
                 return self._update_state_and_create_return_value(all_zone_stereo), None
 
-            if self._sensor_type == SensorType.DIGITAL_INPUT_MODE:
-                digital_input_mode = self._get_value_or_default(self._receiver.digital_input_mode, "--")
-                return self._update_state_and_create_return_value(digital_input_mode), None
+            if self._sensor_type == SensorType.DIGITAL_CODEC:
+                digital_codec = self._get_value_or_default(self._receiver.digital_codec, "--")
+                return self._update_state_and_create_return_value(digital_codec), None
 
         except Exception as ex:
             _LOG.warning("Error getting sensor value for %s: %s", self._sensor_type.value, ex)
@@ -497,7 +497,7 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
             DenonSensor(device, receiver, api, SensorType.PICTURE_MODE),
             DenonSensor(device, receiver, api, SensorType.TUNER_FREQUENCY),
             DenonSensor(device, receiver, api, SensorType.ALL_ZONE_STEREO),
-            DenonSensor(device, receiver, api, SensorType.DIGITAL_INPUT_MODE),
+            DenonSensor(device, receiver, api, SensorType.DIGITAL_CODEC),
         ]
 
     return sensors

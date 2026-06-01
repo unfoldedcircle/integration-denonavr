@@ -12,11 +12,13 @@ import avr
 import helpers
 from config import AvrDevice, SelectType, create_entity_id
 from denonavr.const import (
+    DigitalCodecModes,
     DimmerModes,
     DiracFilters,
     DynamicVolumeSettings,
     EcoModes,
     HDMIOutputs,
+    PictureModes,
     ReferenceLevelOffsets,
 )
 from entities import DenonEntity
@@ -33,8 +35,8 @@ _dirac_filters: list[DiracFilters] = list(get_args(DiracFilters))
 _speaker_presets = [1, 2]
 _reference_level_offsets: list[ReferenceLevelOffsets] = list(get_args(ReferenceLevelOffsets))
 _dynamic_volumes: list[DynamicVolumeSettings] = list(get_args(DynamicVolumeSettings))
-_picture_modes = ["MOV", "GAM", "VVD", "STM", "BRL", "CSTM", "DAY", "NGT", "OFF"]
-_digital_input_modes = ["AUTO", "PCM", "DTS"]
+_picture_modes: list[PictureModes] = list(get_args(PictureModes))
+_digital_codec_modes: list[DigitalCodecModes] = list(get_args(DigitalCodecModes))
 
 # Mapping of an AVR state to a select entity state
 # pylint: disable=R0801
@@ -174,9 +176,9 @@ class DenonSelect(Select, DenonEntity):
                 case SelectType.DYNAMIC_VOLUME:
                     await self._receiver._receiver.async_set_dynamicvol(option)
                 case SelectType.PICTURE_MODE:
-                    await self._receiver.send_command(f"PV{option}")
-                case SelectType.DIGITAL_INPUT_MODE:
-                    await self._receiver.send_command(f"DC{option}")
+                    await self._receiver._receiver.async_set_picture_mode(option)
+                case SelectType.DIGITAL_CODEC:
+                    await self._receiver._receiver.async_set_digital_codec(option)
 
             return StatusCodes.OK
 
@@ -207,9 +209,9 @@ class DenonSelect(Select, DenonEntity):
                 case SelectType.DYNAMIC_VOLUME:
                     await self._receiver._receiver.async_set_dynamicvol(_dynamic_volumes[index])
                 case SelectType.PICTURE_MODE:
-                    await self._receiver.send_command(f"PV{_picture_modes[index]}")
-                case SelectType.DIGITAL_INPUT_MODE:
-                    await self._receiver.send_command(f"DC{_digital_input_modes[index]}")
+                    await self._receiver._receiver.async_set_picture_mode(_picture_modes[index])
+                case SelectType.DIGITAL_CODEC:
+                    await self._receiver._receiver.async_set_digital_codec(_digital_codec_modes[index])
 
             return StatusCodes.OK
 
@@ -267,9 +269,9 @@ class DenonSelect(Select, DenonEntity):
             case SelectType.PICTURE_MODE:
                 target_list = _picture_modes
                 current_value = self._receiver.picture_mode
-            case SelectType.DIGITAL_INPUT_MODE:
-                target_list = _digital_input_modes
-                current_value = self._receiver.digital_input_mode
+            case SelectType.DIGITAL_CODEC:
+                target_list = _digital_codec_modes
+                current_value = self._receiver.digital_codec
 
         new_value = get_new_value(current_value, target_list)
         if new_value is None:
@@ -297,9 +299,9 @@ class DenonSelect(Select, DenonEntity):
                 case SelectType.DYNAMIC_VOLUME:
                     await self._receiver._receiver.async_set_dynamicvol(new_value)  # type: ignore
                 case SelectType.PICTURE_MODE:
-                    await self._receiver.send_command(f"PV{new_value}")
-                case SelectType.DIGITAL_INPUT_MODE:
-                    await self._receiver.send_command(f"DC{new_value}")
+                    await self._receiver._receiver.async_set_picture_mode(new_value)
+                case SelectType.DIGITAL_CODEC:
+                    await self._receiver._receiver.async_set_digital_codec(new_value)
 
             return StatusCodes.OK
 
@@ -361,10 +363,10 @@ class DenonSelect(Select, DenonEntity):
                     create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.PICTURE_MODE.value),
                     f"{device.name} Picture Mode",
                 )
-            case SelectType.DIGITAL_INPUT_MODE:
+            case SelectType.DIGITAL_CODEC:
                 return (
-                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DIGITAL_INPUT_MODE.value),
-                    f"{device.name} Digital Input Mode",
+                    create_entity_id(receiver.id, EntityTypes.SELECT, SelectType.DIGITAL_CODEC.value),
+                    f"{device.name} Digital Codec",
                 )
             case _:
                 raise ValueError(f"Unsupported select type: {select_type}")
@@ -429,9 +431,9 @@ class DenonSelect(Select, DenonEntity):
                 picture_mode = self._get_value_or_default(self._receiver.picture_mode, _EMPTY_VALUE)
                 return self._update_state_and_create_return_value(picture_mode), _picture_modes
 
-            if self._select_type == SelectType.DIGITAL_INPUT_MODE:
-                digital_input_mode = self._get_value_or_default(self._receiver.digital_input_mode, _EMPTY_VALUE)
-                return self._update_state_and_create_return_value(digital_input_mode), _digital_input_modes
+            if self._select_type == SelectType.DIGITAL_CODEC:
+                digital_codec = self._get_value_or_default(self._receiver.digital_codec, _EMPTY_VALUE)
+                return self._update_state_and_create_return_value(digital_codec), _digital_codec_modes
 
         except Exception as ex:
             _LOG.warning("Error getting select value for %s: %s", self._select_type.value, ex)
@@ -480,7 +482,7 @@ def create_selects(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
         selects.append(DenonSelect(device, receiver, api, SelectType.MONITOR_OUTPUT))
         selects.append(DenonSelect(device, receiver, api, SelectType.SPEAKER_PRESET))
         selects.append(DenonSelect(device, receiver, api, SelectType.PICTURE_MODE))
-        selects.append(DenonSelect(device, receiver, api, SelectType.DIGITAL_INPUT_MODE))
+        selects.append(DenonSelect(device, receiver, api, SelectType.DIGITAL_CODEC))
         if device.is_dirac_supported:
             selects.append(DenonSelect(device, receiver, api, SelectType.DIRAC_FILTER))
 

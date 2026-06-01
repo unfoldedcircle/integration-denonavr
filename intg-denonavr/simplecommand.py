@@ -187,10 +187,6 @@ CORE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     CoreCommands.ZONE_FAVORITE_MEMORY_1: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.ZONE_FAVORITE_MEMORY_2: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.ZONE_FAVORITE_MEMORY_3: (DeviceProtocol.ALL, DeviceType.ALL),
-    CoreCommands.QUICK_SELECT_6: (DeviceProtocol.ALL, DeviceType.DENON),
-    CoreCommands.QUICK_SELECT_MEMORY_6: (DeviceProtocol.ALL, DeviceType.DENON),
-    CoreCommands.SMART_SELECT_6: (DeviceProtocol.ALL, DeviceType.MARANTZ),
-    CoreCommands.SMART_SELECT_MEMORY_6: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.DIGITAL_INPUT_AUTO: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.DIGITAL_INPUT_PCM: (DeviceProtocol.ALL, DeviceType.ALL),
     CoreCommands.DIGITAL_INPUT_DTS: (DeviceProtocol.ALL, DeviceType.ALL),
@@ -792,14 +788,6 @@ class SimpleCommand:
                 return await self._send_command("ZMFAVORITE2 MEMORY")
             case CoreCommands.ZONE_FAVORITE_MEMORY_3:
                 return await self._send_command("ZMFAVORITE3 MEMORY")
-            case CoreCommands.QUICK_SELECT_6:
-                return await self._send_command("MSQUICK6")
-            case CoreCommands.SMART_SELECT_6:
-                return await self._send_command("MSSMART6")
-            case CoreCommands.QUICK_SELECT_MEMORY_6:
-                return await self._send_command("MSQUICK6 MEMORY")
-            case CoreCommands.SMART_SELECT_MEMORY_6:
-                return await self._send_command("MSSMART6 MEMORY")
             case CoreCommands.DIGITAL_INPUT_AUTO:
                 return await self._send_command("DCAUTO")
             case CoreCommands.DIGITAL_INPUT_PCM:
