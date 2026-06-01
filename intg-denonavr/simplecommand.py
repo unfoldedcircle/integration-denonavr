@@ -797,11 +797,11 @@ class SimpleCommand:
             case CoreCommands.ZONE_FAVORITE_MEMORY_3:
                 return await self._send_command("ZMFAVORITE3 MEMORY")
             case CoreCommands.DIGITAL_INPUT_AUTO:
-                return await self._send_command("DCAUTO")
+                await self._receiver.async_set_digital_codec("Auto")
             case CoreCommands.DIGITAL_INPUT_PCM:
-                return await self._send_command("DCPCM")
+                await self._receiver.async_set_digital_codec("PCM")
             case CoreCommands.DIGITAL_INPUT_DTS:
-                return await self._send_command("DCDTS")
+                await self._receiver.async_set_digital_codec("DTS")
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
@@ -1309,23 +1309,23 @@ class SimpleCommand:
         # pylint: disable=R0911
         match cmd:
             case PictureModeCommands.PICTURE_MODE_MOVIE:
-                return await self._send_command("PVMOV")
+                await self._receiver.async_set_picture_mode("Movie")
             case PictureModeCommands.PICTURE_MODE_GAME:
-                return await self._send_command("PVGAM")
+                await self._receiver.async_set_picture_mode("Game")
             case PictureModeCommands.PICTURE_MODE_VIVID:
-                return await self._send_command("PVVVD")
+                await self._receiver.async_set_picture_mode("Vivid")
             case PictureModeCommands.PICTURE_MODE_STREAM:
-                return await self._send_command("PVSTM")
+                await self._receiver.async_set_picture_mode("Stream")
             case PictureModeCommands.PICTURE_MODE_BRILLIANT:
-                return await self._send_command("PVBRL")
+                await self._receiver.async_set_picture_mode("Brilliant")
             case PictureModeCommands.PICTURE_MODE_CUSTOM:
-                return await self._send_command("PVCST")
+                await self._receiver.async_set_picture_mode("Custom")
             case PictureModeCommands.PICTURE_MODE_ISF_DAY:
-                return await self._send_command("PVISF DAY")
+                await self._receiver.async_set_picture_mode("Day")
             case PictureModeCommands.PICTURE_MODE_ISF_NIGHT:
-                return await self._send_command("PVISF NIGHT")
+                await self._receiver.async_set_picture_mode("Night")
             case PictureModeCommands.PICTURE_MODE_OFF:
-                return await self._send_command("PVOFF")
+                await self._receiver.async_set_picture_mode("Off")
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
