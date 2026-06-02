@@ -1,5 +1,3 @@
-# pylint: disable=R0903
-
 """
 This module contains constants for different commands for the Denon/Marantz AVR receiver.
 

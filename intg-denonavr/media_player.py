@@ -8,20 +8,15 @@ Media-player entity functions.
 import logging
 from typing import Any
 
+from typing_extensions import override
+from ucapi import EntityTypes, IntegrationAPI, MediaPlayer, StatusCodes
+from ucapi.media_player import Attributes, Commands, DeviceClasses, Features, Options, States
+
 import avr
-import helpers
-import simplecommand
 from config import AvrDevice, create_entity_id
 from entities import DenonEntity
-from ucapi import EntityTypes, IntegrationAPI, MediaPlayer, StatusCodes
-from ucapi.media_player import (
-    Attributes,
-    Commands,
-    DeviceClasses,
-    Features,
-    Options,
-    States,
-)
+import helpers
+import simplecommand
 
 _LOG = logging.getLogger(__name__)
 
@@ -67,7 +62,7 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
             Features.INFO,
             Features.CHANNEL_SWITCHER,
         ]
-        attributes = {
+        attributes: dict[str, Any] = {
             Attributes.STATE: States.UNAVAILABLE,
             Attributes.VOLUME: 0,
             Attributes.MUTED: False,
@@ -89,7 +84,7 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
         if device.is_denon:
             features.append(Features.STOP)
 
-        options = {Options.SIMPLE_COMMANDS: self.simple_commands}
+        options: dict[str, Any] = {Options.SIMPLE_COMMANDS: self.simple_commands}
 
         super().__init__(
             entity_id,
@@ -101,7 +96,14 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
         )
         DenonEntity.__init__(self, api)
 
-    async def command(self, cmd_id: str, params: dict[str, Any] | None = None, *, websocket: Any) -> StatusCodes:
+    @override
+    async def command(
+        self,
+        cmd_id: str,
+        params: dict[str, Any] | None = None,
+        *,
+        websocket: Any,
+    ) -> StatusCodes:
         """
         Media-player entity command handler.
 
@@ -112,12 +114,9 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
         :param websocket: websocket connection (not used)
         :return: status code of the command request
         """
-        # pylint: disable=R0911
         _LOG.info("Got %s command request: %s %s", self.id, cmd_id, params)
 
-        if self._receiver is None:
-            _LOG.warning("No AVR instance for entity: %s", self.id)
-            return StatusCodes.SERVICE_UNAVAILABLE
+        params = params or {}
 
         match cmd_id:
             case Commands.PLAY_PAUSE:
@@ -137,9 +136,9 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
             case Commands.MUTE_TOGGLE:
                 return await self._receiver.mute_toggle()
             case Commands.MUTE:
-                return await self._receiver.mute(True)
+                return await self._receiver.mute(muted=True)
             case Commands.UNMUTE:
-                return await self._receiver.mute(False)
+                return await self._receiver.mute(muted=False)
             case Commands.ON:
                 return await self._receiver.power_on()
             case Commands.OFF:
@@ -175,7 +174,7 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
             case _:
                 return await self._receiver.send_simple_command(cmd_id)
 
-    def get_supported_commands(self, include_power_state_commands: bool) -> list[str]:
+    def get_supported_commands(self, *, include_power_state_commands: bool) -> list[str]:
         """
         Get the list of supported commands for this media-player entity.
 
@@ -209,6 +208,7 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
             *simplecommand.get_simple_commands(self._device),
         ]
 
+    @override
     def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
         """
         Filter the given attributes and return only the changed values.
@@ -234,32 +234,36 @@ class DenonMediaPlayer(MediaPlayer, DenonEntity):
             if attr in update:
                 attributes = helpers.key_update_helper(attr, update[attr], attributes, self.attributes)
 
-        if Attributes.SOURCE_LIST in update:
-            if Attributes.SOURCE_LIST in self.attributes:
-                if update[Attributes.SOURCE_LIST] != self.attributes[Attributes.SOURCE_LIST]:
-                    attributes[Attributes.SOURCE_LIST] = update[Attributes.SOURCE_LIST]
+        if (
+            Attributes.SOURCE_LIST in update
+            and Attributes.SOURCE_LIST in self.attributes
+            and update[Attributes.SOURCE_LIST] != self.attributes[Attributes.SOURCE_LIST]
+        ):
+            attributes[Attributes.SOURCE_LIST] = update[Attributes.SOURCE_LIST]
 
         if Features.SELECT_SOUND_MODE in self.features:
             if Attributes.SOUND_MODE in update:
                 attributes = helpers.key_update_helper(
                     Attributes.SOUND_MODE, update[Attributes.SOUND_MODE], attributes, self.attributes
                 )
-            if Attributes.SOUND_MODE_LIST in update:
-                if Attributes.SOUND_MODE_LIST in self.attributes:
-                    if update[Attributes.SOUND_MODE_LIST] != self.attributes[Attributes.SOUND_MODE_LIST]:
-                        attributes[Attributes.SOUND_MODE_LIST] = update[Attributes.SOUND_MODE_LIST]
+            if (
+                Attributes.SOUND_MODE_LIST in update
+                and Attributes.SOUND_MODE_LIST in self.attributes
+                and update[Attributes.SOUND_MODE_LIST] != self.attributes[Attributes.SOUND_MODE_LIST]
+            ):
+                attributes[Attributes.SOUND_MODE_LIST] = update[Attributes.SOUND_MODE_LIST]
 
-        if Attributes.STATE in attributes:
-            if attributes[Attributes.STATE] == States.OFF:
-                attributes[Attributes.MEDIA_IMAGE_URL] = ""
-                attributes[Attributes.MEDIA_ALBUM] = ""
-                attributes[Attributes.MEDIA_ARTIST] = ""
-                attributes[Attributes.MEDIA_TITLE] = ""
-                attributes[Attributes.MEDIA_TYPE] = ""
-                attributes[Attributes.SOURCE] = ""
+        if attributes.get(Attributes.STATE) == States.OFF:
+            attributes[Attributes.MEDIA_IMAGE_URL] = ""
+            attributes[Attributes.MEDIA_ALBUM] = ""
+            attributes[Attributes.MEDIA_ARTIST] = ""
+            attributes[Attributes.MEDIA_TITLE] = ""
+            attributes[Attributes.MEDIA_TYPE] = ""
+            attributes[Attributes.SOURCE] = ""
 
         return attributes
 
+    @override
     def state_from_avr(self, avr_state: avr.States) -> States:
         """
         Convert AVR state to UC API media-player state.

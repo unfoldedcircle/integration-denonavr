@@ -8,13 +8,15 @@ Common entity interface for Denon/Marantz integration.
 from abc import ABC, abstractmethod
 from typing import Any
 
-import avr
 from ucapi import IntegrationAPI
 
+import avr
 
-# pylint: disable=R0903
+
 class DenonEntity(ABC):
     """Common interface for Denon/Marantz entities."""
+
+    id: str
 
     def __init__(self, api: IntegrationAPI):
         """Initialize the DenonEntity."""
@@ -27,13 +29,9 @@ class DenonEntity(ABC):
         :param update: dictionary containing the updated properties.
         :param force: if True, update attributes even if they haven't changed.
         """
-        if force:
-            attributes = update
-        else:
-            attributes = self.filter_changed_attributes(update)
+        attributes = update if force else self.filter_changed_attributes(update)
 
         if attributes:
-            # pylint: disable=E1101
             self._api.configured_entities.update_attributes(self.id, attributes)
 
     @abstractmethod

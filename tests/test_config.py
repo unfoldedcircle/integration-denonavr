@@ -1,7 +1,8 @@
 import unittest
 
-from config import avr_from_entity_id, create_entity_id
 from ucapi import EntityTypes
+
+from config import avr_from_entity_id, create_entity_id
 
 
 class TestConfig(unittest.TestCase):

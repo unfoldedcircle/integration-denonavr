@@ -1,4 +1,3 @@
-# pylint: disable=C0302
 """
 Remote entity functions.
 
@@ -6,24 +5,20 @@ Remote entity functions.
 """
 
 import logging
-from typing import Any
+from typing import Any, cast
+
+from typing_extensions import override
+from ucapi import EntityTypes, IntegrationAPI, Remote, StatusCodes, media_player
+import ucapi.remote
+from ucapi.remote import Attributes, Commands, Features
+from ucapi.ui import Buttons, DeviceButtonMapping, UiPage
 
 import avr
-import helpers
-import ucapi.remote
-from command_constants import (
-    AudysseyCommands,
-    CoreCommands,
-    DiracCommands,
-    SoundModeCommands,
-    VolumeCommands,
-)
+from command_constants import AudysseyCommands, CoreCommands, DiracCommands, SoundModeCommands, VolumeCommands
 from config import AvrDevice, create_entity_id
 from entities import DenonEntity
+import helpers
 from media_player import DenonMediaPlayer
-from ucapi import EntityTypes, IntegrationAPI, Remote, StatusCodes, media_player
-from ucapi.remote import Attributes, Commands, Features
-from ucapi.ui import Buttons
 
 # Mapping of an AVR state to a remote entity state
 REMOTE_STATE_MAPPING = {
@@ -38,7 +33,6 @@ REMOTE_STATE_MAPPING = {
 _LOG = logging.getLogger("denon_remote")  # avoid having __main__ in log messages
 
 
-# pylint: disable=R0903
 class DenonRemote(Remote, DenonEntity):
     """Representation of a Denon/Marantz AVR Remote entity."""
 
@@ -57,12 +51,16 @@ class DenonRemote(Remote, DenonEntity):
             attributes={
                 Attributes.STATE: receiver.state,
             },
-            simple_commands=self._denon_media_player.get_supported_commands(False),
-            button_mapping=REMOTE_BUTTONS_MAPPING,
-            ui_pages=DenonRemote._get_remote_ui_pages(device.is_denon),
+            simple_commands=self._denon_media_player.get_supported_commands(include_power_state_commands=False),
+            button_mapping=cast("list[DeviceButtonMapping | dict[str, Any]] | None", REMOTE_BUTTONS_MAPPING),
+            ui_pages=cast(
+                "list[UiPage | dict[str, Any]] | None",
+                DenonRemote._get_remote_ui_pages(is_denon=device.is_denon),
+            ),
         )
         DenonEntity.__init__(self, api)
 
+    @override
     async def command(self, cmd_id: str, params: dict[str, Any] | None = None, *, websocket: Any) -> StatusCodes:
         """
         Remote entity command handler.
@@ -74,7 +72,6 @@ class DenonRemote(Remote, DenonEntity):
         :param websocket: websocket connection (not used)
         :return: status code of the command request
         """
-        # pylint: disable=R0911
         match cmd_id:
             case Commands.ON:
                 return await self._denon_media_player.command(Commands.ON, websocket=websocket)
@@ -82,6 +79,8 @@ class DenonRemote(Remote, DenonEntity):
                 return await self._denon_media_player.command(Commands.OFF, websocket=websocket)
             case Commands.TOGGLE:
                 return await self._denon_media_player.command(Commands.TOGGLE, websocket=websocket)
+            case _:
+                pass
 
         if cmd_id.startswith("remote."):
             _LOG.error("Command %s is not allowed.", cmd_id)
@@ -107,8 +106,8 @@ class DenonRemote(Remote, DenonEntity):
                 return command_or_status
 
             success = True
-            for _ in range(0, repeat):
-                success |= (
+            for _ in range(repeat):
+                success &= (
                     await self._denon_media_player.command(command_or_status, websocket=websocket) == StatusCodes.OK
                 )
 
@@ -119,7 +118,7 @@ class DenonRemote(Remote, DenonEntity):
         if cmd_id == Commands.SEND_CMD_SEQUENCE:
             success = True
             for command in params.get("sequence", []):
-                for _ in range(0, repeat):
+                for _ in range(repeat):
                     command_or_status = self._get_command_or_status_code(cmd_id, command)
                     if isinstance(command_or_status, StatusCodes):
                         success = False
@@ -134,6 +133,7 @@ class DenonRemote(Remote, DenonEntity):
         # send "raw" commands as is to the receiver
         return await self._denon_media_player.command(cmd_id, websocket=websocket)
 
+    @override
     def state_from_avr(self, avr_state: avr.States) -> ucapi.remote.States:
         """
         Convert AVR state to UC API remote state.
@@ -145,6 +145,7 @@ class DenonRemote(Remote, DenonEntity):
             return REMOTE_STATE_MAPPING[avr_state]
         return ucapi.remote.States.UNKNOWN
 
+    @override
     def filter_changed_attributes(self, update: dict[str, Any]) -> dict[str, Any]:
         """
         Filter the given attributes and return only the changed values.
@@ -189,7 +190,7 @@ class DenonRemote(Remote, DenonEntity):
         return default
 
     @staticmethod
-    def _get_remote_ui_pages(is_denon: bool):
+    def _get_remote_ui_pages(*, is_denon: bool):
         return [
             DenonRemote._get_main_page(),
             DenonRemote._get_sound_modes_page(),
@@ -200,7 +201,7 @@ class DenonRemote(Remote, DenonEntity):
             DenonRemote._get_channel_levels_page(),
             DenonRemote._get_eco_page(),
             DenonRemote._get_inputs_page(),
-            DenonRemote._get_quick_select_page(is_denon),
+            DenonRemote._get_quick_select_page(is_denon=is_denon),
         ]
 
     @staticmethod
@@ -987,7 +988,7 @@ class DenonRemote(Remote, DenonEntity):
         }
 
     @staticmethod
-    def _get_quick_select_page(is_denon: bool):
+    def _get_quick_select_page(*, is_denon: bool):
         return {
             "page_id": "denon_avr_commands_quick_select",
             "name": "Quick Select" if is_denon else "Smart Select",

@@ -19,11 +19,11 @@ _LOGGER = logging.getLogger(__name__)
 class ConnectDenonAVR:
     """Class to async connect to a Denon/Marantz AVR receiver."""
 
-    # pylint: disable=too-many-positional-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         host: str,
         timeout: int,
+        *,
         show_all_inputs: bool,
         zone2: bool,
         zone3: bool,
@@ -62,7 +62,9 @@ class ConnectDenonAVR:
     async def async_connect_receiver(self) -> bool:
         """Connect to the Denon/Marantz AVR receiver."""
         await self.async_init_receiver_class()
-        assert self._receiver
+        if self._receiver is None:
+            msg = "Receiver instance was not initialized"
+            raise RuntimeError(msg)
 
         if (
             self._receiver.manufacturer is None
@@ -93,11 +95,12 @@ class ConnectDenonAVR:
 
     async def async_init_receiver_class(self) -> None:
         """Initialize the DenonAVR class asynchronously."""
+        # attrs-generated __init__: pyright can't infer the host/timeout/etc. kwargs.
         receiver = DenonAVR(
-            host=self._host,
-            show_all_inputs=self._show_all_inputs,
-            timeout=self._timeout / 1000.0,
-            add_zones=self._zones,
+            host=self._host,  # pyright: ignore[reportCallIssue]
+            show_all_inputs=self._show_all_inputs,  # pyright: ignore[reportCallIssue]
+            timeout=self._timeout / 1000.0,  # pyright: ignore[reportCallIssue]
+            add_zones=self._zones,  # pyright: ignore[reportCallIssue]
         )
         await receiver.async_setup()
         # Do an initial update if telnet is used.
