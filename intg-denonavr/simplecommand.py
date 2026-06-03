@@ -16,8 +16,10 @@ from command_constants import (
     AudysseyCommands,
     CoreCommands,
     DiracCommands,
+    PictureModeCommands,
     SoundModeCommands,
     ToneControlCommands,
+    TunerCommands,
     VolumeCommands,
 )
 from config import AvrDevice
@@ -149,22 +151,26 @@ CORE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     CoreCommands.QUICK_SELECT_3: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_4: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_5: (DeviceProtocol.ALL, DeviceType.DENON),
+    CoreCommands.QUICK_SELECT_6: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_MEMORY_1: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_MEMORY_2: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_MEMORY_3: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_MEMORY_4: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.QUICK_SELECT_MEMORY_5: (DeviceProtocol.ALL, DeviceType.DENON),
+    CoreCommands.QUICK_SELECT_MEMORY_6: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.STATUS: (DeviceProtocol.ALL, DeviceType.DENON),
     CoreCommands.SMART_SELECT_1: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_2: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_3: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_4: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_5: (DeviceProtocol.ALL, DeviceType.MARANTZ),
+    CoreCommands.SMART_SELECT_6: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_MEMORY_1: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_MEMORY_2: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_MEMORY_3: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_MEMORY_4: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.SMART_SELECT_MEMORY_5: (DeviceProtocol.ALL, DeviceType.MARANTZ),
+    CoreCommands.SMART_SELECT_MEMORY_6: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.ILLUMINATION_AUTO: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.ILLUMINATION_BRIGHT: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.ILLUMINATION_DIM: (DeviceProtocol.ALL, DeviceType.MARANTZ),
@@ -172,6 +178,22 @@ CORE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     CoreCommands.ILLUMINATION_OFF: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.AUTO_LIP_SYNC_ON: (DeviceProtocol.ALL, DeviceType.MARANTZ),
     CoreCommands.AUTO_LIP_SYNC_OFF: (DeviceProtocol.ALL, DeviceType.MARANTZ),
+    CoreCommands.ALL_ZONE_STEREO_ON: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ALL_ZONE_STEREO_OFF: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.SLEEP_TIMER_OFF: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.SLEEP_TIMER_30MIN: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.SLEEP_TIMER_60MIN: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.SLEEP_TIMER_90MIN: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.SLEEP_TIMER_120MIN: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ZONE_FAVORITE_1: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ZONE_FAVORITE_2: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ZONE_FAVORITE_3: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ZONE_FAVORITE_MEMORY_1: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ZONE_FAVORITE_MEMORY_2: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.ZONE_FAVORITE_MEMORY_3: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.DIGITAL_INPUT_AUTO: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.DIGITAL_INPUT_PCM: (DeviceProtocol.ALL, DeviceType.ALL),
+    CoreCommands.DIGITAL_INPUT_DTS: (DeviceProtocol.ALL, DeviceType.ALL),
 }
 
 SOUND_MODE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
@@ -185,6 +207,9 @@ SOUND_MODE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     SoundModeCommands.SURROUND_MODE_MCH_STEREO: (DeviceProtocol.ALL, DeviceType.ALL),
     SoundModeCommands.SURROUND_MODE_STEREO: (DeviceProtocol.ALL, DeviceType.ALL),
     SoundModeCommands.SURROUND_MODE_MONO: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.SURROUND_MODE_DOLBY_SURROUND: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.SURROUND_MODE_NEURAL_X: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.SURROUND_MODE_MULTI_CH_IN: (DeviceProtocol.ALL, DeviceType.ALL),
     SoundModeCommands.SURROUND_MODE_NEXT: (DeviceProtocol.ALL, DeviceType.ALL),
     SoundModeCommands.SURROUND_MODE_PREVIOUS: (DeviceProtocol.ALL, DeviceType.ALL),
     SoundModeCommands.SOUND_MODE_NEURAL_X_ON: (DeviceProtocol.ALL, DeviceType.ALL),
@@ -267,6 +292,16 @@ SOUND_MODE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     SoundModeCommands.CENTER_SPREAD_TOGGLE: (DeviceProtocol.TELNET, DeviceType.ALL),
     SoundModeCommands.LOUDNESS_MANAGEMENT_TOGGLE: (DeviceProtocol.TELNET, DeviceType.ALL),
     SoundModeCommands.SPEAKER_VIRTUALIZER_TOGGLE: (DeviceProtocol.TELNET, DeviceType.ALL),
+    SoundModeCommands.PANORAMA_ON: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.PANORAMA_OFF: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.DIMENSION_UP: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.DIMENSION_DOWN: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.CENTER_WIDTH_UP: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.CENTER_WIDTH_DOWN: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.SURROUND_LEVEL_COMP_OFF: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.SURROUND_LEVEL_COMP_LIGHT: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.SURROUND_LEVEL_COMP_MEDIUM: (DeviceProtocol.ALL, DeviceType.ALL),
+    SoundModeCommands.SURROUND_LEVEL_COMP_HEAVY: (DeviceProtocol.ALL, DeviceType.ALL),
 }
 
 AUDYSSEY_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
@@ -393,6 +428,29 @@ VOLUME_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     VolumeCommands.SUBWOOFER_TOGGLE: (DeviceProtocol.TELNET, DeviceType.ALL),
 }
 
+TUNER_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
+    TunerCommands.TUNER_FREQUENCY_UP: (DeviceProtocol.ALL, DeviceType.ALL),
+    TunerCommands.TUNER_FREQUENCY_DOWN: (DeviceProtocol.ALL, DeviceType.ALL),
+    TunerCommands.TUNER_BAND_FM: (DeviceProtocol.ALL, DeviceType.ALL),
+    TunerCommands.TUNER_BAND_AM: (DeviceProtocol.ALL, DeviceType.ALL),
+    TunerCommands.TUNER_MODE_AUTO: (DeviceProtocol.ALL, DeviceType.ALL),
+    TunerCommands.TUNER_MODE_MANUAL: (DeviceProtocol.ALL, DeviceType.ALL),
+    TunerCommands.TUNER_PRESET_UP: (DeviceProtocol.ALL, DeviceType.ALL),
+    TunerCommands.TUNER_PRESET_DOWN: (DeviceProtocol.ALL, DeviceType.ALL),
+}
+
+PICTURE_MODE_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
+    PictureModeCommands.PICTURE_MODE_MOVIE: (DeviceProtocol.ALL, DeviceType.ALL),
+    PictureModeCommands.PICTURE_MODE_GAME: (DeviceProtocol.ALL, DeviceType.ALL),
+    PictureModeCommands.PICTURE_MODE_VIVID: (DeviceProtocol.ALL, DeviceType.ALL),
+    PictureModeCommands.PICTURE_MODE_STREAM: (DeviceProtocol.ALL, DeviceType.ALL),
+    PictureModeCommands.PICTURE_MODE_BRILLIANT: (DeviceProtocol.ALL, DeviceType.ALL),
+    PictureModeCommands.PICTURE_MODE_CUSTOM: (DeviceProtocol.ALL, DeviceType.ALL),
+    PictureModeCommands.PICTURE_MODE_ISF_DAY: (DeviceProtocol.ALL, DeviceType.ALL),
+    PictureModeCommands.PICTURE_MODE_ISF_NIGHT: (DeviceProtocol.ALL, DeviceType.ALL),
+    PictureModeCommands.PICTURE_MODE_OFF: (DeviceProtocol.ALL, DeviceType.ALL),
+}
+
 ALL_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     **CORE_COMMANDS,
     **SOUND_MODE_COMMANDS,
@@ -400,6 +458,8 @@ ALL_COMMANDS: dict[str, tuple[DeviceProtocol, DeviceType]] = {
     **DIRAC_COMMANDS,
     **TONE_CONTROL_COMMANDS,
     **VOLUME_COMMANDS,
+    **TUNER_COMMANDS,
+    **PICTURE_MODE_COMMANDS,
 }
 
 
@@ -444,6 +504,10 @@ class SimpleCommand:
             return await self._handle_audyssey_command(cmd)
         if cmd in DIRAC_COMMANDS:
             return await self._handle_dirac_command(cmd)
+        if cmd in TUNER_COMMANDS:
+            return await self._handle_tuner_command(cmd)
+        if cmd in PICTURE_MODE_COMMANDS:
+            return await self._handle_picture_mode_command(cmd)
 
         # Unknown command, validate the string before sending
         # Denon/Marantz API only supports length (COMMAND + PARAMETER[25]) with ascii 0x20-0x7F
@@ -454,7 +518,7 @@ class SimpleCommand:
         return await self._send_command(cmd)
 
     async def _handle_core_command(self, cmd: str) -> ucapi.StatusCodes:
-        # pylint: disable=R0915
+        # pylint: disable=R0915, R0911
         match cmd:
             case CoreCommands.OUTPUT_1:
                 await self._receiver.async_hdmi_output("HDMI1")
@@ -628,6 +692,10 @@ class SimpleCommand:
                 await self._receiver.async_quick_select_mode(4)
             case CoreCommands.QUICK_SELECT_5 | CoreCommands.SMART_SELECT_5:
                 await self._receiver.async_quick_select_mode(5)
+            case CoreCommands.QUICK_SELECT_6 | CoreCommands.SMART_SELECT_6:
+                await self._receiver.async_quick_select_mode(6)
+            case CoreCommands.QUICK_SELECT_MEMORY_6 | CoreCommands.SMART_SELECT_MEMORY_6:
+                await self._receiver.async_quick_select_memory(6)
             case CoreCommands.HDMI_CEC_ON:
                 await self._receiver.async_hdmi_cec_on()
             case CoreCommands.HDMI_CEC_OFF:
@@ -702,6 +770,38 @@ class SimpleCommand:
                 await self._receiver.async_input_mode("Digital")
             case CoreCommands.INPUT_MODE_ANALOG:
                 await self._receiver.async_input_mode("Analog")
+            case CoreCommands.ALL_ZONE_STEREO_ON:
+                return await self._send_command("MNZST ON")
+            case CoreCommands.ALL_ZONE_STEREO_OFF:
+                return await self._send_command("MNZST OFF")
+            case CoreCommands.SLEEP_TIMER_OFF:
+                return await self._send_command("SLPOFF")
+            case CoreCommands.SLEEP_TIMER_30MIN:
+                return await self._send_command("SLP030")
+            case CoreCommands.SLEEP_TIMER_60MIN:
+                return await self._send_command("SLP060")
+            case CoreCommands.SLEEP_TIMER_90MIN:
+                return await self._send_command("SLP090")
+            case CoreCommands.SLEEP_TIMER_120MIN:
+                return await self._send_command("SLP120")
+            case CoreCommands.ZONE_FAVORITE_1:
+                return await self._send_command("ZMFAVORITE1")
+            case CoreCommands.ZONE_FAVORITE_2:
+                return await self._send_command("ZMFAVORITE2")
+            case CoreCommands.ZONE_FAVORITE_3:
+                return await self._send_command("ZMFAVORITE3")
+            case CoreCommands.ZONE_FAVORITE_MEMORY_1:
+                return await self._send_command("ZMFAVORITE1 MEMORY")
+            case CoreCommands.ZONE_FAVORITE_MEMORY_2:
+                return await self._send_command("ZMFAVORITE2 MEMORY")
+            case CoreCommands.ZONE_FAVORITE_MEMORY_3:
+                return await self._send_command("ZMFAVORITE3 MEMORY")
+            case CoreCommands.DIGITAL_INPUT_AUTO:
+                await self._receiver.async_set_digital_codec("Auto")
+            case CoreCommands.DIGITAL_INPUT_PCM:
+                await self._receiver.async_set_digital_codec("PCM")
+            case CoreCommands.DIGITAL_INPUT_DTS:
+                await self._receiver.async_set_digital_codec("DTS")
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
@@ -920,8 +1020,14 @@ class SimpleCommand:
                 return await self._send_command("MSMCH STEREO")
             case SoundModeCommands.SURROUND_MODE_STEREO:
                 return await self._send_command("MSSTEREO")
-            case SoundModeCommands.SURROUND_MODE_STEREO:
+            case SoundModeCommands.SURROUND_MODE_MONO:
                 return await self._send_command("MSMONO MOVIE")
+            case SoundModeCommands.SURROUND_MODE_DOLBY_SURROUND:
+                return await self._send_command("MSDOLBY SURROUND")
+            case SoundModeCommands.SURROUND_MODE_NEURAL_X:
+                return await self._send_command("MSNEURAL:X")
+            case SoundModeCommands.SURROUND_MODE_MULTI_CH_IN:
+                return await self._send_command("MSMULTI CH IN")
             case SoundModeCommands.SURROUND_MODE_NEXT:
                 await self._receiver.soundmode.async_sound_mode_next()
             case SoundModeCommands.SURROUND_MODE_PREVIOUS:
@@ -1088,6 +1194,26 @@ class SimpleCommand:
                 await self._receiver.soundmode.async_dac_filter("Mode 2")
             case SoundModeCommands.DOLBY_ATMOS_TOGGLE:
                 await self._receiver.soundmode.async_dolby_atmos_toggle()
+            case SoundModeCommands.PANORAMA_ON:
+                return await self._send_command("PSPAN ON")
+            case SoundModeCommands.PANORAMA_OFF:
+                return await self._send_command("PSPAN OFF")
+            case SoundModeCommands.DIMENSION_UP:
+                return await self._send_command("PSDIM UP")
+            case SoundModeCommands.DIMENSION_DOWN:
+                return await self._send_command("PSDIM DOWN")
+            case SoundModeCommands.CENTER_WIDTH_UP:
+                return await self._send_command("PSCEW UP")
+            case SoundModeCommands.CENTER_WIDTH_DOWN:
+                return await self._send_command("PSCEW DOWN")
+            case SoundModeCommands.SURROUND_LEVEL_COMP_OFF:
+                return await self._send_command("PSSURLEV OFF")
+            case SoundModeCommands.SURROUND_LEVEL_COMP_LIGHT:
+                return await self._send_command("PSSURLEV LIT")
+            case SoundModeCommands.SURROUND_LEVEL_COMP_MEDIUM:
+                return await self._send_command("PSSURLEV MED")
+            case SoundModeCommands.SURROUND_LEVEL_COMP_HEAVY:
+                return await self._send_command("PSSURLEV HEV")
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
@@ -1150,6 +1276,56 @@ class SimpleCommand:
                 await self._receiver.dirac.async_dirac_filter("Slot 3")
             case DiracCommands.DIRAC_LIVE_FILTER_OFF:
                 await self._receiver.dirac.async_dirac_filter("Off")
+            case _:
+                return ucapi.StatusCodes.NOT_IMPLEMENTED
+
+        return ucapi.StatusCodes.OK
+
+    async def _handle_tuner_command(self, cmd: str) -> ucapi.StatusCodes:
+        # pylint: disable=R0911
+        match cmd:
+            case TunerCommands.TUNER_FREQUENCY_UP:
+                return await self._send_command("TFANUP")
+            case TunerCommands.TUNER_FREQUENCY_DOWN:
+                return await self._send_command("TFANDOWN")
+            case TunerCommands.TUNER_BAND_FM:
+                return await self._send_command("TMANFM")
+            case TunerCommands.TUNER_BAND_AM:
+                return await self._send_command("TMANAM")
+            case TunerCommands.TUNER_MODE_AUTO:
+                return await self._send_command("TMANAUTO")
+            case TunerCommands.TUNER_MODE_MANUAL:
+                return await self._send_command("TMANMANUAL")
+            case TunerCommands.TUNER_PRESET_UP:
+                return await self._send_command("TPANUP")
+            case TunerCommands.TUNER_PRESET_DOWN:
+                return await self._send_command("TPANDOWN")
+            case _:
+                return ucapi.StatusCodes.NOT_IMPLEMENTED
+
+        return ucapi.StatusCodes.OK
+
+    async def _handle_picture_mode_command(self, cmd: str) -> ucapi.StatusCodes:
+        # pylint: disable=R0911
+        match cmd:
+            case PictureModeCommands.PICTURE_MODE_MOVIE:
+                await self._receiver.async_set_picture_mode("Movie")
+            case PictureModeCommands.PICTURE_MODE_GAME:
+                await self._receiver.async_set_picture_mode("Game")
+            case PictureModeCommands.PICTURE_MODE_VIVID:
+                await self._receiver.async_set_picture_mode("Vivid")
+            case PictureModeCommands.PICTURE_MODE_STREAM:
+                await self._receiver.async_set_picture_mode("Stream")
+            case PictureModeCommands.PICTURE_MODE_BRILLIANT:
+                await self._receiver.async_set_picture_mode("Brilliant")
+            case PictureModeCommands.PICTURE_MODE_CUSTOM:
+                await self._receiver.async_set_picture_mode("Custom")
+            case PictureModeCommands.PICTURE_MODE_ISF_DAY:
+                await self._receiver.async_set_picture_mode("Day")
+            case PictureModeCommands.PICTURE_MODE_ISF_NIGHT:
+                await self._receiver.async_set_picture_mode("Night")
+            case PictureModeCommands.PICTURE_MODE_OFF:
+                await self._receiver.async_set_picture_mode("Off")
             case _:
                 return ucapi.StatusCodes.NOT_IMPLEMENTED
 
