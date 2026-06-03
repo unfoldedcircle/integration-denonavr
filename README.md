@@ -191,21 +191,25 @@ Note that the toggle commands only are available when using Telnet.
 | QUICK_SELECT_3                                      | MSQUICK3                    | Denon        |
 | QUICK_SELECT_4                                      | MSQUICK4                    | Denon        |
 | QUICK_SELECT_5                                      | MSQUICK5                    | Denon        |
+| QUICK_SELECT_6                                      | MSQUICK6                    | Denon        |
 | QUICK_SELECT_MEMORY_1                               | MSQUICK1 MEMORY             | Denon        |
 | QUICK_SELECT_MEMORY_2                               | MSQUICK2 MEMORY             | Denon        |
 | QUICK_SELECT_MEMORY_3                               | MSQUICK3 MEMORY             | Denon        |
 | QUICK_SELECT_MEMORY_4                               | MSQUICK4 MEMORY             | Denon        |
 | QUICK_SELECT_MEMORY_5                               | MSQUICK5 MEMORY             | Denon        |
+| QUICK_SELECT_MEMORY_6                               | MSQUICK6 MEMORY             | Denon        |
 | SMART_SELECT_1                                      | MSSMART1                    | Marantz      |
 | SMART_SELECT_2                                      | MSSMART2                    | Marantz      |
 | SMART_SELECT_3                                      | MSSMART3                    | Marantz      |
 | SMART_SELECT_4                                      | MSSMART4                    | Marantz      |
 | SMART_SELECT_5                                      | MSSMART5                    | Marantz      |
+| SMART_SELECT_6                                      | MSSMART6                    | Marantz      |
 | SMART_SELECT_MEMORY_1                               | MSSMART1 MEMORY             | Marantz      |
 | SMART_SELECT_MEMORY_2                               | MSSMART2 MEMORY             | Marantz      |
 | SMART_SELECT_MEMORY_3                               | MSSMART3 MEMORY             | Marantz      |
 | SMART_SELECT_MEMORY_4                               | MSSMART4 MEMORY             | Marantz      |
 | SMART_SELECT_MEMORY_5                               | MSSMART5 MEMORY             | Marantz      |
+| SMART_SELECT_MEMORY_6                               | MSSMART6 MEMORY             | Marantz      |
 | ILLUMINATION_AUTO                                   | ILB AUTO                    | Marantz      |
 | ILLUMINATION_BRIGHT                                 | ILB BRI                     | Marantz      |
 | ILLUMINATION_DIM                                    | ILB DIM                     | Marantz      |
@@ -303,6 +307,9 @@ Note that the toggle commands only are available when using Telnet.
 | SURROUND_MODE_AURO3D                                | MSAURO3D                    | All          |
 | SURROUND_MODE_AURO2DSURR                            | MSAURO2DSURR                | All          |
 | SURROUND_MODE_MCH_STEREO                            | MSMCH STEREO                | All          |
+| SURROUND_MODE_DOLBY_SURROUND                        | MSDOLBY SURROUND            | All          |
+| SURROUND_MODE_NEURAL_X                              | MSNEURAL:X                  | All          |
+| SURROUND_MODE_MULTI_CH_IN                           | MSMULTI CH IN               | All          |
 | SURROUND_MODE_NEXT                                  | MSRIGHT                     | All          |
 | SURROUND_MODE_PREVIOUS                              | MSLEFT                      | All          |
 | SOUND_MODE_NEURAL_X_ON                              | PSNEURAL ON                 | All          |
@@ -415,6 +422,49 @@ Note that the toggle commands only are available when using Telnet.
 | BASSDOWN                                            | PSBAS DOWN                  | All          |
 | TREBLE_UP                                           | PSTRE UP                    | All          |
 | TREBLE_DOWN                                         | PSTRE DOWN                  | All          |
+| PANORAMA_ON                                         | PSPAN ON                    | All          |
+| PANORAMA_OFF                                        | PSPAN OFF                   | All          |
+| DIMENSION_UP                                        | PSDIM UP                    | All          |
+| DIMENSION_DOWN                                      | PSDIM DOWN                  | All          |
+| CENTER_WIDTH_UP                                     | PSCEW UP                    | All          |
+| CENTER_WIDTH_DOWN                                   | PSCEW DOWN                  | All          |
+| SURROUND_LEVEL_COMP_OFF                             | PSSURLEV OFF                | All          |
+| SURROUND_LEVEL_COMP_LIGHT                           | PSSURLEV LIT                | All          |
+| SURROUND_LEVEL_COMP_MEDIUM                          | PSSURLEV MED                | All          |
+| SURROUND_LEVEL_COMP_HEAVY                           | PSSURLEV HEV                | All          |
+| ALL_ZONE_STEREO_ON                                  | MNZST ON                    | All          |
+| ALL_ZONE_STEREO_OFF                                 | MNZST OFF                   | All          |
+| SLEEP_TIMER_OFF                                     | SLPOFF                      | All          |
+| SLEEP_TIMER_30MIN                                   | SLP030                      | All          |
+| SLEEP_TIMER_60MIN                                   | SLP060                      | All          |
+| SLEEP_TIMER_90MIN                                   | SLP090                      | All          |
+| SLEEP_TIMER_120MIN                                  | SLP120                      | All          |
+| DIGITAL_INPUT_AUTO                                  | DCAUTO                      | All          |
+| DIGITAL_INPUT_PCM                                   | DCPCM                       | All          |
+| DIGITAL_INPUT_DTS                                   | DCDTS                       | All          |
+| ZONE_FAVORITE_1                                     | ZMFAVORITE1                 | All          |
+| ZONE_FAVORITE_2                                     | ZMFAVORITE2                 | All          |
+| ZONE_FAVORITE_3                                     | ZMFAVORITE3                 | All          |
+| ZONE_FAVORITE_1_MEMORY                              | ZMFAVORITE1 MEMORY          | All          |
+| ZONE_FAVORITE_2_MEMORY                              | ZMFAVORITE2 MEMORY          | All          |
+| ZONE_FAVORITE_3_MEMORY                              | ZMFAVORITE3 MEMORY          | All          |
+| TUNER_FREQUENCY_UP                                  | TFANUP                      | All          |
+| TUNER_FREQUENCY_DOWN                                | TFANDOWN                    | All          |
+| TUNER_BAND_FM                                       | TMANFM                      | All          |
+| TUNER_BAND_AM                                       | TMANAM                      | All          |
+| TUNER_MODE_AUTO                                     | TMANAUTO                    | All          |
+| TUNER_MODE_MANUAL                                   | TMANMANUAL                  | All          |
+| TUNER_PRESET_UP                                     | TPANUP                      | All          |
+| TUNER_PRESET_DOWN                                   | TPANDOWN                    | All          |
+| PICTURE_MODE_MOVIE                                  | PVMOV                       | All          |
+| PICTURE_MODE_GAME                                   | PVGAM                       | All          |
+| PICTURE_MODE_VIVID                                  | PVVVD                       | All          |
+| PICTURE_MODE_STREAM                                 | PVSTM                       | All          |
+| PICTURE_MODE_BRILLIANT                              | PVBRL                       | All          |
+| PICTURE_MODE_CUSTOM                                 | PVCSTM                      | All          |
+| PICTURE_MODE_ISF_DAY                                | PVDAY                       | All          |
+| PICTURE_MODE_ISF_NIGHT                              | PVNGT                       | All          |
+| PICTURE_MODE_OFF                                    | PVOFF                       | All          |
 
 ## Known supported devices
 
@@ -442,8 +492,32 @@ If you use Telnet, you'll also have access to the following sensors:
 - Pixel depth (8-bit, 10-bit, 12-bit)
 - Max FRL
 - Max Resolution and Bandwidth (4K18Gbit)
+- Picture Mode (Movie, Game, Vivid, etc.)
+- Tuner Frequency
+- All Zone Stereo (On/Off)
+- Digital Input Mode (Auto, PCM, DTS)
 
 Note that not all receivers support all values.
+
+## Select entities
+
+> [!NOTE]
+> Select entities allow cycling through options on the Remote.
+
+The following select entities are available:
+- Sound Mode
+- Input Source
+- Dimmer
+- Eco Mode
+- Reference Level Offset
+- Dynamic Volume
+
+If you use Telnet, you'll also have access to:
+- Monitor Output
+- Speaker Preset
+- Picture Mode (Movie, Game, Vivid, Stream, Brilliant, Custom, ISF Day, ISF Night, Off)
+- Digital Input Mode (Auto, PCM, DTS)
+- Dirac Filter (if supported by the receiver)
 
 ## Usage
 

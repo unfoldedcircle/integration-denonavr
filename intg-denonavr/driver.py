@@ -278,6 +278,10 @@ def on_avr_update(avr_id: str, update: dict[str, Any] | None) -> None:
             AdditionalEventType.PIXEL_DEPTH_OUTPUT: receiver.pixel_depth_output,
             AdditionalEventType.MAX_FRL_INPUT: receiver.max_frl_input,
             AdditionalEventType.MAX_FRL_OUTPUT: receiver.max_frl_output,
+            AdditionalEventType.PICTURE_MODE: receiver.picture_mode,
+            AdditionalEventType.TUNER_FREQUENCY: receiver.tuner_frequency,
+            AdditionalEventType.ALL_ZONE_STEREO: receiver.all_zone_stereo,
+            AdditionalEventType.DIGITAL_CODEC: receiver.digital_codec,
         }
     else:
         _LOG.info("[%s] AVR update: %s", avr_id, update)

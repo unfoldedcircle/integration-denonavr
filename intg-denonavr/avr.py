@@ -82,7 +82,7 @@ TELNET_EVENTS = {
     "PS",  # Parameter Setting
     "SI",  # Select Input source
     "SS",  # Used for video and audio settings
-    "TF",  # Tuner Frequency (?)
+    "TF",  # Tuner Frequency
     "ZM",  # Zone Main
     "Z2",  # Zone 2
     "Z3",  # Zone 3
@@ -93,6 +93,9 @@ TELNET_EVENTS = {
     "SY",  # Also audio settings
     "OP",  # Input/Output Channel Info
     "SP",  # Speaker Info
+    "PV",  # Picture Mode
+    "MN",  # Menu / All Zone Stereo
+    "DC",  # Digital Codec
 }
 
 SUBSCRIBED_TELNET_EVENTS = {
@@ -110,6 +113,10 @@ SUBSCRIBED_TELNET_EVENTS = {
     "SY",  # Also audio settings
     "OP",  # Input/Output Channel Info
     "SP",  # Speaker Info
+    "TF",  # Tuner Frequency
+    "PV",  # Picture Mode
+    "MN",  # Menu / All Zone Stereo
+    "DC",  # Digital Codec
 }
 
 _DenonDeviceT = TypeVar("_DenonDeviceT", bound="DenonDevice")
@@ -239,7 +246,7 @@ class DenonDevice:
         self._attr_available: bool = True
         # expected volume feedback value if telnet isn't used
         self._expected_volume: float | None = None
-
+        self._all_zone_stereo: str | None = None
         self._connecting: bool = False
         self._connection_attempts: int = 0
         self._reconnect_delay: float = MIN_RECONNECT_DELAY
@@ -389,6 +396,26 @@ class DenonDevice:
         if self._receiver.input_func in self._receiver.playing_func_list and self._receiver.image_url is not None:
             return self._receiver.image_url
         return ""
+
+    @property
+    def picture_mode(self) -> str | None:
+        """Return the current picture mode."""
+        return self._receiver.picture_mode
+
+    @property
+    def tuner_frequency(self) -> str | None:
+        """Return the current tuner frequency."""
+        return self._receiver.frequency
+
+    @property
+    def all_zone_stereo(self) -> str | None:
+        """Return the current all zone stereo state."""
+        return self._all_zone_stereo
+
+    @property
+    def digital_codec(self) -> str | None:
+        """Return the current digital codec mode."""
+        return self._receiver.digital_codec
 
     @property
     def media_title(self) -> str:
@@ -785,6 +812,17 @@ class DenonDevice:
             self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.ECO_MODE: self._receiver.eco_mode})
         elif event == "SLP":  # Sleep Timer
             self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.SLEEP_TIMER: self._receiver.sleep})
+        elif event == "PV":  # Picture Mode
+            self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.PICTURE_MODE: self._receiver.picture_mode})
+        elif event == "TF":  # Tuner Frequency
+            self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.TUNER_FREQUENCY: self._receiver.frequency})
+        elif event == "MN":  # Menu / All Zone Stereo
+            if parameter.startswith("ZST "):
+                state = parameter[4:]
+                self._all_zone_stereo = state
+                self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.ALL_ZONE_STEREO: state})
+        elif event == "DC":  # Digital Codec
+            self.events.emit(Events.UPDATE, self.id, {AdditionalEventType.DIGITAL_CODEC: self._receiver.digital_codec})
         elif event == "SS":
             if parameter.startswith("INFSIGRES I"):
                 self.events.emit(

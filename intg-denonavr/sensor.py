@@ -242,6 +242,30 @@ class DenonSensor(Sensor, DenonEntity):
                     "name": f"{device.name} Colorspace Output",
                     "device_class": DeviceClasses.CUSTOM,
                 }
+            case SensorType.PICTURE_MODE:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.PICTURE_MODE.value),
+                    "name": f"{device.name} Picture Mode",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.TUNER_FREQUENCY:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.TUNER_FREQUENCY.value),
+                    "name": f"{device.name} Tuner Frequency",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.ALL_ZONE_STEREO:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.ALL_ZONE_STEREO.value),
+                    "name": f"{device.name} All Zone Stereo",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
+            case SensorType.DIGITAL_CODEC:
+                sensor = {
+                    "id": create_entity_id(receiver.id, EntityTypes.SENSOR, SensorType.DIGITAL_CODEC.value),
+                    "name": f"{device.name} Digital Codec",
+                    "device_class": DeviceClasses.CUSTOM,
+                }
             case _:
                 assert_never(sensor_type)
         return sensor
@@ -388,6 +412,22 @@ class DenonSensor(Sensor, DenonEntity):
                 colorspace_output = self._get_value_or_default(self._receiver.receiver.colorspace_output, "--")
                 return self._update_state_and_create_return_value(colorspace_output), None
 
+            if self._sensor_type == SensorType.PICTURE_MODE:
+                picture_mode = self._get_value_or_default(self._receiver.picture_mode, "--")
+                return self._update_state_and_create_return_value(picture_mode), None
+
+            if self._sensor_type == SensorType.TUNER_FREQUENCY:
+                tuner_frequency = self._get_value_or_default(self._receiver.tuner_frequency, "--")
+                return self._update_state_and_create_return_value(tuner_frequency), None
+
+            if self._sensor_type == SensorType.ALL_ZONE_STEREO:
+                all_zone_stereo = self._get_value_or_default(self._receiver.all_zone_stereo, "--")
+                return self._update_state_and_create_return_value(all_zone_stereo), None
+
+            if self._sensor_type == SensorType.DIGITAL_CODEC:
+                digital_codec = self._get_value_or_default(self._receiver.digital_codec, "--")
+                return self._update_state_and_create_return_value(digital_codec), None
+
         except Exception as ex:  # noqa: BLE001
             _LOG.warning("Error getting sensor value for %s: %s", self._sensor_type.value, ex)
             return None, None
@@ -453,6 +493,10 @@ def create_sensors(device: AvrDevice, receiver: avr.DenonDevice, api: Integratio
             DenonSensor(device, receiver, api, SensorType.MAX_FRL_OUTPUT),
             DenonSensor(device, receiver, api, SensorType.COLORSPACE_INPUT),
             DenonSensor(device, receiver, api, SensorType.COLORSPACE_OUTPUT),
+            DenonSensor(device, receiver, api, SensorType.PICTURE_MODE),
+            DenonSensor(device, receiver, api, SensorType.TUNER_FREQUENCY),
+            DenonSensor(device, receiver, api, SensorType.ALL_ZONE_STEREO),
+            DenonSensor(device, receiver, api, SensorType.DIGITAL_CODEC),
         ]
 
     return sensors
