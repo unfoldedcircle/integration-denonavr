@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## Unreleased
+### Fixed
+- Fixed usage of incorrect types for some commands, adjusted names for Picture Modes and bumped prioritization state queries for info that is used by sensors and selects.
+
 ## v0.16.0 - 2026-05-23
 ### Added
 - Support for Tactile Transducer, Room Size, Page Up/Down, Quick/Smart Select Memory, Reference Level Offset and Tone Control by @henrikwidlund ([#203](https://github.com/unfoldedcircle/integration-denonavr/pull/203)).
