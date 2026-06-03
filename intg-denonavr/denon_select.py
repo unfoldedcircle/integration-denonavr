@@ -299,9 +299,9 @@ class DenonSelect(Select, DenonEntity):
                 case SelectType.DYNAMIC_VOLUME:
                     await self._receiver._receiver.async_set_dynamicvol(new_value)  # type: ignore
                 case SelectType.PICTURE_MODE:
-                    await self._receiver._receiver.async_set_picture_mode(new_value)
+                    await self._receiver._receiver.async_set_picture_mode(new_value)  # type: ignore
                 case SelectType.DIGITAL_CODEC:
-                    await self._receiver._receiver.async_set_digital_codec(new_value)
+                    await self._receiver._receiver.async_set_digital_codec(new_value)  # type: ignore
 
             return StatusCodes.OK
 
