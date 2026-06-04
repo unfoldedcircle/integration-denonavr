@@ -775,15 +775,15 @@ class SimpleCommand:
             case CoreCommands.ALL_ZONE_STEREO_OFF:
                 return await self._send_command("MNZST OFF")
             case CoreCommands.SLEEP_TIMER_OFF:
-                return await self._send_command("SLPOFF")
+                await self._receiver.async_sleep("OFF")
             case CoreCommands.SLEEP_TIMER_30MIN:
-                return await self._send_command("SLP030")
+                await self._receiver.async_sleep(30)
             case CoreCommands.SLEEP_TIMER_60MIN:
-                return await self._send_command("SLP060")
+                await self._receiver.async_sleep(60)
             case CoreCommands.SLEEP_TIMER_90MIN:
-                return await self._send_command("SLP090")
+                await self._receiver.async_sleep(90)
             case CoreCommands.SLEEP_TIMER_120MIN:
-                return await self._send_command("SLP120")
+                await self._receiver.async_sleep(120)
             case CoreCommands.ZONE_FAVORITE_1:
                 return await self._send_command("ZMFAVORITE1")
             case CoreCommands.ZONE_FAVORITE_2:
@@ -1051,45 +1051,45 @@ class SimpleCommand:
             case SoundModeCommands.IMAX_AUDIO_SETTINGS_TOGGLE:
                 await self._receiver.soundmode.async_imax_audio_settings_toggle()
             case SoundModeCommands.IMAX_HPF_40HZ:
-                await self._receiver.soundmode.async_imax_hpf("40")
+                await self._receiver.soundmode.async_imax_hpf(40)
             case SoundModeCommands.IMAX_HPF_60HZ:
-                await self._receiver.soundmode.async_imax_hpf("60")
+                await self._receiver.soundmode.async_imax_hpf(60)
             case SoundModeCommands.IMAX_HPF_80HZ:
-                await self._receiver.soundmode.async_imax_hpf("80")
+                await self._receiver.soundmode.async_imax_hpf(80)
             case SoundModeCommands.IMAX_HPF_90HZ:
-                await self._receiver.soundmode.async_imax_hpf("90")
+                await self._receiver.soundmode.async_imax_hpf(90)
             case SoundModeCommands.IMAX_HPF_100HZ:
-                await self._receiver.soundmode.async_imax_hpf("100")
+                await self._receiver.soundmode.async_imax_hpf(100)
             case SoundModeCommands.IMAX_HPF_110HZ:
-                await self._receiver.soundmode.async_imax_hpf("110")
+                await self._receiver.soundmode.async_imax_hpf(110)
             case SoundModeCommands.IMAX_HPF_120HZ:
-                await self._receiver.soundmode.async_imax_hpf("120")
+                await self._receiver.soundmode.async_imax_hpf(120)
             case SoundModeCommands.IMAX_HPF_150HZ:
-                await self._receiver.soundmode.async_imax_hpf("150")
+                await self._receiver.soundmode.async_imax_hpf(150)
             case SoundModeCommands.IMAX_HPF_180HZ:
-                await self._receiver.soundmode.async_imax_hpf("180")
+                await self._receiver.soundmode.async_imax_hpf(180)
             case SoundModeCommands.IMAX_HPF_200HZ:
-                await self._receiver.soundmode.async_imax_hpf("200")
+                await self._receiver.soundmode.async_imax_hpf(200)
             case SoundModeCommands.IMAX_HPF_250HZ:
-                await self._receiver.soundmode.async_imax_hpf("250")
+                await self._receiver.soundmode.async_imax_hpf(250)
             case SoundModeCommands.IMAX_LPF_80HZ:
-                await self._receiver.soundmode.async_imax_lpf("80")
+                await self._receiver.soundmode.async_imax_lpf(80)
             case SoundModeCommands.IMAX_LPF_90HZ:
-                await self._receiver.soundmode.async_imax_lpf("90")
+                await self._receiver.soundmode.async_imax_lpf(90)
             case SoundModeCommands.IMAX_LPF_100HZ:
-                await self._receiver.soundmode.async_imax_lpf("100")
+                await self._receiver.soundmode.async_imax_lpf(100)
             case SoundModeCommands.IMAX_LPF_110HZ:
-                await self._receiver.soundmode.async_imax_lpf("110")
+                await self._receiver.soundmode.async_imax_lpf(110)
             case SoundModeCommands.IMAX_LPF_120HZ:
-                await self._receiver.soundmode.async_imax_lpf("120")
+                await self._receiver.soundmode.async_imax_lpf(120)
             case SoundModeCommands.IMAX_LPF_150HZ:
-                await self._receiver.soundmode.async_imax_lpf("150")
+                await self._receiver.soundmode.async_imax_lpf(150)
             case SoundModeCommands.IMAX_LPF_180HZ:
-                await self._receiver.soundmode.async_imax_lpf("180")
+                await self._receiver.soundmode.async_imax_lpf(180)
             case SoundModeCommands.IMAX_LPF_200HZ:
-                await self._receiver.soundmode.async_imax_lpf("200")
+                await self._receiver.soundmode.async_imax_lpf(200)
             case SoundModeCommands.IMAX_LPF_250HZ:
-                await self._receiver.soundmode.async_imax_lpf("250")
+                await self._receiver.soundmode.async_imax_lpf(250)
             case SoundModeCommands.IMAX_SUBWOOFER_ON:
                 await self._receiver.soundmode.async_imax_subwoofer_mode("ON")
             case SoundModeCommands.IMAX_SUBWOOFER_OFF:
