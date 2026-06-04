@@ -11,6 +11,19 @@ _Changes in the next release_
 
 ---
 
+## v0.16.1 - 2026-06-04
+### Added
+- Add missing AVR commands, sensors, selects, and remote UI pages by @mase1981 ([#206](https://github.com/unfoldedcircle/integration-denonavr/pull/206)).
+  - Commands: Tuner control, Picture mode, Sleep timer, Sound tweaks, Zone favorites, All Zone Stereo, Digital Input Mode, and more.
+  - Sensors & Selects: Picture Mode, Tuner Frequency, All Zone Stereo, Digital Input Mode.
+  - Remote UI pages: Tuner, Picture Mode, Sleep Timer, Sound Tweaks, Zone Favorites.
+  - Updated Sound Modes and Quick Select pages.
+
+### Fixed
+- Adjustments to command parameters and names for simple commands by @henrikwidlund ([#207](https://github.com/unfoldedcircle/integration-denonavr/pull/207)).
+- Adjustments to range validations by @henrikwidlund ([#204](https://github.com/unfoldedcircle/integration-denonavr/pull/204)).
+- Duplicate Sound Mode entries and incorrect Mono mapping by @mase1981 ([#206](https://github.com/unfoldedcircle/integration-denonavr/pull/206)).
+
 ## v0.16.0 - 2026-05-23
 ### Added
 - Support for Tactile Transducer, Room Size, Page Up/Down, Quick/Smart Select Memory, Reference Level Offset and Tone Control by @henrikwidlund ([#203](https://github.com/unfoldedcircle/integration-denonavr/pull/203)).
