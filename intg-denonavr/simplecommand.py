@@ -771,15 +771,15 @@ class SimpleCommand:
             case CoreCommands.ALL_ZONE_STEREO_OFF:
                 return await self._send_command("MNZST OFF")
             case CoreCommands.SLEEP_TIMER_OFF:
-                return await self._send_command("SLPOFF")
+                await self._receiver.async_sleep("OFF")
             case CoreCommands.SLEEP_TIMER_30MIN:
-                return await self._send_command("SLP030")
+                await self._receiver.async_sleep(30)
             case CoreCommands.SLEEP_TIMER_60MIN:
-                return await self._send_command("SLP060")
+                await self._receiver.async_sleep(60)
             case CoreCommands.SLEEP_TIMER_90MIN:
-                return await self._send_command("SLP090")
+                await self._receiver.async_sleep(90)
             case CoreCommands.SLEEP_TIMER_120MIN:
-                return await self._send_command("SLP120")
+                await self._receiver.async_sleep(120)
             case CoreCommands.ZONE_FAVORITE_1:
                 return await self._send_command("ZMFAVORITE1")
             case CoreCommands.ZONE_FAVORITE_2:
@@ -1313,9 +1313,9 @@ class SimpleCommand:
             case PictureModeCommands.PICTURE_MODE_CUSTOM:
                 await self._receiver.async_set_picture_mode("Custom")
             case PictureModeCommands.PICTURE_MODE_ISF_DAY:
-                await self._receiver.async_set_picture_mode("Day")
+                await self._receiver.async_set_picture_mode("ISF Day")
             case PictureModeCommands.PICTURE_MODE_ISF_NIGHT:
-                await self._receiver.async_set_picture_mode("Night")
+                await self._receiver.async_set_picture_mode("ISF Night")
             case PictureModeCommands.PICTURE_MODE_OFF:
                 await self._receiver.async_set_picture_mode("Off")
             case _:
