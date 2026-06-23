@@ -1074,6 +1074,7 @@ class DenonDevice:
     async def mute_toggle(self) -> ucapi.StatusCodes:
         """Send mute command to AVR."""
         await self._receiver.async_mute_toggle()
+        self._schedule_update_task()
 
         return ucapi.StatusCodes.OK
 
