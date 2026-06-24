@@ -11,6 +11,13 @@ _Changes in the next release_
 
 ---
 
+## v0.16.2 - 2026-06-24
+### Fixed
+- Schedule state update on mute toggle by @henrikwidlund ([#209](https://github.com/unfoldedcircle/integration-denonavr/pull/209)).
+
+### Changed
+- Bump actions/checkout from 6 to 7 ([#208](https://github.com/unfoldedcircle/integration-denonavr/pull/208)).
+
 ## v0.16.1 - 2026-06-04
 ### Added
 - Add missing AVR commands, sensors, selects, and remote UI pages by @mase1981 ([#206](https://github.com/unfoldedcircle/integration-denonavr/pull/206)).
