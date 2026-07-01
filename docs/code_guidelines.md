@@ -1,12 +1,9 @@
 # Code Guidelines
 
 - Code line length: 120
-- Use double quotes as default (don't mix and match for simple quoting, checked with pylint).
+- Use double quotes as default (don't mix and match for simple quoting).
 - Configuration:
-    - `.pylint.rc` for pylint.
-    - `pyproject.toml` for isort.  
-      _TBD if pyproject.toml is the right approach. This is not a library and we are new to Python build systems..._
-    - `setup.cfg` for flake8.
+    - `pyproject.toml` for Ruff and Pyright.  
 
 ## Tooling
 
@@ -22,36 +19,19 @@ The following tests are run as GitHub action for each push on the main branch an
 They can also be run anytime on a local developer machine:
 
 ```shell
-python -m pylint intg-denonavr
-python -m flake8 intg-denonavr --count --show-source --statistics
-python -m isort intg-denonavr/. --check --verbose 
-python -m black intg-denonavr --check --verbose --line-length 120
+python -m ruff check intg-denonavr tests
+python -m ruff format --check intg-denonavr tests
+python -m pyright
 ```
 
-Linting integration in PyCharm/IntelliJ IDEA:
+There's also helper wrapper scripts for the above commands: [lint.sh](../lint.sh).
 
-1. Install plugin [Pylint](https://plugins.jetbrains.com/plugin/11084-pylint)
-2. Open Pylint window and run a scan: `Check Module` or `Check Current File`
+Linting integration in PyCharm/IntelliJ IDEA: enable Pyright and Ruff in Settings, Python, Tools
 
 ### Format Code
 
 ```shell
-python -m black intg-denonavr --line-length 120
-```
-
-PyCharm/IntelliJ IDEA integration:
-
-1. Go to `Preferences or Settings -> Tools -> Black`
-2. Configure:
-
-- Python interpreter
-- Use Black formatter: `On code reformat` & optionally `On save`
-- Arguments: `--line-length 120`
-
-### Sort Imports
-
-```shell
-python -m isort intg-denonavr/.
+python -m ruff format intg-denonavr tests
 ```
 
 ## Language Texts

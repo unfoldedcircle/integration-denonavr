@@ -29,7 +29,7 @@ one of the other [feedback channels](#feedback-speech_balloon).
 Since this software is being used on the embedded Remote Two/3 device, we have to make sure it remains
 compatible with the embedded runtime environment and runs smoothly.
 
-Submitting pull requests for typos, formatting issues etc. are happily accepted and usually approved relatively quick.  
+Submitting pull requests for typos, formatting issues, etc. are happily accepted and usually approved relatively quickly.  
 
 With that out of the way, here's the process of creating a pull request and making sure it passes the automated tests:
 
