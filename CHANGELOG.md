@@ -11,6 +11,13 @@ _Changes in the next release_
 
 ---
 
+## v0.16.3 - 2026-07-01
+### Fixed
+- One-zone telnet power refresh handling by @henrikwidlund ([#210](https://github.com/unfoldedcircle/integration-denonavr/pull/210)).
+
+### Changed
+- Synchronize the denonavr lib by @henrikwidlund ([#210](https://github.com/unfoldedcircle/integration-denonavr/pull/210)).
+
 ## v0.16.2 - 2026-06-24
 ### Fixed
 - Schedule state update on mute toggle by @henrikwidlund ([#209](https://github.com/unfoldedcircle/integration-denonavr/pull/209)).
