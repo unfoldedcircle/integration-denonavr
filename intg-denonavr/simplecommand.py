@@ -5,13 +5,12 @@ This module implements the Denon/Marantz AVR receiver communication of the Remot
 :license: Mozilla Public License Version 2.0, see LICENSE for more details.
 """
 
+from collections.abc import Awaitable, Callable
 from enum import Enum
-
-# pylint: disable=C0302
-from typing import Awaitable, Callable
 
 import denonavr
 import ucapi
+
 from command_constants import (
     AudysseyCommands,
     CoreCommands,
@@ -475,7 +474,6 @@ def get_simple_commands(device: AvrDevice):
     ]
 
 
-# pylint: disable=R0903
 class SimpleCommand:
     """Handles mapping and sending of Simple Commands to the receiver."""
 
@@ -491,7 +489,6 @@ class SimpleCommand:
 
     async def send_simple_command(self, cmd: str) -> ucapi.StatusCodes:
         """Send a simple command to the AVR."""
-        # pylint: disable=R0911
         if cmd in CORE_COMMANDS:
             return await self._handle_core_command(cmd)
         if cmd in TONE_CONTROL_COMMANDS:
@@ -518,7 +515,6 @@ class SimpleCommand:
         return await self._send_command(cmd)
 
     async def _handle_core_command(self, cmd: str) -> ucapi.StatusCodes:
-        # pylint: disable=R0915, R0911
         match cmd:
             case CoreCommands.OUTPUT_1:
                 await self._receiver.async_hdmi_output("HDMI1")
@@ -830,7 +826,6 @@ class SimpleCommand:
         return ucapi.StatusCodes.OK
 
     async def _handle_volume_command(self, cmd: str) -> ucapi.StatusCodes:
-        # pylint: disable=R0915
         match cmd:
             case VolumeCommands.FRONT_LEFT_UP:
                 await self._receiver.vol.async_channel_volume_up("Front Left")
@@ -1000,7 +995,6 @@ class SimpleCommand:
         return ucapi.StatusCodes.OK
 
     async def _handle_sound_mode_command(self, cmd: str) -> ucapi.StatusCodes:
-        # pylint: disable=R0915, R0911
         match cmd:
             case SoundModeCommands.SURROUND_MODE_AUTO:
                 return await self._send_command("MSAUTO")
@@ -1220,7 +1214,6 @@ class SimpleCommand:
         return ucapi.StatusCodes.OK
 
     async def _handle_audyssey_command(self, cmd: str) -> ucapi.StatusCodes:
-        # pylint: disable=R0911
         match cmd:
             case AudysseyCommands.MULTIEQ_REFERENCE:
                 return await self._send_command("PSMULTEQ:AUDYSSEY")
@@ -1266,7 +1259,6 @@ class SimpleCommand:
         return ucapi.StatusCodes.OK
 
     async def _handle_dirac_command(self, cmd: str) -> ucapi.StatusCodes:
-        # pylint: disable=R0911
         match cmd:
             case DiracCommands.DIRAC_LIVE_FILTER_SLOT1:
                 await self._receiver.dirac.async_dirac_filter("Slot 1")
@@ -1321,9 +1313,9 @@ class SimpleCommand:
             case PictureModeCommands.PICTURE_MODE_CUSTOM:
                 await self._receiver.async_set_picture_mode("Custom")
             case PictureModeCommands.PICTURE_MODE_ISF_DAY:
-                await self._receiver.async_set_picture_mode("Day")
+                await self._receiver.async_set_picture_mode("ISF Day")
             case PictureModeCommands.PICTURE_MODE_ISF_NIGHT:
-                await self._receiver.async_set_picture_mode("Night")
+                await self._receiver.async_set_picture_mode("ISF Night")
             case PictureModeCommands.PICTURE_MODE_OFF:
                 await self._receiver.async_set_picture_mode("Off")
             case _:

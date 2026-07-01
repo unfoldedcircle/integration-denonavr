@@ -1,6 +1,6 @@
 import unittest
 
-from helpers import key_update_helper, relative_volume_to_absolute, absolute_volume_to_relative
+from helpers import absolute_volume_to_relative, key_update_helper, relative_volume_to_absolute
 
 
 class TestKeyUpdateHelper(unittest.TestCase):

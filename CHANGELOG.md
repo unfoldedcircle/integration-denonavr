@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+### Fixed
+- Fixed usage of incorrect types for some commands, adjusted names for Picture Modes and bumped prioritization state queries for info that is used by sensors and selects.
+
 ---
 
 ## v0.16.3 - 2026-07-01
