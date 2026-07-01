@@ -15,6 +15,7 @@ _Changes in the next release_
 ### Changed
 - Use pinned GitHub Actions dependencies ([#211](https://github.com/unfoldedcircle/integration-denonavr/pull/211)).
 - Use ruff and pyright instead of pylint, flake8, isort, and black by @henrikwidlund ([#202](https://github.com/unfoldedcircle/integration-denonavr/pull/202)).
+- Update PyInstaller Docker image to 3.11.13-0.7.0
 
 ---
 
