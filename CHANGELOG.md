@@ -10,7 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 _Changes in the next release_
 
 ### Fixed
-- Fixed usage of incorrect types for some commands, adjusted names for Picture Modes and bumped prioritization state queries for info that is used by sensors and selects.
+- Fixed usage of incorrect types for some commands, adjusted names for Picture Modes and bumped prioritization state queries for info that is used by sensors and selects by @henrikwidlund ([#202](https://github.com/unfoldedcircle/integration-denonavr/pull/202)).
+
+### Changed
+- Use pinned GitHub Actions dependencies ([#211](https://github.com/unfoldedcircle/integration-denonavr/pull/211)).
+- Use ruff and pyright instead of pylint, flake8, isort, and black by @henrikwidlund ([#202](https://github.com/unfoldedcircle/integration-denonavr/pull/202)).
 
 ---
 
