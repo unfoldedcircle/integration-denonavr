@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## v0.17.0 - 2026-07-01
 ### Fixed
 - Fixed usage of incorrect types for some commands, adjusted names for Picture Modes and bumped prioritization state queries for info that is used by sensors and selects by @henrikwidlund ([#202](https://github.com/unfoldedcircle/integration-denonavr/pull/202)).
 
@@ -16,8 +19,6 @@ _Changes in the next release_
 - Use pinned GitHub Actions dependencies ([#211](https://github.com/unfoldedcircle/integration-denonavr/pull/211)).
 - Use ruff and pyright instead of pylint, flake8, isort, and black by @henrikwidlund ([#202](https://github.com/unfoldedcircle/integration-denonavr/pull/202)).
 - Update PyInstaller Docker image to 3.11.13-0.7.0
-
----
 
 ## v0.16.3 - 2026-07-01
 ### Fixed
