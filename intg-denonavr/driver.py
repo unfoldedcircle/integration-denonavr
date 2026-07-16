@@ -60,16 +60,17 @@ async def receiver_status_poller(interval: float = 10.0) -> None:
     """Receiver data poller."""
     # TODO: is it important to delay the first call?
     while True:
-        start_time = asyncio.get_event_loop().time()
+        start_time = _LOOP.time()
         if not _REMOTE_IN_STANDBY:
-            try:
-                tasks = [
-                    receiver.async_update_receiver_data() for receiver in _configured_avrs.values() if receiver.active
-                ]
-                await asyncio.gather(*tasks)
-            except (KeyError, ValueError):  # TODO check parallel access / modification while iterating a dict
-                pass
-        elapsed_time = asyncio.get_event_loop().time() - start_time
+            # snapshot the configured receivers: the dict may be modified while updates are running
+            receivers = [receiver for receiver in list(_configured_avrs.values()) if receiver.active]
+            results = await asyncio.gather(
+                *(receiver.async_update_receiver_data() for receiver in receivers), return_exceptions=True
+            )
+            for receiver, result in zip(receivers, results, strict=True):
+                if isinstance(result, BaseException):
+                    _LOG.error("[%s] Receiver update failed", receiver.id, exc_info=result)
+        elapsed_time = _LOOP.time() - start_time
         await asyncio.sleep(min(10.0, max(1.0, interval - elapsed_time)))
 
 
