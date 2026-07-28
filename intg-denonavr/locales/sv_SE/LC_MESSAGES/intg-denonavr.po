@@ -5,7 +5,7 @@ msgstr ""
 "Language: sv_SE\n"
 
 msgid "Control your Denon or Marantz AVRs with Remote Two/3."
-msgstr "Styr dina AV-receivrar från Denon eller Marantz med Remote Two/3."
+msgstr "Styr dina AV-receivrar från Denon och Marantz med Remote Two/3."
 
 msgid "Integration setup"
 msgstr "Integrationskonfigurering"
@@ -23,7 +23,7 @@ msgid "Please see our support article for requirements, features and restriction
 msgstr "Vänligen se vår [supportartikel](https://support.unfoldedcircle.com/hc/en-us/articles/19480446994844) för tekniska krav, stödda funktioner och begränsningar."
 
 msgid "Setup mode"
-msgstr "Konfigureringsprocess"
+msgstr "Konfigureringsläge"
 
 msgid "Leave blank to use auto-discovery and click _Next_."
 msgstr "Lämna tomt för att hitta automatiskt och klicka på _Nästa_."
@@ -68,7 +68,7 @@ msgid "Please choose your Denon or Marantz AVR"
 msgstr "Vänligen välj din Denon eller Marantz AVR"
 
 msgid "Choose your Denon or Marantz AVR"
-msgstr "Välj din Denon- eller Marantz-AV-receiver"
+msgstr "Välj din Denon- eller Marantz-AVR"
 
 msgid "Show all sources"
 msgstr "Visa alla källor"
@@ -77,7 +77,7 @@ msgid "Select manufacturer"
 msgstr "Välj tillverkare"
 
 msgid "Connection mode"
-msgstr "Konfigurationssätt"
+msgstr "Anslutningsmetod"
 
 msgid "Use Telnet connection"
 msgstr "Använd en Telnet-anslutning"
@@ -89,7 +89,7 @@ msgid "Volume step"
 msgstr "Volymsteg"
 
 msgid "Connection and request timeout"
-msgstr "Anslutnings- och begäranstimeout (ms)"
+msgstr "Anslutnings- och anropstimeout (ms)"
 
 msgid "Device supports Dirac"
 msgstr "Enheten stöder Dirac"
