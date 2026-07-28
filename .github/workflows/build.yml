@@ -32,7 +32,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -57,7 +57,7 @@ jobs:
           PYTHONPATH=intg-denonavr python -m unittest discover tests
 
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     needs: [ test ]
     steps:
       - name: Checkout
@@ -89,9 +89,6 @@ jobs:
 
       - name: Pyinstaller
         run: |
-          sudo apt-get install -y qemu-system-arm binfmt-support qemu-user-static
-          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-
           echo "Running pyinstaller"
           
           docker run --rm --name builder \
