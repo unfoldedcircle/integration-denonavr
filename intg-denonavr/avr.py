@@ -246,6 +246,10 @@ class DenonDevice:
         self._attr_available: bool = True
         # expected volume feedback value if telnet isn't used
         self._expected_volume: float | None = None
+        # number of set_volume_level calls currently awaiting device confirmation.
+        # while > 0, telnet/poll feedback must not overwrite the optimistic _expected_volume,
+        # as that would risk custom volume steps getting out of sync while commands are still in flight
+        self._volume_command_pending: int = 0
         self._all_zone_stereo: str | None = None
         self._connecting: bool = False
         self._connection_attempts: int = 0
@@ -704,6 +708,7 @@ class DenonDevice:
                 if force:
                     await receiver.async_update()
                 await receiver.async_trigger_advanced_audio_video_info_update()
+                self._resync_expected_volume()
                 self._notify_updated_data()
                 return
 
@@ -722,6 +727,7 @@ class DenonDevice:
             # if self._update_audyssey:
             #     await receiver.async_update_audyssey()
 
+            self._resync_expected_volume()
             self._notify_updated_data()
         finally:
             # Set to None so a new task can be scheduled
@@ -730,11 +736,18 @@ class DenonDevice:
 
     def _notify_updated_data(self):
         """Notify listeners that the AVR data has been updated."""
-        # adjust to the real volume level
-        self._expected_volume = self.volume_level
-
-        # None update object means data are up to date & client can fetch required data.
         self.events.emit(Events.UPDATE, self.id, None)
+
+    def _resync_expected_volume(self):
+        """Resync the expected volume from the volume reported by the library.
+
+        Only safe to call when there are no in-flight volume commands: a poll
+        fetched while a command is still pending can reflect an older volume
+        than what we've already optimistically moved past. See the same guard
+        in _telnet_callback's MV handling for a detailed example.
+        """
+        if not self._volume_command_pending:
+            self._expected_volume = self.volume_level
 
     def _telnet_callback(self, zone: str, event: str, parameter: str | None) -> None:
         """Process a telnet command callback."""
@@ -766,6 +779,21 @@ class DenonDevice:
                     whole_number = float(parameter[0:2])
                     fraction = 0.1 * float(parameter[2])
                     level = whole_number + fraction
+            # Only apply this while there are no in-flight volume commands.
+            # Example of what we want to avoid (1.0 volume step):
+            # 1. Volume is -45.0dB
+            # 2. Calculate next volume to -44.0dB
+            # 3. Send to receiver via set_volume_level
+            # 4. We update expected volume to -44.0dB
+            # 5. Before we get an update reflecting step 3, a second volume_up call arrives:
+            #    reads expected volume -44.0dB, calculates next to -43.0dB, sends
+            # 6. A telnet MV update reporting -44.0dB arrives, overwriting expected
+            #    volume back to -44.0dB - erasing step 5's progress
+            # 7. A third volume_up call reads expected volume -44.0dB (stale, already
+            #    superseded by step 5), calculates -43.0dB again, tries to send a
+            #    duplicate (duplicates are ignored by the library)
+            if not self._volume_command_pending:
+                self._expected_volume = level
             self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: level})
         elif event == "MU":  # Muted
             self._set_expected_state(States.ON)
@@ -974,7 +1002,13 @@ class DenonDevice:
             volume_abs = relative_volume_to_absolute(max_volume_rel)
             _LOG.debug("[%s] Adjusted max volume %s", self.id, volume_abs)
 
-        await self._receiver.async_set_volume(volume_rel)
+        # increase and decrease the counter to prevent using stale volume info during
+        # pending volume commands that would skew the value in _expected_volume
+        self._volume_command_pending += 1
+        try:
+            await self._receiver.async_set_volume(volume_rel)
+        finally:
+            self._volume_command_pending -= 1
         self.events.emit(Events.UPDATE, self.id, {MediaAttr.VOLUME: volume_abs})
         if not self._use_telnet or self._update_lock.locked():
             self._expected_volume = volume_abs
