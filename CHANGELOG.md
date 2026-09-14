@@ -9,10 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Changes in the next release_
 
+---
+
+## v0.18.0 - 2026-09-14
+### Fixed
+- Invalid calculated volume by @henrikwidlund ([#231](https://github.com/unfoldedcircle/integration-denonavr/pull/231)).
+- Update denonavr library to reduce log spamming and handle max res "NO" value by @unfoldedcircle ([#233](https://github.com/unfoldedcircle/integration-denonavr/pull/233)).
 ### Changed
 - Switched translation management from Crowdin to SimpleLocalize.
-
----
+- Updated dependencies.
+- Updated GitHub build action dependencies and switched to a native arm64 runner for bundling.
 
 ## v0.17.0 - 2026-07-01
 ### Fixed
