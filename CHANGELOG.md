@@ -11,6 +11,11 @@ _Changes in the next release_
 
 ---
 
+## v0.18.1 - 2026-10-19
+### Changed
+- Update denonavr library to improve volume handling and refreshing sources by @unfoldedcircle ([#242](https://github.com/unfoldedcircle/integration-denonavr/pull/242)).
+- Updated dependencies.
+
 ## v0.18.0 - 2026-09-14
 ### Fixed
 - Invalid calculated volume by @henrikwidlund ([#231](https://github.com/unfoldedcircle/integration-denonavr/pull/231)).
