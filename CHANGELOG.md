@@ -11,6 +11,10 @@ _Changes in the next release_
 
 ---
 
+## v0.18.2 - 2026-10-19
+### Changed
+- Update pyinstaller, websockets and zeroconf packages ([#244](https://github.com/unfoldedcircle/integration-denonavr/pull/244)).
+
 ## v0.18.1 - 2026-10-19
 ### Changed
 - Update denonavr library to improve volume handling and refreshing sources by @unfoldedcircle ([#242](https://github.com/unfoldedcircle/integration-denonavr/pull/242)).
