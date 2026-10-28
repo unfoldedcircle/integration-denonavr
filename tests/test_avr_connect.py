@@ -159,3 +159,43 @@ class TestConnect(IsolatedAsyncioTestCase):
 
         self.assertEqual(result, ucapi.StatusCodes.SERVICE_UNAVAILABLE)
         self.assertTrue(device.available)
+
+    async def test_stalled_first_attempt_is_restarted(self):
+        device = _device()
+        calls = 0
+
+        async def update():
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                await asyncio.Event().wait()
+
+        failure = AsyncMock()
+        with (
+            patch.object(avr, "CONNECT_STALL_TIMEOUT", 0.01),
+            patch.object(device._receiver, "async_update", side_effect=update),
+            patch.object(device, "_handle_connection_failure", failure),
+        ):
+            await device.connect()
+
+        self.assertEqual(calls, 2)
+        failure.assert_not_awaited()
+        self.assertTrue(device.active)
+
+    async def test_only_first_attempt_is_limited(self):
+        device = _device()
+        calls = 0
+
+        async def update():
+            nonlocal calls
+            calls += 1
+            await asyncio.sleep(0.05)
+
+        with (
+            patch.object(avr, "CONNECT_STALL_TIMEOUT", 0.01),
+            patch.object(device._receiver, "async_update", side_effect=update),
+        ):
+            await device.connect()
+
+        self.assertEqual(calls, 2)
+        self.assertTrue(device.active)

@@ -43,6 +43,12 @@ SETUP_TIMEOUT = 5000
 BACKOFF_MAX: float = 30
 MIN_RECONNECT_DELAY: float = 0.5
 BACKOFF_FACTOR: float = 1.5
+CONNECT_STALL_TIMEOUT: float = 0.5
+"""Seconds before the first connect attempt of a connect task is started again.
+
+After wake-up, the WiFi link of the remote can go down for a short time during the connect. Lost packets then
+wait for the TCP retransmit timeout or the configured timeout. A normal connect takes about 0.2s.
+"""
 CONNECT_WAIT_FOR_COMMAND: float = 3.0
 """Maximum time in seconds a command waits for a running connect to finish."""
 NETWORK_RETRY_DELAY: float = 0.05
@@ -597,6 +603,7 @@ class DenonDevice:
         try:
             request_start = time.time()
             connect_start = time.monotonic()
+            stall_timeout: float | None = CONNECT_STALL_TIMEOUT
             success = False
             _LOG.debug("Starting connection task for %s", self.id)
 
@@ -606,22 +613,30 @@ class DenonDevice:
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
 
-                    if self._use_telnet:
-                        await self._receiver.async_telnet_connect()
-                        self._receiver.clear_duplicate_event_cache()
-                        await self._receiver.async_update()
-                        for event in SUBSCRIBED_TELNET_EVENTS:
-                            self._receiver.register_callback(event, self._telnet_callback)
-                        # TODO: Uncomment once we have use for Audyssey information
-                        # if self._update_audyssey:
-                        #     await self._receiver.async_update_audyssey()
-                    else:
-                        self._receiver.clear_duplicate_event_cache()
-                        await self._receiver.async_update()
+                    async with asyncio.timeout(stall_timeout):
+                        if self._use_telnet:
+                            await self._receiver.async_telnet_connect()
+                            self._receiver.clear_duplicate_event_cache()
+                            await self._receiver.async_update()
+                            for event in SUBSCRIBED_TELNET_EVENTS:
+                                self._receiver.register_callback(event, self._telnet_callback)
+                            # TODO: Uncomment once we have use for Audyssey information
+                            # if self._update_audyssey:
+                            #     await self._receiver.async_update_audyssey()
+                        else:
+                            self._receiver.clear_duplicate_event_cache()
+                            await self._receiver.async_update()
 
                     success = True
                     self._connection_attempts = 0
                     self._reconnect_delay = MIN_RECONNECT_DELAY
+                except TimeoutError as ex:
+                    if stall_timeout is None:
+                        await self._handle_connection_failure(time.time() - request_start, ex)
+                    else:
+                        # Only the first attempt is limited, a slow receiver can still connect
+                        _LOG.info("[%s] Connect stalled after %.1fs, trying again", self.id, stall_timeout)
+                        stall_timeout = None
                 except DenonAvrError as ex:
                     # The network is often not ready right after wake-up
                     if _is_network_error(ex) and time.monotonic() - connect_start < NETWORK_RETRY_WINDOW:
