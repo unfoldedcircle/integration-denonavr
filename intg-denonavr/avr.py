@@ -17,7 +17,15 @@ from urllib import parse
 
 import denonavr
 from denonavr.const import ALL_ZONES, STATE_OFF, STATE_ON, STATE_PAUSED, STATE_PLAYING
-from denonavr.exceptions import AvrCommandError, AvrForbiddenError, AvrNetworkError, AvrTimoutError, DenonAvrError
+from denonavr.exceptions import (
+    AvrCommandError,
+    AvrForbiddenError,
+    AvrInvalidResponseError,
+    AvrNetworkError,
+    AvrTimoutError,
+    DenonAvrError,
+)
+import httpx
 from pyee.asyncio import AsyncIOEventEmitter
 import ucapi
 from ucapi.media_player import Attributes as MediaAttr
@@ -35,6 +43,10 @@ SETUP_TIMEOUT = 5000
 BACKOFF_MAX: float = 30
 MIN_RECONNECT_DELAY: float = 0.5
 BACKOFF_FACTOR: float = 1.5
+NETWORK_RETRY_DELAY: float = 0.05
+"""Delay in seconds between connect attempts while the network is not ready."""
+NETWORK_RETRY_WINDOW: float = 3.0
+"""Time in seconds from the start of a connect task in which network errors are retried with NETWORK_RETRY_DELAY."""
 
 DISCOVERY_AFTER_CONNECTION_ERRORS = 10
 
@@ -209,6 +221,14 @@ def async_handle_denonlib_errors(
     return wrapper
 
 
+def _is_network_error(ex: DenonAvrError) -> bool:
+    """Return True if the error is caused by a network problem."""
+    if isinstance(ex, (AvrNetworkError, AvrTimoutError)):
+        return True
+    # A closed connection is reported as an invalid response
+    return isinstance(ex, AvrInvalidResponseError) and isinstance(ex.__cause__, httpx.RemoteProtocolError)
+
+
 class DenonDevice:
     """Representing a Denon/Marantz AVR Device."""
 
@@ -252,6 +272,7 @@ class DenonDevice:
         self._volume_command_pending: int = 0
         self._all_zone_stereo: str | None = None
         self._connecting: bool = False
+        self._connect_task: asyncio.Task[Any] | None = None
         self._connection_attempts: int = 0
         self._reconnect_delay: float = MIN_RECONNECT_DELAY
 
@@ -561,8 +582,10 @@ class DenonDevice:
             return
 
         self._connecting = True
+        self._connect_task = asyncio.current_task()
         try:
             request_start = time.time()
+            connect_start = time.monotonic()
             success = False
             _LOG.debug("Starting connection task for %s", self.id)
 
@@ -589,6 +612,14 @@ class DenonDevice:
                     self._connection_attempts = 0
                     self._reconnect_delay = MIN_RECONNECT_DELAY
                 except DenonAvrError as ex:
+                    # The network is often not ready right after wake-up
+                    if _is_network_error(ex) and time.monotonic() - connect_start < NETWORK_RETRY_WINDOW:
+                        _LOG.info("Network may not be ready yet, trying again in %.2fs. %s", NETWORK_RETRY_DELAY, ex)
+                        await asyncio.sleep(NETWORK_RETRY_DELAY)
+                    else:
+                        await self._handle_connection_failure(time.time() - request_start, ex)
+                except Exception as ex:  # noqa: BLE001
+                    _LOG.exception("[%s] Unexpected error while connecting", self.id)
                     await self._handle_connection_failure(time.time() - request_start, ex)
             if self.id != self._receiver.serial_number:
                 _LOG.warning(
@@ -610,6 +641,7 @@ class DenonDevice:
             _LOG.info("Connect finished in %s", time.time() - request_start)
         finally:
             self._connecting = False
+            self._connect_task = None
 
     async def _handle_connection_failure(self, connect_duration: float, ex: Exception) -> None:
         self._connection_attempts += 1
@@ -654,11 +686,10 @@ class DenonDevice:
         """Disconnect from AVR."""
         _LOG.debug("Disconnect %s", self.id)
         self._reconnect_delay = MIN_RECONNECT_DELAY
-        # Note: disconnecting during a connection task is currently not supported!
-        # Simply setting self._connecting = False doesn't work, and will start even more connection tasks after wakeup!
-        # This requires a state machine, or at least a separate connection task which can be cancelled.
-        if self._connecting:
-            return
+        # Stop a running connect, it would otherwise leave the connection open during standby
+        if (task := self._connect_task) is not None and task is not asyncio.current_task():
+            task.cancel()
+            await asyncio.wait([task])
         self._active = False
 
         try:
@@ -705,9 +736,11 @@ class DenonDevice:
             # or reconnecting.
             # TODO: is this still needed?
             if (telnet_is_healthy := self._telnet_healthy) and self._telnet_was_healthy:
+                # async_update also sends the advanced info commands
                 if force:
                     await receiver.async_update()
-                await receiver.async_trigger_advanced_audio_video_info_update()
+                else:
+                    await receiver.async_trigger_advanced_audio_video_info_update()
                 self._resync_expected_volume()
                 self._notify_updated_data()
                 return

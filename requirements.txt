@@ -1,4 +1,4 @@
 pyee~=13.0.1
 typing_extensions>=4.16.0
 ucapi==0.7.0
-denonavr@git+https://github.com/henrikwidlund/denonavr.git@5ec11bef6c07b681eca823582c3451ab10d3257c
+denonavr@git+https://github.com/henrikwidlund/denonavr.git@663d78cf4fb7cfb5f5770dbff86d611bd0479e2c

@@ -465,6 +465,10 @@ async def main():
     logging.getLogger("receiver").setLevel(level)
     logging.getLogger("setup_flow").setLevel(level)
     logging.getLogger("sensor").setLevel(level)
+    # ucapi sets these loggers to DEBUG on import
+    logging.getLogger("ucapi.api").setLevel(level)
+    logging.getLogger("ucapi.entities").setLevel(level)
+    logging.getLogger("ucapi.entity").setLevel(level)
 
     config.devices = config.Devices(api.config_dir_path, on_device_added, on_device_removed)
     for device in config.devices.all():
