@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, patch
 
 from denonavr.exceptions import AvrCommandError, AvrInvalidResponseError, AvrNetworkError, AvrTimoutError
 import httpx
+import ucapi
 
 import avr
 from config import AvrDevice
@@ -115,3 +116,46 @@ class TestConnect(IsolatedAsyncioTestCase):
         self.assertTrue(task.cancelled())
         self.assertFalse(device.active)
         self.assertIsNone(device._connect_task)
+
+    async def test_command_waits_for_running_connect(self):
+        device = _device()
+        release = asyncio.Event()
+        volume_down = AsyncMock()
+
+        async def update():
+            await release.wait()
+
+        with (
+            patch.object(device._receiver, "async_update", side_effect=update),
+            patch.object(device._receiver, "async_volume_down", volume_down),
+        ):
+            connect = asyncio.create_task(device.connect())
+            await asyncio.sleep(0)
+            command = asyncio.create_task(device.volume_down())
+            await asyncio.sleep(0.01)
+            volume_down.assert_not_awaited()
+
+            release.set()
+            await connect
+            result = await command
+
+        self.assertEqual(result, ucapi.StatusCodes.OK)
+        volume_down.assert_awaited_once()
+
+    async def test_command_fails_when_connect_does_not_finish(self):
+        device = _device()
+
+        async def update():
+            await asyncio.Event().wait()
+
+        with (
+            patch.object(avr, "CONNECT_WAIT_FOR_COMMAND", 0.01),
+            patch.object(device._receiver, "async_update", side_effect=update),
+        ):
+            connect = asyncio.create_task(device.connect())
+            await asyncio.sleep(0)
+            result = await device.volume_down()
+            connect.cancel()
+
+        self.assertEqual(result, ucapi.StatusCodes.SERVICE_UNAVAILABLE)
+        self.assertTrue(device.available)

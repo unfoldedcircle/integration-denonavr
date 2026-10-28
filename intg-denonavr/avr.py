@@ -43,6 +43,8 @@ SETUP_TIMEOUT = 5000
 BACKOFF_MAX: float = 30
 MIN_RECONNECT_DELAY: float = 0.5
 BACKOFF_FACTOR: float = 1.5
+CONNECT_WAIT_FOR_COMMAND: float = 3.0
+"""Maximum time in seconds a command waits for a running connect to finish."""
 NETWORK_RETRY_DELAY: float = 0.05
 """Delay in seconds between connect attempts while the network is not ready."""
 NETWORK_RETRY_WINDOW: float = 3.0
@@ -149,6 +151,15 @@ def async_handle_denonlib_errors(
 
     @wraps(func)
     async def wrapper(self: _DenonDeviceT, *args: _P.args, **kwargs: _P.kwargs) -> ucapi.StatusCodes:
+        # A command right after wake-up arrives while the connect is still running
+        connect_task = self._connect_task  # pyright: ignore[reportPrivateUsage]
+        if connect_task is not None and connect_task is not asyncio.current_task():
+            start = time.monotonic()
+            await asyncio.wait([connect_task], timeout=CONNECT_WAIT_FOR_COMMAND)
+            _LOG.debug("[%s] Command waited %.2fs for connect", self.id, time.monotonic() - start)
+            if not self.active:
+                return ucapi.StatusCodes.SERVICE_UNAVAILABLE
+
         available = True
         result: ucapi.StatusCodes = ucapi.StatusCodes.SERVER_ERROR
         try:
