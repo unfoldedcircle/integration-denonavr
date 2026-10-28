@@ -118,7 +118,9 @@ class TestConnect(IsolatedAsyncioTestCase):
         self.assertIsNone(device._connect_task)
 
     async def test_command_waits_for_running_connect(self):
+    async def test_connect_updates_expected_volume(self):
         device = _device()
+        device._expected_volume = 10.0
         release = asyncio.Event()
         volume_down = AsyncMock()
 
@@ -217,6 +219,7 @@ class TestConnect(IsolatedAsyncioTestCase):
         volume_down_mock = AsyncMock(side_effect=volume_down)
         with (
             patch.object(device._receiver, "async_update", AsyncMock()),
+            patch.object(type(device), "volume_level", new_callable=PropertyMock, return_value=40.0),
             patch.object(device._receiver, "async_volume_down", volume_down_mock),
         ):
             result = await device.volume_down()
@@ -251,6 +254,7 @@ class TestConnect(IsolatedAsyncioTestCase):
         ):
             await device.connect()
 
+        self.assertEqual(device._expected_volume, 40.0)
         self.assertEqual(calls, 1)
         self.assertTrue(device.active)
 
