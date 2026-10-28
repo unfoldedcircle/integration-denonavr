@@ -606,6 +606,8 @@ class DenonDevice:
 
             self._active = True
             self._expected_state = self._map_denonavr_state(self._receiver.state)
+            # The volume from before standby can be outdated
+            self._resync_expected_volume()
             self.events.emit(Events.CONNECTED, self.id)
             _LOG.info("Connect finished in %s", time.time() - request_start)
         finally:

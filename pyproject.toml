@@ -58,6 +58,7 @@ convention = "pep257"
 [tool.ruff.lint.per-file-ignores]
 "tests/test_denon_remote.py" = ["SLF001"]
 "tests/test_simplecommand.py" = ["SLF001"]
+"tests/test_avr_connect.py" = ["SLF001"]
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
