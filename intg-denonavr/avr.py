@@ -44,11 +44,13 @@ BACKOFF_MAX: float = 30
 MIN_RECONNECT_DELAY: float = 0.5
 BACKOFF_FACTOR: float = 1.5
 CONNECT_STALL_TIMEOUT: float = 0.5
-"""Seconds before the first connect attempt of a connect task is started again.
+"""Seconds before a connect attempt is started again.
 
 After wake-up, the WiFi link of the remote can go down for a short time during the connect. Lost packets then
 wait for the TCP retransmit timeout or the configured timeout. A normal connect takes about 0.2s.
 """
+CONNECT_STALL_RESTARTS: int = 2
+"""Maximum number of stalled connect attempts started again in one connect task."""
 CONNECT_WAIT_FOR_COMMAND: float = 3.0
 """Maximum time in seconds a command waits for a running connect to finish."""
 NETWORK_RETRY_DELAY: float = 0.05
@@ -158,18 +160,27 @@ def async_handle_denonlib_errors(
     @wraps(func)
     async def wrapper(self: _DenonDeviceT, *args: _P.args, **kwargs: _P.kwargs) -> ucapi.StatusCodes:
         # A command right after wake-up arrives while the connect is still running
-        connect_task = self._connect_task  # pyright: ignore[reportPrivateUsage]
-        if connect_task is not None and connect_task is not asyncio.current_task():
-            start = time.monotonic()
-            await asyncio.wait([connect_task], timeout=CONNECT_WAIT_FOR_COMMAND)
-            _LOG.debug("[%s] Command waited %.2fs for connect", self.id, time.monotonic() - start)
-            if not self.active:
-                return ucapi.StatusCodes.SERVICE_UNAVAILABLE
+        if await self._wait_for_connect() is False:  # pyright: ignore[reportPrivateUsage]
+            return ucapi.StatusCodes.SERVICE_UNAVAILABLE
 
+        was_active = self.active
         available = True
         result: ucapi.StatusCodes = ucapi.StatusCodes.SERVER_ERROR
         try:
-            func_result = await func(self, *args, **kwargs)
+            try:
+                func_result = await func(self, *args, **kwargs)
+            except (AvrTimoutError, AvrNetworkError):
+                # The command can arrive before the connect after wake-up has started
+                if was_active:
+                    raise
+                if await self._wait_for_connect() is False:  # pyright: ignore[reportPrivateUsage]
+                    available = False
+                    return ucapi.StatusCodes.SERVICE_UNAVAILABLE
+                if not self.active:
+                    raise
+                # The failed attempt can have changed the expected volume
+                self._resync_expected_volume()  # pyright: ignore[reportPrivateUsage]
+                func_result = await func(self, *args, **kwargs)
             if func_result is not None:
                 return func_result
             return ucapi.StatusCodes.OK
@@ -603,7 +614,7 @@ class DenonDevice:
         try:
             request_start = time.time()
             connect_start = time.monotonic()
-            stall_timeout: float | None = CONNECT_STALL_TIMEOUT
+            stall_restarts = CONNECT_STALL_RESTARTS
             success = False
             _LOG.debug("Starting connection task for %s", self.id)
 
@@ -613,7 +624,7 @@ class DenonDevice:
                     self.events.emit(Events.CONNECTING, self.id)
                     request_start = time.time()
 
-                    async with asyncio.timeout(stall_timeout):
+                    async with asyncio.timeout(CONNECT_STALL_TIMEOUT if stall_restarts > 0 else None):
                         if self._use_telnet:
                             await self._receiver.async_telnet_connect()
                             self._receiver.clear_duplicate_event_cache()
@@ -631,12 +642,12 @@ class DenonDevice:
                     self._connection_attempts = 0
                     self._reconnect_delay = MIN_RECONNECT_DELAY
                 except TimeoutError as ex:
-                    if stall_timeout is None:
+                    if stall_restarts == 0:
                         await self._handle_connection_failure(time.time() - request_start, ex)
                     else:
-                        # Only the first attempt is limited, a slow receiver can still connect
-                        _LOG.info("[%s] Connect stalled after %.1fs, trying again", self.id, stall_timeout)
-                        stall_timeout = None
+                        # Restarts are limited, a slow receiver can still connect
+                        _LOG.info("[%s] Connect stalled after %.1fs, trying again", self.id, CONNECT_STALL_TIMEOUT)
+                        stall_restarts -= 1
                 except DenonAvrError as ex:
                     # The network is often not ready right after wake-up
                     if _is_network_error(ex) and time.monotonic() - connect_start < NETWORK_RETRY_WINDOW:
@@ -668,6 +679,19 @@ class DenonDevice:
         finally:
             self._connecting = False
             self._connect_task = None
+
+    async def _wait_for_connect(self) -> bool | None:
+        """Wait for a running connect task.
+
+        :return: None if no connect task is running, otherwise True if connected.
+        """
+        task = self._connect_task
+        if task is None or task is asyncio.current_task():
+            return None
+        start = time.monotonic()
+        await asyncio.wait([task], timeout=CONNECT_WAIT_FOR_COMMAND)
+        _LOG.debug("[%s] Command waited %.2fs for connect", self.id, time.monotonic() - start)
+        return self._active
 
     async def _handle_connection_failure(self, connect_duration: float, ex: Exception) -> None:
         self._connection_attempts += 1

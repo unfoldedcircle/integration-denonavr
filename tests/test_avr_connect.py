@@ -182,7 +182,7 @@ class TestConnect(IsolatedAsyncioTestCase):
         failure.assert_not_awaited()
         self.assertTrue(device.active)
 
-    async def test_only_first_attempt_is_limited(self):
+    async def test_stall_restarts_are_limited(self):
         device = _device()
         calls = 0
 
@@ -197,5 +197,39 @@ class TestConnect(IsolatedAsyncioTestCase):
         ):
             await device.connect()
 
-        self.assertEqual(calls, 2)
+        self.assertEqual(calls, avr.CONNECT_STALL_RESTARTS + 1)
         self.assertTrue(device.active)
+
+    async def test_command_retried_after_connect_started_during_command(self):
+        device = _device()
+        connect: asyncio.Task[None] | None = None
+        error = AvrNetworkError("down", "req")
+
+        async def volume_down():
+            nonlocal connect
+            if connect is None:
+                connect = asyncio.create_task(device.connect())
+                await asyncio.sleep(0)
+                raise error
+
+        volume_down_mock = AsyncMock(side_effect=volume_down)
+        with (
+            patch.object(device._receiver, "async_update", AsyncMock()),
+            patch.object(device._receiver, "async_volume_down", volume_down_mock),
+        ):
+            result = await device.volume_down()
+
+        self.assertEqual(result, ucapi.StatusCodes.OK)
+        self.assertEqual(volume_down_mock.await_count, 2)
+        self.assertTrue(device.available)
+        self.assertTrue(device.active)
+
+    async def test_command_network_error_without_connect_marks_unavailable(self):
+        device = _device()
+        volume_down = AsyncMock(side_effect=AvrNetworkError("down", "req"))
+        with patch.object(device._receiver, "async_volume_down", volume_down):
+            result = await device.volume_down()
+
+        self.assertEqual(result, ucapi.StatusCodes.SERVICE_UNAVAILABLE)
+        volume_down.assert_awaited_once()
+        self.assertFalse(device.available)
