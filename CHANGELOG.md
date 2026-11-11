@@ -11,19 +11,24 @@ _Changes in the next release_
 
 ---
 
+## v0.19.0 - 2026-11-11
+### Changed
+- Faster reconnect after wake-up by @henrikwidlund ([#249](https://github.com/unfoldedcircle/integration-denonavr/pull/244)).
+- Updated dependencies and GitHub Actions.
+
 ## v0.18.2 - 2026-10-19
 ### Changed
 - Update pyinstaller, websockets and zeroconf packages ([#244](https://github.com/unfoldedcircle/integration-denonavr/pull/244)).
 
 ## v0.18.1 - 2026-10-19
 ### Changed
-- Update denonavr library to improve volume handling and refreshing sources by @unfoldedcircle ([#242](https://github.com/unfoldedcircle/integration-denonavr/pull/242)).
+- Update denonavr library to improve volume handling and refreshing sources by @henrikwidlund ([#242](https://github.com/unfoldedcircle/integration-denonavr/pull/242)).
 - Updated dependencies.
 
 ## v0.18.0 - 2026-09-14
 ### Fixed
 - Invalid calculated volume by @henrikwidlund ([#231](https://github.com/unfoldedcircle/integration-denonavr/pull/231)).
-- Update denonavr library to reduce log spamming and handle max res "NO" value by @unfoldedcircle ([#233](https://github.com/unfoldedcircle/integration-denonavr/pull/233)).
+- Update denonavr library to reduce log spamming and handle max res "NO" value by @henrikwidlund ([#233](https://github.com/unfoldedcircle/integration-denonavr/pull/233)).
 ### Changed
 - Switched translation management from Crowdin to SimpleLocalize.
 - Updated dependencies.
