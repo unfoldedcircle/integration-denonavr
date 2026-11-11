@@ -198,11 +198,8 @@ async def on_avr_connected(avr_id: str):
 
     await api.set_device_state(ucapi.DeviceStates.CONNECTED)  # just to make sure the device state is set
 
-    # set the initial entity state to UNKNOWN, concrete state is set when updates are triggered / fetched
-    update: dict[str, Any] = {MediaAttr.STATE: avr.States.UNKNOWN}
-    for entity in _configured_entities_from_device(avr_id):
-        if isinstance(entity, DenonEntity):
-            entity.update_attributes(update)
+    # The connect has fetched the current state, send it at once
+    on_avr_update(avr_id, None)
 
 
 def on_avr_disconnected(avr_id: str):
@@ -465,6 +462,10 @@ async def main():
     logging.getLogger("receiver").setLevel(level)
     logging.getLogger("setup_flow").setLevel(level)
     logging.getLogger("sensor").setLevel(level)
+    # ucapi sets these loggers to DEBUG on import
+    logging.getLogger("ucapi.api").setLevel(level)
+    logging.getLogger("ucapi.entities").setLevel(level)
+    logging.getLogger("ucapi.entity").setLevel(level)
 
     config.devices = config.Devices(api.config_dir_path, on_device_added, on_device_removed)
     for device in config.devices.all():
