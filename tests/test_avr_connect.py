@@ -1,6 +1,6 @@
 import asyncio
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, PropertyMock, patch
 
 from denonavr.exceptions import AvrCommandError, AvrInvalidResponseError, AvrNetworkError, AvrTimoutError
 import httpx
@@ -162,6 +162,7 @@ class TestConnect(IsolatedAsyncioTestCase):
 
     async def test_stalled_first_attempt_is_restarted(self):
         device = _device()
+        device._last_connect_duration = 0.001
         calls = 0
 
         async def update():
@@ -184,6 +185,7 @@ class TestConnect(IsolatedAsyncioTestCase):
 
     async def test_stall_restarts_are_limited(self):
         device = _device()
+        device._last_connect_duration = 0.001
         calls = 0
 
         async def update():
@@ -233,3 +235,117 @@ class TestConnect(IsolatedAsyncioTestCase):
         self.assertEqual(result, ucapi.StatusCodes.SERVICE_UNAVAILABLE)
         volume_down.assert_awaited_once()
         self.assertFalse(device.available)
+
+    async def test_first_connect_without_history_is_not_restarted(self):
+        device = _device()
+        calls = 0
+
+        async def update():
+            nonlocal calls
+            calls += 1
+            await asyncio.sleep(0.05)
+
+        with (
+            patch.object(avr, "CONNECT_STALL_TIMEOUT", 0.01),
+            patch.object(device._receiver, "async_update", side_effect=update),
+        ):
+            await device.connect()
+
+        self.assertEqual(calls, 1)
+        self.assertTrue(device.active)
+
+    async def test_slow_receiver_is_not_restarted(self):
+        device = _device()
+        device._last_connect_duration = 0.7
+        calls = 0
+
+        async def update():
+            nonlocal calls
+            calls += 1
+            await asyncio.sleep(0.05)
+
+        with (
+            patch.object(avr, "CONNECT_STALL_TIMEOUT", 0.01),
+            patch.object(device._receiver, "async_update", side_effect=update),
+        ):
+            await device.connect()
+
+        self.assertEqual(calls, 1)
+        self.assertTrue(device.active)
+
+    async def test_stall_timeout_follows_last_connect_duration(self):
+        device = _device()
+        self.assertIsNone(device._stall_timeout())
+
+        device._last_connect_duration = 0.1
+        self.assertEqual(device._stall_timeout(), avr.CONNECT_STALL_TIMEOUT)
+
+        device._last_connect_duration = 0.4
+        self.assertAlmostEqual(device._stall_timeout(), 0.4 * avr.CONNECT_STALL_FACTOR)
+
+        device._last_connect_duration = 0.8
+        self.assertIsNone(device._stall_timeout())
+
+    async def test_command_does_not_wait_during_backoff(self):
+        device = _device()
+        device._connection_attempts = 1
+        release = asyncio.Event()
+
+        async def update():
+            await release.wait()
+
+        volume_down = AsyncMock(side_effect=AvrNetworkError("down", "req"))
+        with (
+            patch.object(avr, "CONNECT_WAIT_FOR_COMMAND", 10),
+            patch.object(device._receiver, "async_update", side_effect=update),
+            patch.object(device._receiver, "async_volume_down", volume_down),
+        ):
+            connect = asyncio.create_task(device.connect())
+            await asyncio.sleep(0)
+            result = await device.volume_down()
+            connect.cancel()
+
+        self.assertEqual(result, ucapi.StatusCodes.SERVICE_UNAVAILABLE)
+        volume_down.assert_awaited_once()
+
+    async def test_connect_during_disconnect_ends_connected(self):
+        device = _device()
+        calls = 0
+        started = asyncio.Event()
+
+        async def update():
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                started.set()
+                await asyncio.Event().wait()
+
+        with patch.object(device._receiver, "async_update", side_effect=update):
+            task = asyncio.create_task(device.connect())
+            await started.wait()
+            disconnect = asyncio.create_task(device.disconnect())
+            await asyncio.sleep(0)
+            await device.connect()
+            await disconnect
+
+        self.assertTrue(task.cancelled())
+        self.assertEqual(calls, 2)
+        self.assertTrue(device.active)
+        self.assertIsNone(device._connect_task)
+
+    async def test_forced_update_skips_advanced_info_trigger(self):
+        device = _device()
+        device._active = True
+        update = AsyncMock()
+        trigger = AsyncMock()
+        with (
+            patch.object(type(device), "_telnet_healthy", new_callable=PropertyMock, return_value=True),
+            patch.object(device._receiver, "async_update", update),
+            patch.object(device._receiver, "async_trigger_advanced_audio_video_info_update", trigger),
+        ):
+            device._telnet_was_healthy = True
+            device._use_telnet = True
+            await device.async_update_receiver_data(force=True)
+
+        update.assert_awaited_once()
+        trigger.assert_not_awaited()
