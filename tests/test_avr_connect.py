@@ -349,3 +349,81 @@ class TestConnect(IsolatedAsyncioTestCase):
 
         update.assert_awaited_once()
         trigger.assert_not_awaited()
+
+    async def test_connect_updates_expected_volume(self):
+        device = _device()
+        device._expected_volume = 10.0
+        with (
+            patch.object(device._receiver, "async_update", AsyncMock()),
+            patch.object(type(device), "volume_level", new_callable=PropertyMock, return_value=40.0),
+        ):
+            await device.connect()
+
+        self.assertEqual(device._expected_volume, 40.0)
+
+    async def test_volume_up_waiting_for_connect_uses_new_volume(self):
+        device = _device()
+        device._volume_step = 2.0
+        device._expected_volume = 56.0
+        release = asyncio.Event()
+
+        async def update():
+            await release.wait()
+
+        set_volume = AsyncMock()
+        with (
+            patch.object(type(device), "_telnet_healthy", new_callable=PropertyMock, return_value=True),
+            patch.object(type(device), "volume_level", new_callable=PropertyMock, return_value=30.0),
+            patch.object(type(device._receiver), "max_volume", new_callable=PropertyMock, return_value=18.0),
+            patch.object(device._receiver, "async_update", side_effect=update),
+            patch.object(device._receiver, "async_set_volume", set_volume),
+        ):
+            connect = asyncio.create_task(device.connect())
+            await asyncio.sleep(0)
+            command = asyncio.create_task(device.volume_up())
+            await asyncio.sleep(0.01)
+            set_volume.assert_not_awaited()
+
+            release.set()
+            await connect
+            result = await command
+
+        self.assertEqual(result, ucapi.StatusCodes.OK)
+        set_volume.assert_awaited_once_with(avr.absolute_volume_to_relative(32.0))
+        self.assertEqual(device._expected_volume, 32.0)
+
+    async def test_volume_up_while_not_connected_is_relative(self):
+        device = _device()
+        device._volume_step = 2.0
+        device._expected_volume = 56.0
+        volume_up = AsyncMock()
+        set_volume = AsyncMock()
+        with (
+            patch.object(type(device), "_telnet_healthy", new_callable=PropertyMock, return_value=True),
+            patch.object(device._receiver, "async_volume_up", volume_up),
+            patch.object(device._receiver, "async_set_volume", set_volume),
+        ):
+            result = await device.volume_up()
+
+        self.assertEqual(result, ucapi.StatusCodes.OK)
+        volume_up.assert_awaited_once()
+        set_volume.assert_not_awaited()
+        self.assertEqual(device._expected_volume, 56.0)
+
+    async def test_volume_down_while_not_connected_is_relative(self):
+        device = _device()
+        device._volume_step = 2.0
+        device._expected_volume = 56.0
+        volume_down = AsyncMock()
+        set_volume = AsyncMock()
+        with (
+            patch.object(type(device), "_telnet_healthy", new_callable=PropertyMock, return_value=True),
+            patch.object(device._receiver, "async_volume_down", volume_down),
+            patch.object(device._receiver, "async_set_volume", set_volume),
+        ):
+            result = await device.volume_down()
+
+        self.assertEqual(result, ucapi.StatusCodes.OK)
+        volume_down.assert_awaited_once()
+        set_volume.assert_not_awaited()
+        self.assertEqual(device._expected_volume, 56.0)
