@@ -1151,7 +1151,8 @@ class DenonDevice:
         # Workaround to stop increasing expected volume when it's already at max volume.
         # Otherwise, volume_down won't work until it reaches max volume!
         max_volume_rel = self._receiver.max_volume
-        if self._expected_volume is not None:
+        # The expected volume is only synced with the receiver while connected
+        if self._active and self._expected_volume is not None:
             expected_volume = min(self._expected_volume + self._volume_step, 100)
             volume_rel = absolute_volume_to_relative(expected_volume)
             if volume_rel > max_volume_rel:
@@ -1159,7 +1160,7 @@ class DenonDevice:
                 _LOG.debug("[%s] Expected volume up reached max: %s", self.id, expected_volume)
             self._expected_volume = expected_volume
 
-        if self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
+        if self._active and self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
             await self.set_volume_level(self._expected_volume)
         else:
             await self._receiver.async_volume_up()
@@ -1169,10 +1170,11 @@ class DenonDevice:
     @async_handle_denonlib_errors
     async def volume_down(self) -> ucapi.StatusCodes:
         """Send volume-down command to AVR."""
-        if self._expected_volume is not None:
+        # The expected volume is only synced with the receiver while connected
+        if self._active and self._expected_volume is not None:
             self._expected_volume = max(self._expected_volume - self._volume_step, 0)
 
-        if self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
+        if self._active and self._telnet_healthy and self._expected_volume is not None and self._volume_step != 0.5:
             await self.set_volume_level(self._expected_volume)
         else:
             await self._receiver.async_volume_down()
